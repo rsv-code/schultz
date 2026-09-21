@@ -6,7 +6,7 @@ var searchData=
   ['click_5fcount_3',['click_count',['../structschultz__event.html#af4fb2e1df821160bad6550bbd8ad964e',1,'schultz_event']]],
   ['clickable_4',['clickable',['../structschultz__span.html#a809c75dc87d00118615666b1c14a6ed3',1,'schultz_span']]],
   ['clickable_5fspan_5',['clickable_span',['../structschultz__widget__vtable.html#a44614a7f4bc02bf5208759690a57ed5f',1,'schultz_widget_vtable']]],
-  ['clip_5fbegin_6',['clip_begin',['../structschultz__draw__cmd.html#a1a3688e10a2e6171a72722532b1c7fbd',1,'schultz_draw_cmd::clip_begin'],['../structschultz__painter__vtable.html#a3e900787d723a1559f81b85c6952a3cf',1,'schultz_painter_vtable::clip_begin']]],
+  ['clip_5fbegin_6',['clip_begin',['../structschultz__draw__cmd.html#af8ece910838ee9d720ce98b9cec3805a',1,'schultz_draw_cmd::clip_begin'],['../structschultz__painter__vtable.html#a3e900787d723a1559f81b85c6952a3cf',1,'schultz_painter_vtable::clip_begin']]],
   ['clip_5fend_7',['clip_end',['../structschultz__painter__vtable.html#a9812b48893b32f9b54a6ead7878f0c1d',1,'schultz_painter_vtable']]],
   ['clusters_8',['clusters',['../structschultz__text__run.html#a84933b35355584e6df4673c04ebb466c',1,'schultz_text_run']]],
   ['color_9',['color',['../structschultz__value.html#a9fbda68b06fde2e2fc15fa581a601a8f',1,'schultz_value::color'],['../structschultz__span.html#a13e7247283dc150a68aab7a60b37b037',1,'schultz_span::color'],['../structschultz__shadow.html#a3bb0de73da45fe4f720230638c68e517',1,'schultz_shadow::color'],['../structschultz__paint.html#ac7e899a5e4b630e5587e9dc55eefa78b',1,'schultz_paint::color'],['../structschultz__gradient__stop.html#a44d65695adce44c71eb5eeb88ca6cd9c',1,'schultz_gradient_stop::color']]],

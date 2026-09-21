@@ -55,12 +55,69 @@ extern "C" {
 #endif
 
 
-/** @brief Library version, compiled in. */
-enum {
-    SCHULTZ_VERSION_MAJOR = 0,
-    SCHULTZ_VERSION_MINOR = 1,
-    SCHULTZ_VERSION_PATCH = 0
-};
+/**
+ * @brief The version this header describes.
+ *
+ * Macros rather than an enum, because an enum constant is invisible to the
+ * preprocessor: a caller writing
+ *
+ *     #if SCHULTZ_VERSION_MAJOR >= 1
+ *
+ * against an enum gets the name treated as zero and no warning about it,
+ * which is the one thing a version number is for.
+ *
+ * These say what was **compiled** against. schultz_version says what is
+ * **running**, and on a shared library the two need not agree.
+ *
+ * While the major number is zero nothing here is promised: the interface may
+ * change in any release, and a caller should pin an exact version. What the
+ * numbers will mean from 1.0 onward is in the project's README.
+ */
+#define SCHULTZ_VERSION_MAJOR  0
+/**< Changes when something that existed is changed or taken away. */
+#define SCHULTZ_VERSION_MINOR  1
+/**< Changes when something is added and nothing existing moves. */
+#define SCHULTZ_VERSION_PATCH  0
+/**< Changes when only the implementation did. */
+
+/** @brief What follows the numbers, such as "-alpha". Empty for a release. */
+#define SCHULTZ_VERSION_LABEL "-alpha"
+
+/**
+ * @cond
+ *
+ * Turning a macro's value into a string takes two steps: the inner one
+ * expands the argument, the outer one quotes what came out. One step alone
+ * quotes the name. Not part of the interface; they exist for the line below.
+ */
+#define SCHULTZ_QUOTE_(x) #x
+#define SCHULTZ_QUOTE(x)  SCHULTZ_QUOTE_(x)
+/** @endcond */
+
+/**
+ * @brief The same version as text, with any pre-release label on the end.
+ *
+ * The numbers above are for comparing; this is for showing and for logging.
+ * Built from those same three numbers rather than written out again, so a
+ * release is one edit and the two cannot disagree. The label is the only
+ * part written by hand, because "alpha" is not an integer.
+ */
+#define SCHULTZ_VERSION_STRING \
+    SCHULTZ_QUOTE(SCHULTZ_VERSION_MAJOR) "." \
+    SCHULTZ_QUOTE(SCHULTZ_VERSION_MINOR) "." \
+    SCHULTZ_QUOTE(SCHULTZ_VERSION_PATCH) SCHULTZ_VERSION_LABEL
+
+/**
+ * @brief The version of the library that is actually loaded.
+ *
+ * Worth asking because it need not match SCHULTZ_VERSION_STRING. A program
+ * compiles against one set of headers and, where Schultz is a shared library,
+ * may be run against another build entirely. The header answers the first
+ * question and this answers the second.
+ *
+ * @return A NUL terminated string owned by the library. Never NULL.
+ */
+const char *schultz_version(void);
 
 /**
  * @brief Opaque object identity.

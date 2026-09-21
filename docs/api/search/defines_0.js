@@ -7,5 +7,10 @@ var searchData=
   ['schultz_5fsize_5funset_4',['SCHULTZ_SIZE_UNSET',['../schultz__layout_8h.html#a3303506ca40b1842938af263c9fe1480',1,'schultz_layout.h']]],
   ['schultz_5fspan_5fnone_5',['SCHULTZ_SPAN_NONE',['../schultz__event_8h.html#ae4543c1ff56ad196a854ea92df80b8f6',1,'schultz_event.h']]],
   ['schultz_5ftree_5fdirty_5fparts_6',['SCHULTZ_TREE_DIRTY_PARTS',['../schultz__node_8h.html#a3d73803765fa0519bbea51504727265e',1,'schultz_node.h']]],
-  ['schultz_5ftree_5fdirty_5fwaste_7',['SCHULTZ_TREE_DIRTY_WASTE',['../schultz__node_8h.html#a399cc4cdb0bdffa7969f821e9804ec67',1,'schultz_node.h']]]
+  ['schultz_5ftree_5fdirty_5fwaste_7',['SCHULTZ_TREE_DIRTY_WASTE',['../schultz__node_8h.html#a399cc4cdb0bdffa7969f821e9804ec67',1,'schultz_node.h']]],
+  ['schultz_5fversion_5flabel_8',['SCHULTZ_VERSION_LABEL',['../schultz_8h.html#ae2428fb186b760cf2da8d594c7fdda57',1,'schultz.h']]],
+  ['schultz_5fversion_5fmajor_9',['SCHULTZ_VERSION_MAJOR',['../schultz_8h.html#a2eed9541076dc39bc8e9c7f3b358e606',1,'schultz.h']]],
+  ['schultz_5fversion_5fminor_10',['SCHULTZ_VERSION_MINOR',['../schultz_8h.html#afe51c5ae60bbf4df527818db6984dafc',1,'schultz.h']]],
+  ['schultz_5fversion_5fpatch_11',['SCHULTZ_VERSION_PATCH',['../schultz_8h.html#ac166a3574d2d870b787bc7c22209e088',1,'schultz.h']]],
+  ['schultz_5fversion_5fstring_12',['SCHULTZ_VERSION_STRING',['../schultz_8h.html#a70c6dbd2e1724705a829b0664d6037cb',1,'schultz.h']]]
 ];

@@ -134,6 +134,41 @@ GPL and a commercial licence has to remain possible. Exact versions, licence
 texts, patent grants, and the components bundled inside these libraries are
 in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
+## Versioning
+
+Schultz is **0.1.0-alpha**. While the major number is zero, nothing here is
+promised: any release may change or remove anything, so pin an exact version.
+
+From 1.0 the numbers mean what they mean for a C library, which is about what
+already-built programs experience rather than about how large the change was:
+
+| What changed | Old source still compiles | Old binaries still run | Bump |
+|---|---|---|---|
+| Only the implementation | yes | yes | patch |
+| Something **added** to a header | yes | yes | minor |
+| Something existing **changed or removed** | no | no | major |
+
+The trap worth naming, because it catches anyone arriving from a language
+with a package manager: **adding a field to a public struct is a major
+change.** A program compiled against the old header allocates the old, smaller
+struct, and the new library then reads past the end of it. That is why
+everything with state in Schultz is behind an opaque 64 bit handle, and why
+the structs that are public are mostly value types with no room to grow.
+
+Three numbers to tell apart:
+
+- `SCHULTZ_VERSION_MAJOR`, `_MINOR`, `_PATCH` in `schultz.h` say what you
+  **compiled** against, and being macros they work in `#if`.
+- `schultz_version()` says what is **running**, which on a shared library need
+  not be the same.
+- The soname, `libschultz.so.0`, is what the loader matches on. It follows the
+  major number, so every build against any 0.x keeps loading and a 1.0 does
+  not.
+
+All of it comes from the three `#define`s in `schultz.h`. The Makefile reads
+them, and the shared library's name, the `pkg-config` file and the API
+reference all follow, so a release is one edit.
+
 ## License
 
 Copyright 2026 Austin Lehman.

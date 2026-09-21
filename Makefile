@@ -39,6 +39,26 @@ LDLIBS   := -lstdc++ -lm
 TARGET   := schultz_demo
 BUILD    ?= build
 
+# The version, read out of the header rather than written here as well.
+#
+# schultz.h is where a host reads it from, so schultz.h is where it lives.
+# Every other place that needs it -- the shared library's name, the API
+# reference's title -- takes it from there, so that a release is one edit and
+# cannot end up saying two things.
+SCHULTZ_VERSION_MAJOR := $(shell sed -n 's/^#define SCHULTZ_VERSION_MAJOR *//p' schultz.h)
+SCHULTZ_VERSION_MINOR := $(shell sed -n 's/^#define SCHULTZ_VERSION_MINOR *//p' schultz.h)
+SCHULTZ_VERSION_PATCH := $(shell sed -n 's/^#define SCHULTZ_VERSION_PATCH *//p' schultz.h)
+SCHULTZ_VERSION := $(SCHULTZ_VERSION_MAJOR).$(SCHULTZ_VERSION_MINOR).$(SCHULTZ_VERSION_PATCH)
+
+# What the loader matches on, which is not the release number.
+#
+# It changes only when a program compiled against an older Schultz would stop
+# working: a signature that changed, a public struct that grew, an enum value
+# that moved. A release that only adds leaves this alone, so every binary
+# built against any 0.x keeps loading. While the major number is zero there
+# is nothing to promise, so the two move together; from 1.0 they part.
+SCHULTZ_ABI := $(SCHULTZ_VERSION_MAJOR)
+
 # Vendored dependencies, built per target by scripts/build_deps.sh.
 # Which target's dependencies to link against. The host by default; set it on
 # the command line to use another, for example
@@ -272,7 +292,12 @@ SHARED       := $(BUILD)/libschultz.dylib
 SHARED_IMP   :=
 SHARED_LIST  := $(BUILD)/schultz.syms
 else
-SHARED       := $(BUILD)/libschultz.so
+# The file is the release; the soname is the ABI; libschultz.so is what a
+# linker looks for. Three names, one file, which is the ordinary layout for a
+# shared library and the reason an old binary keeps loading an old library
+# after a new one is installed beside it.
+SHARED       := $(BUILD)/libschultz.so.$(SCHULTZ_VERSION)
+SHARED_SONAME := libschultz.so.$(SCHULTZ_ABI)
 SHARED_IMP   :=
 SHARED_LIST  := $(BUILD)/schultz.map
 endif
@@ -735,6 +760,8 @@ $(SHARED): $(LIB_ALL) $(SHARED_LIST) | $(BUILD)
 	      -Wl,-force_load,$(LIB_ALL) \
 	      -Wl,-exported_symbols_list,$(SHARED_LIST) \
 	      -install_name @rpath/$(notdir $(SHARED)) \
+	      -compatibility_version $(SCHULTZ_ABI).0.0 \
+	      -current_version $(SCHULTZ_VERSION) \
 	      $(SHARED_RUNTIME) $(SHARED_DEPS_LIBS) $(SHARED_LDLIBS)
 	@echo "shared: $@"
 else
@@ -748,9 +775,13 @@ $(SHARED): $(LIB_ALL) $(SHARED_LIST) | $(BUILD)
 	      -Wl,-z,relro -Wl,-z,now \
 	      -Wl,--whole-archive $(LIB_ALL) -Wl,--no-whole-archive \
 	      -Wl,--version-script=$(SHARED_LIST) \
-	      -Wl,-soname,$(notdir $(SHARED)) \
+	      -Wl,-soname,$(SHARED_SONAME) \
 	      -Wl,--as-needed $(SHARED_RUNTIME) $(SHARED_DEPS_LIBS) $(SHARED_LDLIBS)
-	@echo "shared: $@"
+	@# The soname is what a program records and what the loader then looks
+	@# for, so without this link the library cannot be loaded from here.
+	ln -sf $(notdir $(SHARED)) $(BUILD)/$(SHARED_SONAME)
+	ln -sf $(SHARED_SONAME) $(BUILD)/libschultz.so
+	@echo "shared: $@ (soname $(SHARED_SONAME))"
 endif
 
 shared: $(SHARED)
@@ -808,7 +839,7 @@ $(BUILD)/schultz.pc: Makefile | $(BUILD)
 	  '' \
 	  'Name: schultz' \
 	  'Description: Retained mode UI toolkit, drawn in software' \
-	  'Version: 0.1.0' \
+	  'Version: $(SCHULTZ_VERSION)' \
 	  'Cflags: -I$${includedir}' \
 	  'Libs: -L$${libdir} -lschultz' \
 	  'Libs.private: -L$${libdir} -laccess_tunnel $(filter-out -L%,$(DEPS_LIBS)) $(LDLIBS)' \
@@ -1159,7 +1190,7 @@ test-asan:
 docs:
 	@command -v doxygen >/dev/null 2>&1 || \
 		{ echo "doxygen not found; install it to build the API docs"; exit 1; }
-	doxygen Doxyfile
+	SCHULTZ_VERSION=$(SCHULTZ_VERSION) doxygen Doxyfile
 	@echo "HTML: docs/api/index.html"
 
 # Reports functions that are declared but never called. Unused code compiles

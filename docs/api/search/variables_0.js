@@ -11,6 +11,6 @@ var searchData=
   ['app_5fname_8',['app_name',['../structschultz__a11y__options.html#a46f03808f9586fda97d74c2ba5a2aa16',1,'schultz_a11y_options::app_name'],['../structschultz__window__options.html#a9a2dad877474c5d891e4b6fb4759506b',1,'schultz_window_options::app_name'],['../structschultz__a11y__backend__config.html#a1780200034daae6d68c89aefee305669',1,'schultz_a11y_backend_config::app_name']]],
   ['arena_9',['arena',['../structschultz__draw__list.html#a2b99edcd75a1e95badad1f18122559cb',1,'schultz_draw_list']]],
   ['arrange_10',['arrange',['../structschultz__pane__vtable.html#a6ead9a4330ed8d943d15a3804cd29992',1,'schultz_pane_vtable']]],
-  ['as_11',['as',['../structschultz__paint.html#a4b0a6bfbce158efb1d4a676fdcad3072',1,'schultz_paint::as'],['../structschultz__draw__cmd.html#a6edf1344b28fde72a84f62ffdff4e0d0',1,'schultz_draw_cmd::as']]],
+  ['as_11',['as',['../structschultz__paint.html#a9547b76df4fb1ab8ed9962ecce8868ef',1,'schultz_paint::as'],['../structschultz__draw__cmd.html#a024414d0c820fe627a8a8a89fb9f779c',1,'schultz_draw_cmd::as']]],
   ['ascent_12',['ascent',['../structschultz__font__metrics.html#ac78c2e6ab36b2410ddb43138800f4fb9',1,'schultz_font_metrics::ascent'],['../structschultz__text__run.html#a0c2f6622f87edab530952a548e45295f',1,'schultz_text_run::ascent']]]
 ];

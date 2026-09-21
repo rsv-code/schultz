@@ -10,6 +10,28 @@ schultz.h \- Public interface for the Schultz UI toolkit\&.
 \fC#include <stdint\&.h>\fP
 .br
 
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBSCHULTZ_VERSION_MAJOR\fP   0"
+.br
+.RI "The version this header describes\&. "
+.ti -1c
+.RI "#define \fBSCHULTZ_VERSION_MINOR\fP   1"
+.br
+.ti -1c
+.RI "#define \fBSCHULTZ_VERSION_PATCH\fP   0"
+.br
+.ti -1c
+.RI "#define \fBSCHULTZ_VERSION_LABEL\fP   '\-alpha'"
+.br
+.RI "What follows the numbers, such as '-alpha'\&. Empty for a release\&. "
+.ti -1c
+.RI "#define \fBSCHULTZ_VERSION_STRING\fP"
+.br
+.RI "The same version as text, with any pre-release label on the end\&. "
+.in -1c
 .SS "Typedefs"
 
 .in +1c
@@ -22,10 +44,6 @@ schultz.h \- Public interface for the Schultz UI toolkit\&.
 
 .in +1c
 .ti -1c
-.RI "enum { \fBSCHULTZ_VERSION_MAJOR\fP = 0, \fBSCHULTZ_VERSION_MINOR\fP = 1, \fBSCHULTZ_VERSION_PATCH\fP = 0 }"
-.br
-.RI "Library version, compiled in\&. "
-.ti -1c
 .RI "enum { \fBSCHULTZ_HANDLE_NONE\fP = 0 }"
 .br
 .ti -1c
@@ -36,6 +54,10 @@ schultz.h \- Public interface for the Schultz UI toolkit\&.
 .SS "Functions"
 
 .in +1c
+.ti -1c
+.RI "const char * \fBschultz_version\fP (void)"
+.br
+.RI "The version of the library that is actually loaded\&. "
 .ti -1c
 .RI "const char * \fBschultz_result_string\fP (int32_t result)"
 .br
@@ -60,6 +82,51 @@ That last rule started out as 'no struct by value at all'\&. It was relaxed deli
 Result codes are declared as enum constants for readability but every function returns int32_t, because an enum's underlying type is implementation defined and would not have a stable size across an FFI boundary\&. 
 .PP
 Definition in file \fBschultz\&.h\fP\&.
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define SCHULTZ_VERSION_MAJOR   0"
+
+.PP
+The version this header describes\&. Macros rather than an enum, because an enum constant is invisible to the preprocessor: a caller writing 
+.PP
+.nf
+#if SCHULTZ_VERSION_MAJOR >= 1
+
+.fi
+.PP
+ against an enum gets the name treated as zero and no warning about it, which is the one thing a version number is for\&.
+.PP
+These say what was \fBcompiled\fP against\&. schultz_version says what is \fBrunning\fP, and on a shared library the two need not agree\&.
+.PP
+While the major number is zero nothing here is promised: the interface may change in any release, and a caller should pin an exact version\&. What the numbers will mean from 1\&.0 onward is in the project's README\&. Changes when something that existed is changed or taken away\&. 
+.PP
+Definition at line \fB77\fP of file \fBschultz\&.h\fP\&.
+.SS "#define SCHULTZ_VERSION_MINOR   1"
+Changes when something is added and nothing existing moves\&. 
+.PP
+Definition at line \fB79\fP of file \fBschultz\&.h\fP\&.
+.SS "#define SCHULTZ_VERSION_PATCH   0"
+Changes when only the implementation did\&. 
+.PP
+Definition at line \fB81\fP of file \fBschultz\&.h\fP\&.
+.SS "#define SCHULTZ_VERSION_LABEL   '\-alpha'"
+
+.PP
+What follows the numbers, such as '-alpha'\&. Empty for a release\&. 
+.PP
+Definition at line \fB84\fP of file \fBschultz\&.h\fP\&.
+.SS "#define SCHULTZ_VERSION_STRING"
+\fBValue:\fP.PP
+.nf
+    SCHULTZ_QUOTE(SCHULTZ_VERSION_MAJOR) "\&." \\
+    SCHULTZ_QUOTE(SCHULTZ_VERSION_MINOR) "\&." \\
+    SCHULTZ_QUOTE(SCHULTZ_VERSION_PATCH) SCHULTZ_VERSION_LABEL
+.fi
+
+.PP
+The same version as text, with any pre-release label on the end\&. The numbers above are for comparing; this is for showing and for logging\&. Built from those same three numbers rather than written out again, so a release is one edit and the two cannot disagree\&. The label is the only part written by hand, because 'alpha' is not an integer\&. 
+.PP
+Definition at line \fB105\fP of file \fBschultz\&.h\fP\&.
 .SH "Typedef Documentation"
 .PP 
 .SS "typedef uint64_t \fBschultz_handle\fP"
@@ -69,15 +136,9 @@ Opaque object identity\&. A handle packs a table index in the low 32 bits and a 
 .PP
 Hosts see a plain 64 bit integer\&. Pointers never cross the boundary\&. 
 .PP
-Definition at line \fB75\fP of file \fBschultz\&.h\fP\&.
+Definition at line \fB132\fP of file \fBschultz\&.h\fP\&.
 .SH "Enumeration Type Documentation"
 .PP 
-.SS "anonymous enum"
-
-.PP
-Library version, compiled in\&. 
-.PP
-Definition at line \fB59\fP of file \fBschultz\&.h\fP\&.
 .SS "anonymous enum"
 
 .PP
@@ -87,7 +148,7 @@ Definition at line \fB59\fP of file \fBschultz\&.h\fP\&.
 \fB\fISCHULTZ_HANDLE_NONE \fP\fP
 The null handle\&. Never names a live object\&. 
 .PP
-Definition at line \fB77\fP of file \fBschultz\&.h\fP\&.
+Definition at line \fB134\fP of file \fBschultz\&.h\fP\&.
 .SS "anonymous enum"
 
 .PP
@@ -117,9 +178,20 @@ A file or a block of bytes could not be read, or held nothing this toolkit knows
 \fB\fISCHULTZ_ERR_UNAVAILABLE \fP\fP
 The machine cannot do this, and no argument would have changed that\&. There is no sound card, no microphone, or the platform refused permission to use one\&. Told apart from the codes above because there is nothing for a host to fix and nothing to retry: the honest answer to a person is that this machine will not do it, which is different from saying a call was wrong\&. 
 .PP
-Definition at line \fB83\fP of file \fBschultz\&.h\fP\&.
+Definition at line \fB140\fP of file \fBschultz\&.h\fP\&.
 .SH "Function Documentation"
 .PP 
+.SS "const char * schultz_version (void)"
+
+.PP
+The version of the library that is actually loaded\&. Worth asking because it need not match SCHULTZ_VERSION_STRING\&. A program compiles against one set of headers and, where Schultz is a shared library, may be run against another build entirely\&. The header answers the first question and this answers the second\&.
+.PP
+\fBReturns\fP
+.RS 4
+A NUL terminated string owned by the library\&. Never NULL\&. 
+.RE
+.PP
+
 .SS "const char * schultz_result_string (int32_t result)"
 
 .PP

@@ -99,11 +99,11 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:aae05225933a42f81e7c4a9fb286596f9" id="r_aae05225933a42f81e7c4a9fb286596f9"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="schultz__glyphs_8h.html#aae05225933a42f81e7c4a9fb286596f9a679bc9f3bf1926d472a8ea77f66899be">SCHULTZ_GLYPH_COVERAGE</a> = 0
-, <a class="el" href="schultz__glyphs_8h.html#aae05225933a42f81e7c4a9fb286596f9a51b399e56505daf7e2bff96e3eb684a2">SCHULTZ_GLYPH_COLOR</a>
+<tr class="memitem:adb49720dc49f7d4e4cf9adbf2948e409" id="r_adb49720dc49f7d4e4cf9adbf2948e409"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="schultz__glyphs_8h.html#adb49720dc49f7d4e4cf9adbf2948e409a679bc9f3bf1926d472a8ea77f66899be">SCHULTZ_GLYPH_COVERAGE</a> = 0
+, <a class="el" href="schultz__glyphs_8h.html#adb49720dc49f7d4e4cf9adbf2948e409a51b399e56505daf7e2bff96e3eb684a2">SCHULTZ_GLYPH_COLOR</a>
  }</td></tr>
-<tr class="memdesc:aae05225933a42f81e7c4a9fb286596f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the bytes of a rasterized glyph mean.  <a href="schultz__glyphs_8h.html#aae05225933a42f81e7c4a9fb286596f9">More...</a><br /></td></tr>
-<tr class="separator:aae05225933a42f81e7c4a9fb286596f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memdesc:adb49720dc49f7d4e4cf9adbf2948e409"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the bytes of a rasterized glyph mean.  <a href="schultz__glyphs_8h.html#adb49720dc49f7d4e4cf9adbf2948e409">More...</a><br /></td></tr>
+<tr class="separator:adb49720dc49f7d4e4cf9adbf2948e409"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -154,8 +154,8 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
-<a id="aae05225933a42f81e7c4a9fb286596f9" name="aae05225933a42f81e7c4a9fb286596f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae05225933a42f81e7c4a9fb286596f9">&#9670;&#160;</a></span>anonymous enum</h2>
+<a id="adb49720dc49f7d4e4cf9adbf2948e409" name="adb49720dc49f7d4e4cf9adbf2948e409"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb49720dc49f7d4e4cf9adbf2948e409">&#9670;&#160;</a></span>anonymous enum</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -170,9 +170,9 @@ Functions</h2></td></tr>
 <p>A letter is a shape with no colour of its own, so it rasterizes to coverage: how much of each pixel the shape covered. The colour arrives later, from the style, and the painter multiplies the two. That is what lets one face draw text in any colour.</p>
 <p>An emoji is a picture and brings its own colours, so there is nothing for the style to say. It rasterizes to finished pixels and the painter copies them, using the style's colour only for how solid the whole thing is. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aae05225933a42f81e7c4a9fb286596f9a679bc9f3bf1926d472a8ea77f66899be" name="aae05225933a42f81e7c4a9fb286596f9a679bc9f3bf1926d472a8ea77f66899be"></a>SCHULTZ_GLYPH_COVERAGE&#160;</td><td class="fielddoc"><p>One byte per pixel: how much of the pixel the shape covered. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="adb49720dc49f7d4e4cf9adbf2948e409a679bc9f3bf1926d472a8ea77f66899be" name="adb49720dc49f7d4e4cf9adbf2948e409a679bc9f3bf1926d472a8ea77f66899be"></a>SCHULTZ_GLYPH_COVERAGE&#160;</td><td class="fielddoc"><p>One byte per pixel: how much of the pixel the shape covered. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="aae05225933a42f81e7c4a9fb286596f9a51b399e56505daf7e2bff96e3eb684a2" name="aae05225933a42f81e7c4a9fb286596f9a51b399e56505daf7e2bff96e3eb684a2"></a>SCHULTZ_GLYPH_COLOR&#160;</td><td class="fielddoc"><p>Four bytes per pixel, blue green red alpha, already multiplied. </p>
+<tr><td class="fieldname"><a id="adb49720dc49f7d4e4cf9adbf2948e409a51b399e56505daf7e2bff96e3eb684a2" name="adb49720dc49f7d4e4cf9adbf2948e409a51b399e56505daf7e2bff96e3eb684a2"></a>SCHULTZ_GLYPH_COLOR&#160;</td><td class="fielddoc"><p>Four bytes per pixel, blue green red alpha, already multiplied. </p>
 </td></tr>
 </table>
 

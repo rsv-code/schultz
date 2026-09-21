@@ -25,3 +25,7 @@ schultz_popup_set_gap
 # whose mounting is a setting rather than a build, will.
 schultz_window_set_orientation
 schultz_window_set_turn
+# Asked by a host that wants to know which build it loaded, which is the one
+# question the header cannot answer. Nothing inside calls it, and nothing
+# should: in here the header's own macros are the truth.
+schultz_version

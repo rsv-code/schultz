@@ -7,6 +7,11 @@
 
 #include "schultz.h"
 
+const char *schultz_version(void)
+{
+    return SCHULTZ_VERSION_STRING;
+}
+
 const char *schultz_result_string(int32_t result)
 {
     switch (result) {

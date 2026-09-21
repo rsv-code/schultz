@@ -7,7 +7,9 @@
 
 PROJECT_NAME           = "Schultz"
 PROJECT_BRIEF          = "Cross platform UI toolkit in C"
-PROJECT_NUMBER         = 0.1.0
+# Taken from the environment, which `make docs` fills in from schultz.h, so
+# that the reference cannot claim a version the library does not.
+PROJECT_NUMBER         = $(SCHULTZ_VERSION)
 
 OUTPUT_DIRECTORY       = docs/api
 # The HTML lands in docs/api itself rather than docs/api/html, so the pages
