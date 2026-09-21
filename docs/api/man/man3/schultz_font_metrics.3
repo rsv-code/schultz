@@ -1,0 +1,77 @@
+.TH "schultz_font_metrics" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_font_metrics \- Vertical metrics of a font at its loaded size, in pixels\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_font\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "float \fBascent\fP"
+.br
+.ti -1c
+.RI "float \fBdescent\fP"
+.br
+.ti -1c
+.RI "float \fBline_height\fP"
+.br
+.ti -1c
+.RI "float \fBunderline_position\fP"
+.br
+.ti -1c
+.RI "float \fBunderline_thickness\fP"
+.br
+.ti -1c
+.RI "float \fBstrikeout_position\fP"
+.br
+.ti -1c
+.RI "float \fBstrikeout_thickness\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Vertical metrics of a font at its loaded size, in pixels\&. 
+
+Ascent and descent are both positive distances from the baseline\&. Their sum is not necessarily the line height, which carries the font's own leading\&. 
+.PP
+Definition at line \fB58\fP of file \fBschultz_font\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "float schultz_font_metrics::ascent"
+Distance from baseline up to the top\&. 
+.PP
+Definition at line \fB59\fP of file \fBschultz_font\&.h\fP\&.
+.SS "float schultz_font_metrics::descent"
+Distance from baseline down to the bottom\&. 
+.PP
+Definition at line \fB60\fP of file \fBschultz_font\&.h\fP\&.
+.SS "float schultz_font_metrics::line_height"
+Baseline to baseline distance\&. 
+.PP
+Definition at line \fB61\fP of file \fBschultz_font\&.h\fP\&.
+.SS "float schultz_font_metrics::underline_position"
+Baseline to underline, positive is down\&. 
+.PP
+Definition at line \fB62\fP of file \fBschultz_font\&.h\fP\&.
+.SS "float schultz_font_metrics::underline_thickness"
+Underline stroke width\&. 
+.PP
+Definition at line \fB63\fP of file \fBschultz_font\&.h\fP\&.
+.SS "float schultz_font_metrics::strikeout_position"
+Baseline to the line drawn through the text, positive is up\&. The face carries this in its OS/2 table, the same way it carries where an underline goes, so a line through the words sits where the designer put it rather than at a fraction someone picked\&. 
+.PP
+Definition at line \fB70\fP of file \fBschultz_font\&.h\fP\&.
+.SS "float schultz_font_metrics::strikeout_thickness"
+Strikethrough stroke width\&. 
+.PP
+Definition at line \fB71\fP of file \fBschultz_font\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

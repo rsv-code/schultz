@@ -1,0 +1,215 @@
+.TH "schultz_glyphs.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_glyphs.h \- Rasterized glyph cache\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_font\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_glyph_bitmap\fP"
+.br
+.RI "One rasterized glyph\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_glyph_cache\fP \fBschultz_glyph_cache\fP"
+.br
+.RI "Opaque glyph cache\&. Create with schultz_glyph_cache_create\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_GLYPH_COVERAGE\fP = 0, \fBSCHULTZ_GLYPH_COLOR\fP }"
+.br
+.RI "What the bytes of a rasterized glyph mean\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_glyph_cache_create\fP (\fBschultz_font_system\fP *system, \fBschultz_glyph_cache\fP **out_cache)"
+.br
+.RI "Creates a glyph cache over a font system\&. "
+.ti -1c
+.RI "void \fBschultz_glyph_cache_destroy\fP (\fBschultz_glyph_cache\fP *cache)"
+.br
+.RI "Destroys a cache and every bitmap it holds\&. "
+.ti -1c
+.RI "int32_t \fBschultz_glyph_cache_get\fP (\fBschultz_glyph_cache\fP *cache, \fBschultz_handle\fP font, uint32_t glyph_id, const \fBschultz_glyph_bitmap\fP **out_glyph)"
+.br
+.RI "Returns a rasterized glyph, rasterizing it on first request\&. "
+.ti -1c
+.RI "void * \fBschultz_glyph_outline\fP (\fBschultz_glyph_cache\fP *cache, \fBschultz_handle\fP font, uint32_t glyph_id, float *out_scale)"
+.br
+.RI "One glyph's outline, for drawing it at an angle\&. "
+.ti -1c
+.RI "void \fBschultz_glyph_cache_purge_font\fP (\fBschultz_glyph_cache\fP *cache, \fBschultz_handle\fP font)"
+.br
+.RI "Drops every entry belonging to one font\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_glyph_cache_count\fP (const \fBschultz_glyph_cache\fP *cache)"
+.br
+.RI "Counts cached glyphs\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Rasterized glyph cache\&. 
+
+Internal header\&.
+.PP
+Rasterizing a glyph is expensive and the same glyphs recur constantly, so every rasterized glyph is kept, keyed by its font and glyph index\&. A cache entry holds the rasterized pixels plus the offsets needed to place them against the pen position\&.
+.PP
+Entries are individually allocated rather than packed into one large atlas texture\&. Packing exists to let a GPU draw many glyphs with one texture binding, and Schultz rasterizes on the CPU, so it would buy locality but not batching, so it is not worth what it costs until something draws on a GPU\&.
+.PP
+\fBNot part of the host facing interface\&.\fP Rasterized glyphs, kept for the renderer\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_glyphs\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_glyph_cache\fP \fBschultz_glyph_cache\fP"
+
+.PP
+Opaque glyph cache\&. Create with schultz_glyph_cache_create\&. 
+.PP
+Definition at line \fB52\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+What the bytes of a rasterized glyph mean\&. A letter is a shape with no colour of its own, so it rasterizes to coverage: how much of each pixel the shape covered\&. The colour arrives later, from the style, and the painter multiplies the two\&. That is what lets one face draw text in any colour\&.
+.PP
+An emoji is a picture and brings its own colours, so there is nothing for the style to say\&. It rasterizes to finished pixels and the painter copies them, using the style's colour only for how solid the whole thing is\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_GLYPH_COVERAGE \fP\fP
+One byte per pixel: how much of the pixel the shape covered\&. 
+.TP
+\fB\fISCHULTZ_GLYPH_COLOR \fP\fP
+Four bytes per pixel, blue green red alpha, already multiplied\&. 
+.PP
+Definition at line \fB66\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_glyph_cache_create (\fBschultz_font_system\fP * system, \fBschultz_glyph_cache\fP ** out_cache)"
+
+.PP
+Creates a glyph cache over a font system\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system whose fonts will be rasterized\&. Must not be NULL and must outlive the cache\&. 
+.br
+\fIout_cache\fP Receives the new cache\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when either pointer is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_glyph_cache_destroy (\fBschultz_glyph_cache\fP * cache)"
+
+.PP
+Destroys a cache and every bitmap it holds\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcache\fP The cache to destroy\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_glyph_cache_get (\fBschultz_glyph_cache\fP * cache, \fBschultz_handle\fP font, uint32_t glyph_id, const \fBschultz_glyph_bitmap\fP ** out_glyph)"
+
+.PP
+Returns a rasterized glyph, rasterizing it on first request\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcache\fP The cache to look in\&. Must not be NULL\&. 
+.br
+\fIfont\fP The font the glyph index belongs to\&. 
+.br
+\fIglyph_id\fP The font specific glyph index, as produced by shaping\&. This is not a character code\&. 
+.br
+\fIout_glyph\fP Receives a pointer to the cached bitmap\&. Must not be NULL\&. The pointer stays valid until the cache is destroyed\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void * schultz_glyph_outline (\fBschultz_glyph_cache\fP * cache, \fBschultz_handle\fP font, uint32_t glyph_id, float * out_scale)"
+
+.PP
+One glyph's outline, for drawing it at an angle\&. The cache holds every letter rasterized upright, which is right until something turns it: turning a picture of a letter resamples pixels that have already been drawn\&. This hands back the outline instead, so the rasterizer can turn it before any pixel exists\&.
+.PP
+Nothing is cached here\&. An outline is wanted per frame by the only thing that asks for one, and caching it per angle is the other design, not this one\&.
+.PP
+The shape is in the font's own units with y pointing up, and \fCout_scale\fP is what one of those units is worth in pixels at this font's size\&. Returns \fCvoid *\fP so this header need not include the rasterizer; it is a \fCTvg_Paint\fP\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcache\fP The cache, for the font system behind it\&. Must not be NULL\&. 
+.br
+\fIfont\fP A loaded font\&. 
+.br
+\fIglyph_id\fP The glyph index, not a character code\&. 
+.br
+\fIout_scale\fP Receives pixels per font unit\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The shape, which the caller owns, or NULL when the glyph has no outline, such as a bitmap emoji\&. 
+.RE
+.PP
+
+.SS "void schultz_glyph_cache_purge_font (\fBschultz_glyph_cache\fP * cache, \fBschultz_handle\fP font)"
+
+.PP
+Drops every entry belonging to one font\&. Call this when a font is unloaded, otherwise its entries stay cached under a handle that can never be resolved again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcache\fP The cache to purge\&. NULL is accepted and does nothing\&. 
+.br
+\fIfont\fP The font whose entries should be dropped\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_glyph_cache_count (const \fBschultz_glyph_cache\fP * cache)"
+
+.PP
+Counts cached glyphs\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcache\fP The cache to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of rasterized glyphs currently held\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

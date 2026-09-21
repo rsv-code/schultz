@@ -1,0 +1,154 @@
+.TH "schultz_render.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_render.h \- Rendering a widget, or a whole window, into memory\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_font\&.h'\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+\fC#include 'schultz_glyphs\&.h'\fP
+.br
+\fC#include 'schultz_image\&.h'\fP
+.br
+\fC#include 'schultz_node\&.h'\fP
+.br
+\fC#include 'schultz_resource\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_render_options\fP"
+.br
+.RI "What a render needs besides the tree itself\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_render_size\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float scale, uint32_t *out_width, uint32_t *out_height)"
+.br
+.RI "How large a buffer a node needs at a given scale\&. "
+.ti -1c
+.RI "int32_t \fBschultz_render_to_buffer\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float scale, const \fBschultz_render_options\fP *options, uint32_t *pixels, uint32_t width, uint32_t height, uint32_t stride)"
+.br
+.RI "Renders a node and everything under it into a buffer\&. "
+.ti -1c
+.RI "int32_t \fBschultz_render_encode\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float scale, const \fBschultz_render_options\fP *options, uint32_t format, const void **out_bytes, uint64_t *out_length)"
+.br
+.RI "Renders a node straight to the bytes of a picture file\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Rendering a widget, or a whole window, into memory\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&. The same tree that draws to a window draws to a buffer, at whatever resolution is asked for, without being laid out again\&. That is one call, and it is what a screenshot, a thumbnail, an image export and a printed page all want\&.
+.PP
+\fBPagination is not here and is not planned\&.\fP Splitting a continuous tree across page boundaries needs to know what may be broken, what must stay together and what repeats as a heading, and those are document semantics a widget toolkit has no opinion about\&. An application that knows its own document lays out one page at a time and renders each with this\&.
+.PP
+The print dialog and the spooler are not here either, being wholly platform specific\&. 
+.PP
+Definition in file \fBschultz_render\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_render_size (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float scale, uint32_t * out_width, uint32_t * out_height)"
+
+.PP
+How large a buffer a node needs at a given scale\&. Rounded outward to whole pixels, so the whole node fits\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to measure\&. Its current bounds are used, so it must have been laid out already\&. 
+.br
+\fIscale\fP Pixels to render for each one the node measures\&. Two gives a buffer twice the size\&. Must be above zero\&. 
+.br
+\fIout_width\fP Receives the width in pixels\&. Must not be NULL\&. 
+.br
+\fIout_height\fP Receives the height in pixels\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_render_to_buffer (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float scale, const \fBschultz_render_options\fP * options, uint32_t * pixels, uint32_t width, uint32_t height, uint32_t stride)"
+
+.PP
+Renders a node and everything under it into a buffer\&. The node is drawn at the buffer's top left whatever its position in the tree, so rendering one widget gives that widget and nothing around it\&. Pixels are premultiplied ARGB8888, the same layout the window buffer and schultz_image_set_pixels both use, so a render can be handed straight back as an image\&.
+.PP
+Text is rasterized at the scale asked for rather than scaled up from screen size, so a page at print resolution is sharp\&.
+.PP
+The caller need not have started the rendering engine; this starts it for the duration of the call and the count it keeps means doing so alongside a running window is safe\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to render from\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to render\&. SCHULTZ_HANDLE_NONE means the root\&. 
+.br
+\fIscale\fP Pixels to render for each one the node measures\&. Two gives a picture twice the size\&. Must be greater than zero\&. 
+.br
+\fIoptions\fP What to render with\&. Must not be NULL\&. 
+.br
+\fIpixels\fP The buffer to render into\&. Must not be NULL\&. 
+.br
+\fIwidth\fP Buffer width in pixels\&. Must be greater than zero\&. 
+.br
+\fIheight\fP Buffer height in pixels\&. Must be greater than zero\&. 
+.br
+\fIstride\fP Pixels per row, which may exceed the width\&. Zero means the rows are packed\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_INVALID_HANDLE when the node is not live, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_render_encode (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float scale, const \fBschultz_render_options\fP * options, uint32_t format, const void ** out_bytes, uint64_t * out_length)"
+
+.PP
+Renders a node straight to the bytes of a picture file\&. What schultz_render_size, a buffer of your own, schultz_render_to_buffer and schultz_image_encode do together, in one call: the common case, which is wanting a PNG of a widget and not wanting the pixels for anything else\&.
+.PP
+Use the three calls separately when the pixels are the point: to render into a buffer you already have, to hand the result back through schultz_image_set_pixels, or to write more than one format from one render\&.
+.PP
+\fBHow large this gets is decided by the scale\&.\fP A node measuring a thousand units on a side at a scale of one hundred asks for forty gigabytes of pixels before a single byte is encoded, so the size is worked out and refused first, before anything is allocated or drawn\&. Refusing afterwards would have spent exactly what the refusal is for\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to render from\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to render\&. SCHULTZ_HANDLE_NONE means the root\&. 
+.br
+\fIscale\fP Pixels to render for each one the node measures\&. Two gives a picture twice the size\&. Must be above zero\&. 
+.br
+\fIoptions\fP What to render with\&. Must not be NULL\&. 
+.br
+\fIformat\fP SCHULTZ_IMAGE_PNG or SCHULTZ_IMAGE_BMP\&. 
+.br
+\fIout_bytes\fP Receives the file's bytes\&. Must not be NULL\&. Owned by the toolkit and valid until the next call to schultz_image_encode or to this, so a caller wanting two formats at once copies the first\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument or a size too large to render, SCHULTZ_ERR_INVALID_HANDLE when the node is not live, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

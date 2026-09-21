@@ -1,0 +1,56 @@
+.TH "schultz_a11y_options" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_a11y_options \- What to tell the platform about the application\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_a11y\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBapp_name\fP"
+.br
+.ti -1c
+.RI "\fBschultz_rect\fP \fBwindow\fP"
+.br
+.ti -1c
+.RI "int32_t \fBfocused\fP"
+.br
+.ti -1c
+.RI "void * \fBnative_window\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+What to tell the platform about the application\&. 
+.PP
+Definition at line \fB58\fP of file \fBschultz_a11y\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const char* schultz_a11y_options::app_name"
+The application's name, as a user would recognize it\&. NULL is ''\&. 
+.PP
+Definition at line \fB60\fP of file \fBschultz_a11y\&.h\fP\&.
+.SS "\fBschultz_rect\fP schultz_a11y_options::window"
+Where the window is on screen, in pixels\&. 
+.PP
+Definition at line \fB62\fP of file \fBschultz_a11y\&.h\fP\&.
+.SS "int32_t schultz_a11y_options::focused"
+Nonzero when the window has focus at creation\&. 
+.PP
+Definition at line \fB64\fP of file \fBschultz_a11y\&.h\fP\&.
+.SS "void* schultz_a11y_options::native_window"
+The platform's own window, as SDL_Window *, or NULL\&.
+.PP
+Accessibility on Windows, macOS, iOS and Android attaches to a native window or view rather than announcing itself the way Linux does, and this is the only way to reach one from here\&. Linux ignores it\&. 
+.PP
+Definition at line \fB72\fP of file \fBschultz_a11y\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

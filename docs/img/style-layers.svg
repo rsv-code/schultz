@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="360" viewBox="0 0 760 360"
+     font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="13">
+  <defs>
+    <marker id="d" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,1 L8,4.5 L0,8 z" fill="#64686f"/>
+    </marker>
+  </defs>
+  <rect width="760" height="360" fill="#edf1f8"/>
+  <text x="24" y="30" font-size="15" font-weight="bold" fill="#25282d">Where a property's value comes from</text>
+  <text x="24" y="50" fill="#64686f">Five layers. The lowest that has an answer gives it, unless something above overrides.</text>
+
+  <rect x="24" y="66" width="470" height="40" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="38" y="83" fill="#25282d" font-weight="bold">5. State patch</text>
+  <text x="206" y="83" fill="#64686f">hovered, focused, checked, selected,</text>
+  <text x="206" y="99" fill="#64686f">pressed, disabled</text>
+  <text x="510" y="90" fill="#2971ac" font-weight="bold">wins over everything</text>
+
+  <rect x="24" y="114" width="470" height="32" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="38" y="135" fill="#25282d" font-weight="bold">4. Inline property</text>
+  <text x="206" y="135" fill="#64686f">set on this one node</text>
+
+  <rect x="24" y="154" width="470" height="32" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="38" y="175" fill="#25282d" font-weight="bold">3. Your styles</text>
+  <text x="206" y="175" fill="#64686f">a named style, later ones override earlier</text>
+
+  <rect x="24" y="194" width="470" height="32" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="38" y="215" fill="#25282d" font-weight="bold">2. The widget's own</text>
+  <text x="206" y="215" fill="#64686f">what a button looks like out of the box</text>
+
+  <rect x="24" y="234" width="470" height="32" rx="4" fill="#dee3ea" stroke="#2971ac"/>
+  <text x="38" y="255" fill="#2971ac" font-weight="bold">1. The theme</text>
+  <text x="206" y="255" fill="#64686f">a token: color.accent, radius.control</text>
+  <text x="510" y="255" fill="#2971ac" font-weight="bold">the floor: always answers</text>
+
+  <path d="M508,250 L540,250" stroke="#64686f" marker-end="url(#d)" opacity="0"/>
+  <path d="M14,262 L14,86" stroke="#64686f" fill="none" marker-end="url(#d)"/>
+
+  <rect x="24" y="284" width="712" height="60" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="40" y="306" fill="#25282d" font-weight="bold">Inheriting properties</text>
+  <text x="40" y="325" fill="#64686f">Five of them pass down the tree if a node does not set them: text.color, font, font.size,</text>
+  <text x="40" y="339" fill="#64686f">text.align and line.spacing. Set them once on a container and everything inside follows.</text>
+</svg>

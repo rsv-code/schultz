@@ -1,0 +1,141 @@
+.TH "schultz.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz.h \- Public interface for the Schultz UI toolkit\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdint\&.h>\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef uint64_t \fBschultz_handle\fP"
+.br
+.RI "Opaque object identity\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_VERSION_MAJOR\fP = 0, \fBSCHULTZ_VERSION_MINOR\fP = 1, \fBSCHULTZ_VERSION_PATCH\fP = 0 }"
+.br
+.RI "Library version, compiled in\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_HANDLE_NONE\fP = 0 }"
+.br
+.ti -1c
+.RI "enum { \fBSCHULTZ_OK\fP = 0, \fBSCHULTZ_ERR_INVALID_HANDLE\fP = -1, \fBSCHULTZ_ERR_INVALID_ARGUMENT\fP = -2, \fBSCHULTZ_ERR_OUT_OF_MEMORY\fP = -3, \fBSCHULTZ_ERR_EXHAUSTED\fP = -4, \fBSCHULTZ_ERR_UNREADABLE\fP = -5, \fBSCHULTZ_ERR_UNAVAILABLE\fP = -6 }"
+.br
+.RI "Result codes\&. Zero is success; every failure is negative\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBschultz_result_string\fP (int32_t result)"
+.br
+.RI "Returns a stable, human readable name for a result code\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Public interface for the Schultz UI toolkit\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&. This header defines the types that cross the host boundary\&. It follows these ABI rules:
+.PP
+.IP "\(bu" 2
+fixed width integer types only, never 'long'
+.IP "\(bu" 2
+no varargs, no function like macros, no static inline
+.IP "\(bu" 2
+structs cross by value only when they are small and hold nothing but fixed width scalars: a point, a rectangle, a colour, a paint\&. Anything holding a pointer crosses behind a pointer of its own\&.
+.PP
+.PP
+That last rule started out as 'no struct by value at all'\&. It was relaxed deliberately, because forbidding it entirely would mean every rectangle arrived as four arguments or behind a pointer, which makes the C interface worse to read and to use for no gain: every foreign function interface worth targeting passes small scalar structs by value correctly, and each one that does not can wrap them on its own side\&.
+.PP
+Result codes are declared as enum constants for readability but every function returns int32_t, because an enum's underlying type is implementation defined and would not have a stable size across an FFI boundary\&. 
+.PP
+Definition in file \fBschultz\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef uint64_t \fBschultz_handle\fP"
+
+.PP
+Opaque object identity\&. A handle packs a table index in the low 32 bits and a generation counter in the high 32 bits\&. Because the generation of a live slot is never zero, a valid handle is never zero, and a handle naming a destroyed object fails its generation check instead of being dereferenced\&.
+.PP
+Hosts see a plain 64 bit integer\&. Pointers never cross the boundary\&. 
+.PP
+Definition at line \fB75\fP of file \fBschultz\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Library version, compiled in\&. 
+.PP
+Definition at line \fB59\fP of file \fBschultz\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_HANDLE_NONE \fP\fP
+The null handle\&. Never names a live object\&. 
+.PP
+Definition at line \fB77\fP of file \fBschultz\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Result codes\&. Zero is success; every failure is negative\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_OK \fP\fP
+Call succeeded\&. 
+.TP
+\fB\fISCHULTZ_ERR_INVALID_HANDLE \fP\fP
+Handle was zero, out of range, freed, or carried a stale generation\&. 
+.TP
+\fB\fISCHULTZ_ERR_INVALID_ARGUMENT \fP\fP
+A pointer argument was NULL, or a value was outside its valid range\&. 
+.TP
+\fB\fISCHULTZ_ERR_OUT_OF_MEMORY \fP\fP
+An allocation failed\&. 
+.TP
+\fB\fISCHULTZ_ERR_EXHAUSTED \fP\fP
+A fixed capacity was used up and cannot grow further\&. 
+.TP
+\fB\fISCHULTZ_ERR_UNREADABLE \fP\fP
+A file or a block of bytes could not be read, or held nothing this toolkit knows how to decode\&. The arguments were fine and nothing is wrong with the program: the picture is missing, or truncated, or is not a picture\&. Told apart from SCHULTZ_ERR_INVALID_HANDLE on purpose, so a host can tell a bad image from a dead handle and say something useful about the first\&. 
+.TP
+\fB\fISCHULTZ_ERR_UNAVAILABLE \fP\fP
+The machine cannot do this, and no argument would have changed that\&. There is no sound card, no microphone, or the platform refused permission to use one\&. Told apart from the codes above because there is nothing for a host to fix and nothing to retry: the honest answer to a person is that this machine will not do it, which is different from saying a call was wrong\&. 
+.PP
+Definition at line \fB83\fP of file \fBschultz\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "const char * schultz_result_string (int32_t result)"
+
+.PP
+Returns a stable, human readable name for a result code\&. Intended for logging and test output, not for display to end users\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIresult\fP A result code returned by any Schultz function\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A NUL terminated string owned by the library, which must not be freed\&. An unrecognized code yields 'SCHULTZ_ERR_UNKNOWN' rather than NULL, so the return value is always safe to print\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

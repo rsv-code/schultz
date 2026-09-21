@@ -1,0 +1,384 @@
+.TH "schultz_camera.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_camera.h \- The camera: finding one, opening it, and showing what it sees\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdint\&.h>\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_node\&.h'\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_camera\fP \fBschultz_camera\fP"
+.br
+.RI "One open camera\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_CAMERA_WAITING\fP = 0, \fBSCHULTZ_CAMERA_ALLOWED\fP, \fBSCHULTZ_CAMERA_REFUSED\fP }"
+.br
+.RI "Whether the person has said yes to a camera being used\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_CAMERA_FACING_UNKNOWN\fP = 0, \fBSCHULTZ_CAMERA_FACING_PERSON\fP, \fBSCHULTZ_CAMERA_FACING_AWAY\fP }"
+.br
+.RI "Which way a camera points, for a device that has more than one\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBschultz_camera_count\fP (void)"
+.br
+.RI "Counts the cameras this machine has\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_camera_device\fP (uint32_t index)"
+.br
+.RI "Returns the identifier of the camera at a position in the list\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_name\fP (uint64_t device, char *out_name, uint64_t size)"
+.br
+.RI "Copies a camera's name, the one a person would recognise\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_camera_facing\fP (uint64_t device)"
+.br
+.RI "Reports which way a camera points\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_open\fP (uint64_t device, uint32_t width, uint32_t height, \fBschultz_camera\fP **out_camera)"
+.br
+.RI "Opens a camera\&. "
+.ti -1c
+.RI "void \fBschultz_camera_close\fP (\fBschultz_camera\fP *camera)"
+.br
+.RI "Closes a camera and releases it\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_camera_permission\fP (const \fBschultz_camera\fP *camera)"
+.br
+.RI "Asks whether the person has allowed this camera to be used\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_size\fP (const \fBschultz_camera\fP *camera, uint32_t *out_width, uint32_t *out_height)"
+.br
+.RI "Returns the size the pictures actually come at\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_frame\fP (\fBschultz_camera\fP *camera, const uint32_t **out_pixels, uint32_t *out_width, uint32_t *out_height, uint64_t *out_when_ns)"
+.br
+.RI "Takes the newest picture, if one has arrived\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_camera_frames_taken\fP (const \fBschultz_camera\fP *camera)"
+.br
+.RI "Counts the pictures taken since the camera was opened\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_preview_create\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP parent, \fBschultz_camera\fP *camera, \fBschultz_handle\fP *out_node)"
+.br
+.RI "Creates a node that shows what a camera sees\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_preview_set_camera\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_camera\fP *camera)"
+.br
+.RI "Points a preview node at a different camera, or at none\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The camera: finding one, opening it, and showing what it sees\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+A camera is the other direction from \fBschultz_video\&.h\fP\&. That plays a film somebody else made; this one takes pictures as they happen\&.
+.PP
+Three things are worth knowing before reading the calls\&.
+.PP
+\fBA camera is hardware, and may not be there\&.\fP Listing on a machine with none succeeds and reports none\&. That is not an error and a host should not treat it as one: the right answer is to say so and carry on\&.
+.PP
+\fBOpening one is not the same as being allowed to use it\&.\fP On phones, and increasingly on desktops, the operating system asks the person first, and the answer can take seconds or minutes\&. So opening always succeeds or fails immediately on whether the device exists, and permission is a separate question asked with schultz_camera_permission until it stops saying waiting\&. Until it says allowed, no pictures arrive\&.
+.PP
+\fBThe pictures come back ready to draw\&.\fP A camera's own format is usually Motion JPEG or one of the packed YUV layouts, and none of them is what a screen wants\&. That conversion happens below this interface, so a frame is always premultiplied ARGB at the size that was asked for\&.
+.PP
+The short way to show one on screen is the preview node at the bottom of this header, which does all of the above on the host's behalf\&. 
+.PP
+Definition in file \fBschultz_camera\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_camera\fP \fBschultz_camera\fP"
+
+.PP
+One open camera\&. 
+.PP
+Definition at line \fB55\fP of file \fBschultz_camera\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Whether the person has said yes to a camera being used\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_CAMERA_WAITING \fP\fP
+Nobody has answered yet\&. No pictures arrive while this is the answer\&. 
+.TP
+\fB\fISCHULTZ_CAMERA_ALLOWED \fP\fP
+Allowed\&. Pictures arrive\&. 
+.TP
+\fB\fISCHULTZ_CAMERA_REFUSED \fP\fP
+Refused\&. No pictures will ever arrive from this one\&. 
+.PP
+Definition at line \fB58\fP of file \fBschultz_camera\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Which way a camera points, for a device that has more than one\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_CAMERA_FACING_UNKNOWN \fP\fP
+It does not say\&. 
+.TP
+\fB\fISCHULTZ_CAMERA_FACING_PERSON \fP\fP
+At whoever is holding it\&. 
+.TP
+\fB\fISCHULTZ_CAMERA_FACING_AWAY \fP\fP
+At whatever it is pointed at\&. 
+.PP
+Definition at line \fB68\fP of file \fBschultz_camera\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "uint32_t schultz_camera_count (void)"
+
+.PP
+Counts the cameras this machine has\&. Zero is an ordinary answer, not a failure\&. A desktop with no webcam, a machine whose camera is switched off in firmware, and a phone with the camera disabled by policy all report none\&.
+.PP
+\fBReturns\fP
+.RS 4
+How many cameras there are\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_camera_device (uint32_t index)"
+
+.PP
+Returns the identifier of the camera at a position in the list\&. The identifier is what everything else here takes\&. Positions are not stable across a device being plugged in or unplugged; identifiers are, for as long as the device is present\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIindex\fP From zero to schultz_camera_count minus one\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The identifier, or zero when there is no camera there\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_name (uint64_t device, char * out_name, uint64_t size)"
+
+.PP
+Copies a camera's name, the one a person would recognise\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIdevice\fP An identifier from schultz_camera_device\&. 
+.br
+\fIout_name\fP Receives the name, NUL terminated and truncated to fit\&. Must not be NULL\&. 
+.br
+\fIsize\fP How many bytes out_name holds\&. Must be at least one\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_UNAVAILABLE when there is no such camera\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_camera_facing (uint64_t device)"
+
+.PP
+Reports which way a camera points\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIdevice\fP An identifier from schultz_camera_device\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+One of the SCHULTZ_CAMERA_FACING_* values\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_open (uint64_t device, uint32_t width, uint32_t height, \fBschultz_camera\fP ** out_camera)"
+
+.PP
+Opens a camera\&. The size is what the pictures are wanted at\&. A camera that cannot produce it is asked for the nearest thing it can and the pictures are converted, so any reasonable size works; ask for what will be drawn rather than what the hardware has, and pass zero for both to take whatever the camera offers\&.
+.PP
+Opening does not mean the camera is usable yet\&. See schultz_camera_permission\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIdevice\fP An identifier from schultz_camera_device\&. 
+.br
+\fIwidth\fP The width wanted, or zero for the camera's own\&. 
+.br
+\fIheight\fP The height wanted, or zero for the camera's own\&. 
+.br
+\fIout_camera\fP Receives the open camera\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when there is no such camera or the machine will not open it\&. 
+.RE
+.PP
+
+.SS "void schultz_camera_close (\fBschultz_camera\fP * camera)"
+
+.PP
+Closes a camera and releases it\&. Safe on NULL\&. The pixels from the last schultz_camera_frame belong to the camera and are gone after this\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcamera\fP The camera to close\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_camera_permission (const \fBschultz_camera\fP * camera)"
+
+.PP
+Asks whether the person has allowed this camera to be used\&. Ask each turn of the loop until it stops saying waiting\&. There is nothing to do in the meantime and nothing a host can do to hurry it: the answer is the operating system's and the person's\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcamera\fP An open camera\&. NULL yields SCHULTZ_CAMERA_REFUSED\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+One of the SCHULTZ_CAMERA_* permission values\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_size (const \fBschultz_camera\fP * camera, uint32_t * out_width, uint32_t * out_height)"
+
+.PP
+Returns the size the pictures actually come at\&. Known once permission has been given, and not always the size that was asked for\&. Both are zero before then\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcamera\fP An open camera\&. 
+.br
+\fIout_width\fP Receives the width\&. Must not be NULL\&. 
+.br
+\fIout_height\fP Receives the height\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_frame (\fBschultz_camera\fP * camera, const uint32_t ** out_pixels, uint32_t * out_width, uint32_t * out_height, uint64_t * out_when_ns)"
+
+.PP
+Takes the newest picture, if one has arrived\&. Premultiplied ARGB, one word a pixel, width by height with no padding between rows\&. Whatever the camera's own format was, and whatever had to be done to it, is already done\&.
+.PP
+The pixels belong to the camera and stay valid until the next call to this for the same camera, or until it is closed\&. A host that needs to keep one copies it\&.
+.PP
+Returning SCHULTZ_ERR_EXHAUSTED means no new picture since the last call, which is the ordinary answer most times it is asked: a camera at thirty a second has nothing new on most turns of a loop running at sixty\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcamera\fP An open camera\&. Must not be NULL\&. 
+.br
+\fIout_pixels\fP Receives the pixels\&. Must not be NULL\&. 
+.br
+\fIout_width\fP Receives the width\&. May be NULL\&. 
+.br
+\fIout_height\fP Receives the height\&. May be NULL\&. 
+.br
+\fIout_when_ns\fP Receives when the picture was taken, in nanoseconds on the platform's own clock\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_EXHAUSTED when there is nothing new, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_camera_frames_taken (const \fBschultz_camera\fP * camera)"
+
+.PP
+Counts the pictures taken since the camera was opened\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcamera\fP An open camera\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many pictures have been handed over\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_preview_create (\fBschultz_tree\fP * tree, \fBschultz_handle\fP parent, \fBschultz_camera\fP * camera, \fBschultz_handle\fP * out_node)"
+
+.PP
+Creates a node that shows what a camera sees\&. The node takes the size the layout gives it and draws the picture to fit, keeping the picture's own proportions, exactly as a video node does\&. It is an ordinary node: laid out, clipped and hit tested like any other\&.
+.PP
+It does the waiting for permission on the host's behalf\&. Before the answer comes it draws nothing; if the answer is no it goes on drawing nothing, and schultz_camera_permission on the camera says which\&.
+.PP
+A node with no camera asks for no clock at all, so a preview that is not showing anything costs nothing\&.
+.PP
+The camera is not owned by the node\&. It must outlive it, and closing it while a node still points at it leaves the node showing its last picture\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to create in\&. Must not be NULL\&. 
+.br
+\fIparent\fP The parent node\&. Must name a live node\&. 
+.br
+\fIcamera\fP The camera to show, or NULL for none yet\&. 
+.br
+\fIout_node\fP Receives the new node\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_preview_set_camera (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_camera\fP * camera)"
+
+.PP
+Points a preview node at a different camera, or at none\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. Must not be NULL\&. 
+.br
+\fInode\fP A node from schultz_camera_preview_create\&. 
+.br
+\fIcamera\fP The camera to show, or NULL to show nothing\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

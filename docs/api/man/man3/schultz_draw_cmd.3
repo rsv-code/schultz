@@ -1,0 +1,461 @@
+.TH "schultz_draw_cmd" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_draw_cmd \- One drawing operation\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_paint\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBkind\fP"
+.br
+.ti -1c
+.RI "union {"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBrect\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "   } \fBfill_rect\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBrect\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_stroke\fP \fBstroke\fP"
+.br
+.ti -1c
+.RI "   } \fBstroke_rect\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBrect\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "      float \fBradius\fP"
+.br
+.ti -1c
+.RI "   } \fBfill_round_rect\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBrect\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_stroke\fP \fBstroke\fP"
+.br
+.ti -1c
+.RI "      float \fBradius\fP"
+.br
+.ti -1c
+.RI "   } \fBstroke_round_rect\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBrect\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "   } \fBfill_ellipse\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBrect\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_stroke\fP \fBstroke\fP"
+.br
+.ti -1c
+.RI "   } \fBstroke_ellipse\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_point\fP \fBfrom\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_point\fP \fBto\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_stroke\fP \fBstroke\fP"
+.br
+.ti -1c
+.RI "   } \fBline\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      const \fBschultz_point\fP * \fBpoints\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBrule\fP"
+.br
+.ti -1c
+.RI "   } \fBfill_polygon\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      const \fBschultz_point\fP * \fBpoints\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_stroke\fP \fBstroke\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBclosed\fP"
+.br
+.ti -1c
+.RI "   } \fBstroke_polygon\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      const uint8_t * \fBsteps\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBstep_count\fP"
+.br
+.ti -1c
+.RI "      const \fBschultz_point\fP * \fBpoints\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBpoint_count\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBrule\fP"
+.br
+.ti -1c
+.RI "   } \fBfill_path\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      const uint8_t * \fBsteps\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBstep_count\fP"
+.br
+.ti -1c
+.RI "      const \fBschultz_point\fP * \fBpoints\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBpoint_count\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_stroke\fP \fBstroke\fP"
+.br
+.ti -1c
+.RI "   } \fBstroke_path\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_handle\fP \fBimage\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBsource\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBdest\fP"
+.br
+.ti -1c
+.RI "      uint8_t \fBopacity\fP"
+.br
+.ti -1c
+.RI "   } \fBimage\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_handle\fP \fBfont\fP"
+.br
+.ti -1c
+.RI "      const \fBschultz_glyph\fP * \fBglyphs\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "   } \fBglyph_run\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_handle\fP \fBfont\fP"
+.br
+.ti -1c
+.RI "      const \fBschultz_glyph\fP * \fBglyphs\fP"
+.br
+.ti -1c
+.RI "      uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_stroke\fP \fBstroke\fP"
+.br
+.ti -1c
+.RI "   } \fBglyph_outline\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      \fBschultz_rect\fP \fBrect\fP"
+.br
+.ti -1c
+.RI "   } \fBclip_begin\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      float \fBdx\fP"
+.br
+.ti -1c
+.RI "      float \fBdy\fP"
+.br
+.ti -1c
+.RI "   } \fBoffset_begin\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      float \fBdegrees\fP"
+.br
+.ti -1c
+.RI "      float \fBcx\fP"
+.br
+.ti -1c
+.RI "      float \fBcy\fP"
+.br
+.ti -1c
+.RI "   } \fBrotation_begin\fP"
+.br
+.ti -1c
+.RI "   struct {"
+.br
+.ti -1c
+.RI "      float \fBopacity\fP"
+.br
+.ti -1c
+.RI "      \fBschultz_shadow\fP \fBshadow\fP"
+.br
+.ti -1c
+.RI "   } \fBgroup_begin\fP"
+.br
+.ti -1c
+.RI "} \fBas\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One drawing operation\&. 
+
+Read \fCkind\fP first, then the matching member of the union\&. Any other member is meaningless\&. 
+.PP
+Definition at line \fB96\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_draw_cmd::kind"
+One of the SCHULTZ_DRAW_* constants\&. 
+.PP
+Definition at line \fB97\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_rect\fP schultz_draw_cmd::rect"
+
+.PP
+Definition at line \fB100\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_paint\fP schultz_draw_cmd::paint"
+
+.PP
+Definition at line \fB100\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::fill_rect"
+Valid when kind is SCHULTZ_DRAW_FILL_RECT\&. 
+.SS "\fBschultz_stroke\fP schultz_draw_cmd::stroke"
+
+.PP
+Definition at line \fB102\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::stroke_rect"
+Valid when kind is SCHULTZ_DRAW_STROKE_RECT\&. 
+.SS "float schultz_draw_cmd::radius"
+
+.PP
+Definition at line \fB105\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::fill_round_rect"
+Valid when kind is SCHULTZ_DRAW_FILL_ROUND_RECT\&. 
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::stroke_round_rect"
+Valid when kind is SCHULTZ_DRAW_STROKE_ROUND_RECT\&. 
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::fill_ellipse"
+Valid when kind is SCHULTZ_DRAW_FILL_ELLIPSE\&. 
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::stroke_ellipse"
+Valid when kind is SCHULTZ_DRAW_STROKE_ELLIPSE\&. 
+.SS "\fBschultz_point\fP schultz_draw_cmd::from"
+
+.PP
+Definition at line \fB114\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_point\fP schultz_draw_cmd::to"
+
+.PP
+Definition at line \fB114\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::line"
+Valid when kind is SCHULTZ_DRAW_LINE\&. 
+.SS "const \fBschultz_point\fP* schultz_draw_cmd::points"
+
+.PP
+Definition at line \fB120\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_cmd::count"
+
+.PP
+Definition at line \fB120\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_cmd::rule"
+
+.PP
+Definition at line \fB121\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::fill_polygon"
+Valid when kind is SCHULTZ_DRAW_FILL_POLYGON\&. Points live in the arena and are valid until the arena is reset\&. \fCrule\fP is one of the SCHULTZ_FILL_* values and decides what a self crossing outline encloses\&. 
+.SS "uint32_t schultz_draw_cmd::closed"
+
+.PP
+Definition at line \fB129\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::stroke_polygon"
+Valid when kind is SCHULTZ_DRAW_STROKE_POLYGON\&. Points live in the arena, as they do for a fill\&. \fCclosed\fP joins the last point back to the first, which is the difference between an outline and a line through a series of points\&. 
+.SS "const uint8_t* schultz_draw_cmd::steps"
+
+.PP
+Definition at line \fB137\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_cmd::step_count"
+
+.PP
+Definition at line \fB137\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_cmd::point_count"
+
+.PP
+Definition at line \fB138\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::fill_path"
+Valid when kind is SCHULTZ_DRAW_FILL_PATH\&. Steps and points live in the arena and are valid until it is reset\&. The two arrays are read together: each step takes the points it needs off the front of the second\&. Every step here is CLOSE, MOVE, LINE or CURVE; a quadratic was raised to a cubic on the way in\&. 
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::stroke_path"
+Valid when kind is SCHULTZ_DRAW_STROKE_PATH\&. Read as above\&. 
+.SS "\fBschultz_handle\fP schultz_draw_cmd::image"
+
+.PP
+Definition at line \fB145\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_rect\fP schultz_draw_cmd::source"
+
+.PP
+Definition at line \fB145\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_rect\fP schultz_draw_cmd::dest"
+
+.PP
+Definition at line \fB146\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint8_t schultz_draw_cmd::opacity"
+
+.PP
+Definition at line \fB146\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::image"
+Valid when kind is SCHULTZ_DRAW_IMAGE\&. 
+.SS "\fBschultz_handle\fP schultz_draw_cmd::font"
+
+.PP
+Definition at line \fB155\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "const \fBschultz_glyph\fP* schultz_draw_cmd::glyphs"
+
+.PP
+Definition at line \fB155\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::glyph_run"
+Valid when kind is SCHULTZ_DRAW_GLYPH_RUN\&. Glyphs live in the arena and are valid until the arena is reset\&.
+.PP
+A letter takes \fCpaint\fP whole\&. An emoji brings its own colours and takes only how solid \fCpaint\fP is, because there is no sense in which a yellow face is the text colour\&. 
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::glyph_outline"
+Valid when kind is SCHULTZ_DRAW_GLYPH_OUTLINE\&. The same glyphs a run carries, drawn from the font's outlines and stroked rather than filled\&. A glyph with no outline is left out\&. 
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::clip_begin"
+Valid when kind is SCHULTZ_DRAW_CLIP_BEGIN\&. 
+.SS "float schultz_draw_cmd::dx"
+
+.PP
+Definition at line \fB167\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "float schultz_draw_cmd::dy"
+
+.PP
+Definition at line \fB167\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::offset_begin"
+Valid when kind is SCHULTZ_DRAW_OFFSET_BEGIN\&. 
+.SS "float schultz_draw_cmd::degrees"
+
+.PP
+Definition at line \fB172\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "float schultz_draw_cmd::cx"
+
+.PP
+Definition at line \fB172\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "float schultz_draw_cmd::cy"
+
+.PP
+Definition at line \fB172\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::rotation_begin"
+Valid when kind is SCHULTZ_DRAW_ROTATION_BEGIN\&. Degrees, clockwise, about a centre in the coordinates in force at this point\&. 
+.SS "float schultz_draw_cmd::opacity"
+
+.PP
+Definition at line \fB182\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_shadow\fP schultz_draw_cmd::shadow"
+
+.PP
+Definition at line \fB182\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "struct  { \&.\&.\&. }  schultz_draw_cmd::group_begin"
+Valid when kind is SCHULTZ_DRAW_GROUP_BEGIN\&. Everything up to the matching end is drawn as one picture, and that picture is blended in at this opacity rather than each piece being blended at it separately\&. The difference shows wherever the pieces overlap: two half transparent shapes on top of each other are darker where they meet when they are faded one at a time, and are not when they are faded together\&. 
+.SS "union  { \&.\&.\&. }  schultz_draw_cmd::as"
+Per kind payload\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

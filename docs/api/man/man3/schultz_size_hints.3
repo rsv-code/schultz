@@ -1,0 +1,72 @@
+.TH "schultz_size_hints" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_size_hints \- Minimum, preferred and maximum size along both axes\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_layout_internal\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "float \fBmin_width\fP"
+.br
+.ti -1c
+.RI "float \fBpref_width\fP"
+.br
+.ti -1c
+.RI "float \fBmax_width\fP"
+.br
+.ti -1c
+.RI "float \fBmin_height\fP"
+.br
+.ti -1c
+.RI "float \fBpref_height\fP"
+.br
+.ti -1c
+.RI "float \fBmax_height\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Minimum, preferred and maximum size along both axes\&. 
+
+A preferred size of a negative value means 'ask the pane', which is the usual case: a container derives its preferred size from its children\&. A maximum of a negative value means no maximum\&.
+.PP
+Preferred is a wish; minimum and maximum are rules\&. A preferred size says how big a node would like to be when nothing else decides, and a pane is entitled to decide otherwise: a box pane stretches its children across the cross axis by default\&. A minimum and a maximum bind wherever a node is placed, not only where it is measured\&. 
+.PP
+Definition at line \fB42\fP of file \fBschultz_layout_internal\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "float schultz_size_hints::min_width"
+Never smaller than this\&. Zero for no minimum\&. 
+.PP
+Definition at line \fB43\fP of file \fBschultz_layout_internal\&.h\fP\&.
+.SS "float schultz_size_hints::pref_width"
+Wanted width, or negative to compute it\&. 
+.PP
+Definition at line \fB44\fP of file \fBschultz_layout_internal\&.h\fP\&.
+.SS "float schultz_size_hints::max_width"
+Never larger than this, or negative for none\&. 
+.PP
+Definition at line \fB45\fP of file \fBschultz_layout_internal\&.h\fP\&.
+.SS "float schultz_size_hints::min_height"
+Never smaller than this\&. 
+.PP
+Definition at line \fB46\fP of file \fBschultz_layout_internal\&.h\fP\&.
+.SS "float schultz_size_hints::pref_height"
+Wanted height, or negative to compute it\&. 
+.PP
+Definition at line \fB47\fP of file \fBschultz_layout_internal\&.h\fP\&.
+.SS "float schultz_size_hints::max_height"
+Never larger than this, or negative for none\&. 
+.PP
+Definition at line \fB48\fP of file \fBschultz_layout_internal\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

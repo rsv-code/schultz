@@ -1,0 +1,272 @@
+.TH "schultz_thorvg.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_thorvg.h \- ThorVG implementation of the painter interface\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_glyphs\&.h'\fP
+.br
+\fC#include 'schultz_paint\&.h'\fP
+.br
+\fC#include 'schultz_image\&.h'\fP
+.br
+\fC#include 'schultz_resource\&.h'\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_thorvg\fP \fBschultz_thorvg\fP"
+.br
+.RI "Opaque backend state\&. Create with schultz_thorvg_create\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_engine_init\fP (uint32_t threads)"
+.br
+.RI "Starts the ThorVG engine\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_engine_term\fP (void)"
+.br
+.RI "Stops the ThorVG engine\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_create\fP (uint32_t *buffer, uint32_t width, uint32_t height, uint32_t stride, \fBschultz_thorvg\fP **out_backend)"
+.br
+.RI "Creates a backend that rasterizes into a caller owned buffer\&. "
+.ti -1c
+.RI "void \fBschultz_thorvg_destroy\fP (\fBschultz_thorvg\fP *backend)"
+.br
+.RI "Destroys a backend and its canvas\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_set_target\fP (\fBschultz_thorvg\fP *backend, uint32_t *buffer, uint32_t width, uint32_t height, uint32_t stride)"
+.br
+.RI "Points the canvas at a different buffer\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_set_fonts\fP (\fBschultz_thorvg\fP *backend, \fBschultz_font_system\fP *system, \fBschultz_glyph_cache\fP *cache)"
+.br
+.RI "Gives the backend what it needs to draw text\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_painter\fP (\fBschultz_thorvg\fP *backend, \fBschultz_painter\fP *out_painter)"
+.br
+.RI "Fills in a painter that draws through this backend\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_set_resources\fP (\fBschultz_thorvg\fP *backend, \fBschultz_resource_table\fP *table)"
+.br
+.RI "Tells the backend where registered gradients and dashes live\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_set_scale\fP (\fBschultz_thorvg\fP *backend, float scale)"
+.br
+.RI "Sets how many buffer pixels there are to a toolkit unit\&. "
+.ti -1c
+.RI "int32_t \fBschultz_thorvg_set_images\fP (\fBschultz_thorvg\fP *backend, \fBschultz_image_table\fP *table)"
+.br
+.RI "Tells the backend where loaded images live\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+ThorVG implementation of the painter interface\&. 
+
+Internal header\&. This is the backend that turns a draw command list into pixels, using ThorVG's software rasterizer\&. It renders into a CPU buffer the caller owns; getting that buffer onto a screen is \fBschultz_sdl\&.h\fP's job\&.
+.PP
+One backend serves every target\&. There is no GPU path to keep in sync\&.
+.PP
+\fBNot part of the host facing interface\&.\fP The rasterizer backend\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_thorvg\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_thorvg\fP \fBschultz_thorvg\fP"
+
+.PP
+Opaque backend state\&. Create with schultz_thorvg_create\&. 
+.PP
+Definition at line \fB34\fP of file \fBschultz_thorvg\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_thorvg_engine_init (uint32_t threads)"
+
+.PP
+Starts the ThorVG engine\&. Call once before creating any backend, and pair with schultz_thorvg_engine_term\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIthreads\fP Worker threads for the rasterizer\&. Pass 0 to rasterize on the calling thread, which is what bring up and deterministic tests want\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when the engine refused to start\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_engine_term (void)"
+
+.PP
+Stops the ThorVG engine\&. 
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when the engine refused to stop\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_create (uint32_t * buffer, uint32_t width, uint32_t height, uint32_t stride, \fBschultz_thorvg\fP ** out_backend)"
+
+.PP
+Creates a backend that rasterizes into a caller owned buffer\&. The buffer is not copied and must stay valid and unmoved for the life of the backend\&. Pixels are written as premultiplied ARGB8888, which is what SDL's SDL_PIXELFORMAT_ARGB8888 expects on a little endian machine\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbuffer\fP Destination pixels, at least stride * height words\&. Must not be NULL\&. 
+.br
+\fIwidth\fP Buffer width in pixels\&. Must be greater than zero\&. 
+.br
+\fIheight\fP Buffer height in pixels\&. Must be greater than zero\&. 
+.br
+\fIstride\fP Distance between rows, in pixels, not bytes\&. Must be at least width\&. 
+.br
+\fIout_backend\fP Receives the new backend\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, or SCHULTZ_ERR_OUT_OF_MEMORY when the canvas could not be created\&. 
+.RE
+.PP
+
+.SS "void schultz_thorvg_destroy (\fBschultz_thorvg\fP * backend)"
+
+.PP
+Destroys a backend and its canvas\&. The pixel buffer belongs to the caller and is not freed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend to destroy\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_set_target (\fBschultz_thorvg\fP * backend, uint32_t * buffer, uint32_t width, uint32_t height, uint32_t stride)"
+
+.PP
+Points the canvas at a different buffer\&. A window that has been resized has a new buffer of a new size, and the canvas has to be told or it keeps rasterizing into the old one\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend to retarget\&. Must not be NULL\&. 
+.br
+\fIbuffer\fP The new destination pixels, owned by the caller\&. 
+.br
+\fIwidth\fP Its width in pixels\&. 
+.br
+\fIheight\fP Its height in pixels\&. 
+.br
+\fIstride\fP Pixels per row, not bytes\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_set_fonts (\fBschultz_thorvg\fP * backend, \fBschultz_font_system\fP * system, \fBschultz_glyph_cache\fP * cache)"
+
+.PP
+Gives the backend what it needs to draw text\&. Until this is called, a glyph run command fails rather than drawing nothing, so missing text is reported instead of silently absent\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend to configure\&. Must not be NULL\&. 
+.br
+\fIsystem\fP The font system glyph run commands name fonts in\&. Must not be NULL and must outlive the backend\&. 
+.br
+\fIcache\fP The glyph cache to rasterize through\&. Must not be NULL and must outlive the backend\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when any pointer is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_painter (\fBschultz_thorvg\fP * backend, \fBschultz_painter\fP * out_painter)"
+
+.PP
+Fills in a painter that draws through this backend\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend to bind\&. Must not be NULL\&. 
+.br
+\fIout_painter\fP Receives the vtable and context\&. Must not be NULL\&. It borrows the backend, so the backend must outlive it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when either pointer is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_set_resources (\fBschultz_thorvg\fP * backend, \fBschultz_resource_table\fP * table)"
+
+.PP
+Tells the backend where registered gradients and dashes live\&. A draw command names a gradient or a dash pattern by handle, and this is where the backend looks it up\&. Without a table, a gradient draws nothing and a dash pattern is ignored, which is what a caller using only solid colours wants\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend to configure\&. Must not be NULL\&. 
+.br
+\fItable\fP The table, or NULL to remove it\&. Not owned, and must outlive the backend\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when backend is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_set_scale (\fBschultz_thorvg\fP * backend, float scale)"
+
+.PP
+Sets how many buffer pixels there are to a toolkit unit\&. One by default, which is a screen at its own resolution\&. Larger renders the same tree at higher resolution without laying it out again: a page at print resolution, or a thumbnail scaled the other way\&. Glyphs are rasterized at the scaled size rather than blown up from screen size, so text stays as sharp as everything around it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend to configure\&. Must not be NULL\&. 
+.br
+\fIscale\fP Buffer pixels per toolkit unit\&. Must be greater than zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_thorvg_set_images (\fBschultz_thorvg\fP * backend, \fBschultz_image_table\fP * table)"
+
+.PP
+Tells the backend where loaded images live\&. A draw command names an image by handle, and this is where the backend looks it up\&. Without a table an image draws nothing, which is what a caller that never loads one wants\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend to configure\&. Must not be NULL\&. 
+.br
+\fItable\fP The table, or NULL to remove it\&. Not owned, and must outlive the backend\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when backend is NULL\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

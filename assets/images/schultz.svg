@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SPDX-License-Identifier: GPL-3.0-only
+  Copyright 2026 Austin Lehman
+
+  A test image for the toolkit's vector path: it is drawn by ThorVG's SVG
+  loader and scales to whatever size an Icon is given.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"
+     viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="12"
+        fill="#2b313d" stroke="#4a9ed8" stroke-width="3"/>
+  <circle cx="32" cy="24" r="10" fill="#4a9ed8"/>
+  <path d="M12 52 L26 34 L38 46 L52 28 L52 52 Z" fill="#d88b4a"/>
+</svg>

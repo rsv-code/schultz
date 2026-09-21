@@ -1,0 +1,306 @@
+.TH "schultz_resource.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_resource.h \- Gradients and dash patterns, registered once and used by handle\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_gradient_stop\fP"
+.br
+.RI "What a gradient's colour is at one point along it\&. "
+.ti -1c
+.RI "struct \fBschultz_gradient\fP"
+.br
+.RI "A registered gradient, as the renderer reads it\&. "
+.ti -1c
+.RI "struct \fBschultz_dash\fP"
+.br
+.RI "A registered dash pattern, as the renderer reads it\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_resource_table\fP \fBschultz_resource_table\fP"
+.br
+.RI "The table of registered gradients and dash patterns\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_GRADIENT_STOPS_MAX\fP = 8 }"
+.br
+.RI "The largest number of colour stops one gradient may have\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_DASH_MAX\fP = 8 }"
+.br
+.RI "The largest number of lengths one dash pattern may have\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_GRADIENT_LINEAR\fP = 0, \fBSCHULTZ_GRADIENT_RADIAL\fP }"
+.br
+.RI "Which way a gradient runs\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_resource_table_create\fP (\fBschultz_resource_table\fP **out_table)"
+.br
+.RI "Creates an empty table\&. "
+.ti -1c
+.RI "void \fBschultz_resource_table_destroy\fP (\fBschultz_resource_table\fP *table)"
+.br
+.RI "Releases a table and everything registered in it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_gradient_linear\fP (\fBschultz_resource_table\fP *table, \fBschultz_point\fP from, \fBschultz_point\fP to, const \fBschultz_gradient_stop\fP *stops, uint32_t count, \fBschultz_handle\fP *out_handle)"
+.br
+.RI "Registers a gradient that runs along a line\&. "
+.ti -1c
+.RI "int32_t \fBschultz_gradient_radial\fP (\fBschultz_resource_table\fP *table, \fBschultz_point\fP centre, float radius, const \fBschultz_gradient_stop\fP *stops, uint32_t count, \fBschultz_handle\fP *out_handle)"
+.br
+.RI "Registers a gradient that runs out from a centre\&. "
+.ti -1c
+.RI "int32_t \fBschultz_gradient_get\fP (const \fBschultz_resource_table\fP *table, \fBschultz_handle\fP handle, const \fBschultz_gradient\fP **out_gradient)"
+.br
+.RI "Looks up a registered gradient\&. "
+.ti -1c
+.RI "int32_t \fBschultz_dash_register\fP (\fBschultz_resource_table\fP *table, const float *lengths, uint32_t count, \fBschultz_handle\fP *out_handle)"
+.br
+.RI "Registers a dash pattern\&. "
+.ti -1c
+.RI "int32_t \fBschultz_dash_pair\fP (\fBschultz_resource_table\fP *table, float on, float off, \fBschultz_handle\fP *out_handle)"
+.br
+.RI "Registers the common dash pattern: one mark and one gap\&. "
+.ti -1c
+.RI "int32_t \fBschultz_dash_get\fP (const \fBschultz_resource_table\fP *table, \fBschultz_handle\fP handle, const \fBschultz_dash\fP **out_dash)"
+.br
+.RI "Looks up a registered dash pattern\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Gradients and dash patterns, registered once and used by handle\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&. A style value is a small union: a colour, a number, a font\&. A gradient's colour stops and a dash pattern's lengths are both too much to fit in one, and both are usually shared between many nodes, so they are registered here and referred to by handle, exactly as fonts and styles are\&.
+.PP
+The table sits beside the font system rather than inside the tree because the renderer has to read it, and a renderer that knows about the widget tree would be a renderer coupled to it\&. 
+.PP
+Definition in file \fBschultz_resource\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_resource_table\fP \fBschultz_resource_table\fP"
+
+.PP
+The table of registered gradients and dash patterns\&. 
+.PP
+Definition at line \fB48\fP of file \fBschultz_resource\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+The largest number of colour stops one gradient may have\&. 
+.PP
+Definition at line \fB51\fP of file \fBschultz_resource\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+The largest number of lengths one dash pattern may have\&. 
+.PP
+Definition at line \fB56\fP of file \fBschultz_resource\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Which way a gradient runs\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_GRADIENT_LINEAR \fP\fP
+Along a line, from one point to another\&. 
+.TP
+\fB\fISCHULTZ_GRADIENT_RADIAL \fP\fP
+Out from a centre\&. 
+.PP
+Definition at line \fB67\fP of file \fBschultz_resource\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_resource_table_create (\fBschultz_resource_table\fP ** out_table)"
+
+.PP
+Creates an empty table\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_table\fP Receives the table\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_resource_table_destroy (\fBschultz_resource_table\fP * table)"
+
+.PP
+Releases a table and everything registered in it\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to release\&. NULL is ignored\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_gradient_linear (\fBschultz_resource_table\fP * table, \fBschultz_point\fP from, \fBschultz_point\fP to, const \fBschultz_gradient_stop\fP * stops, uint32_t count, \fBschultz_handle\fP * out_handle)"
+
+.PP
+Registers a gradient that runs along a line\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to register with\&. Must not be NULL\&. 
+.br
+\fIfrom\fP Where it starts, in the 0 to 1 range of the shape\&. 
+.br
+\fIto\fP Where it ends, in the same range\&. 
+.br
+\fIstops\fP The colour stops, in rising order of offset\&. 
+.br
+\fIcount\fP How many, from 2 to SCHULTZ_GRADIENT_STOPS_MAX\&. 
+.br
+\fIout_handle\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad stop count, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_gradient_radial (\fBschultz_resource_table\fP * table, \fBschultz_point\fP centre, float radius, const \fBschultz_gradient_stop\fP * stops, uint32_t count, \fBschultz_handle\fP * out_handle)"
+
+.PP
+Registers a gradient that runs out from a centre\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to register with\&. Must not be NULL\&. 
+.br
+\fIcentre\fP The middle, in the 0 to 1 range of the shape\&. 
+.br
+\fIradius\fP How far out, as a fraction of the shape's larger side\&. 
+.br
+\fIstops\fP The colour stops, in rising order of offset\&. 
+.br
+\fIcount\fP How many, from 2 to SCHULTZ_GRADIENT_STOPS_MAX\&. 
+.br
+\fIout_handle\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_gradient_get (const \fBschultz_resource_table\fP * table, \fBschultz_handle\fP handle, const \fBschultz_gradient\fP ** out_gradient)"
+
+.PP
+Looks up a registered gradient\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to look in\&. NULL yields an error\&. 
+.br
+\fIhandle\fP A handle from schultz_gradient_linear or _radial\&. 
+.br
+\fIout_gradient\fP Receives a pointer into the table, valid until the table is destroyed\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_dash_register (\fBschultz_resource_table\fP * table, const float * lengths, uint32_t count, \fBschultz_handle\fP * out_handle)"
+
+.PP
+Registers a dash pattern\&. The lengths alternate between drawn and skipped, starting with drawn, and repeat for as long as the line does\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to register with\&. Must not be NULL\&. 
+.br
+\fIlengths\fP The lengths, in pixels\&. All must be positive\&. 
+.br
+\fIcount\fP How many, from 2 to SCHULTZ_DASH_MAX\&. 
+.br
+\fIout_handle\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_dash_pair (\fBschultz_resource_table\fP * table, float on, float off, \fBschultz_handle\fP * out_handle)"
+
+.PP
+Registers the common dash pattern: one mark and one gap\&. The same thing as schultz_dash_register with a two length array, without the array\&. A pattern of more than two lengths, such as a dash dot rule, still goes through schultz_dash_register\&.
+.PP
+How far along the pattern a line starts is not set here\&. That is \fCdash_offset\fP on the stroke, so one registered pattern serves every offset\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to register with\&. Must not be NULL\&. 
+.br
+\fIon\fP How long each mark is, in pixels\&. Must be positive\&. 
+.br
+\fIoff\fP How long each gap is, in pixels\&. Must be positive\&. 
+.br
+\fIout_handle\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when either length is not positive, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_dash_get (const \fBschultz_resource_table\fP * table, \fBschultz_handle\fP handle, const \fBschultz_dash\fP ** out_dash)"
+
+.PP
+Looks up a registered dash pattern\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to look in\&. NULL yields an error\&. 
+.br
+\fIhandle\fP A handle from schultz_dash_register\&. 
+.br
+\fIout_dash\fP Receives a pointer into the table, valid until the table is destroyed\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

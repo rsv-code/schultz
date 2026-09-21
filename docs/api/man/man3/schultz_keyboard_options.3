@@ -1,0 +1,42 @@
+.TH "schultz_keyboard_options" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_keyboard_options \- What the window's own keyboard may do\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_window\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBpolicy\fP"
+.br
+.ti -1c
+.RI "int32_t \fBemoji\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+What the window's own keyboard may do\&. 
+.PP
+Definition at line \fB428\fP of file \fBschultz_window\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_keyboard_options::policy"
+One of the SCHULTZ_KEYBOARD_* values above\&. 
+.PP
+Definition at line \fB430\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_keyboard_options::emoji"
+Nonzero to offer the page of emoji\&.
+.PP
+The face that draws them is compiled in whether or not anything uses it, so this costs nothing but the keys\&. A field may still refuse them: see schultz_text_field_set_input_type\&. 
+.PP
+Definition at line \fB438\fP of file \fBschultz_window\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

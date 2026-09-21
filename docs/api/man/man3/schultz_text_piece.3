@@ -1,0 +1,53 @@
+.TH "schultz_text_piece" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_text_piece \- One stretch of a string set in one face\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_text\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBstart\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBend\fP"
+.br
+.ti -1c
+.RI "\fBschultz_handle\fP \fBfont\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One stretch of a string set in one face\&. 
+
+What the text layer needs to know about rich text, and the whole of it\&. A span in a widget also carries a colour, an underline and a link; none of those change where a glyph lands, so none of them reach this layer\&. What does reach it is the face, because the face decides the glyphs and their advances, and therefore the wrapping and the caret\&.
+.PP
+Size travels with the face rather than beside it: a font handle names a face and a pixel size together, which is what FreeType and HarfBuzz both want\&. So a phrase at another size is another piece, with the handle schultz_font_at_size gave back\&.
+.PP
+Offsets are byte offsets into the string handed to the same call\&. Pieces are expected in order and not to overlap\&. A byte no piece covers is drawn in the call's own font, so a caller may describe only the parts that differ, and so does a piece whose font is SCHULTZ_HANDLE_NONE, for a piece that is there to say something other than which face to use\&. 
+.PP
+Definition at line \fB94\fP of file \fBschultz_text\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_text_piece::start"
+First byte\&. 
+.PP
+Definition at line \fB95\fP of file \fBschultz_text\&.h\fP\&.
+.SS "uint32_t schultz_text_piece::end"
+One past the last byte\&. 
+.PP
+Definition at line \fB96\fP of file \fBschultz_text\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_text_piece::font"
+The face this stretch is set in\&. 
+.PP
+Definition at line \fB97\fP of file \fBschultz_text\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

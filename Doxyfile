@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright 2026 Austin Lehman
+#
+# Doxygen configuration for Schultz. Only settings that differ from the
+# defaults are listed, so this file stays readable and survives a Doxygen
+# upgrade. Run "make docs" to build; output lands in docs/api and is committed.
+
+PROJECT_NAME           = "Schultz"
+PROJECT_BRIEF          = "Cross platform UI toolkit in C"
+PROJECT_NUMBER         = 0.1.0
+
+OUTPUT_DIRECTORY       = docs/api
+# The HTML lands in docs/api itself rather than docs/api/html, so the pages
+# site serves it at /api/ and a reader who opens the folder finds index.html.
+HTML_OUTPUT            = .
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_MAN           = YES
+
+# The library is C, not C++.
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = NO
+EXTRACT_STATIC         = NO
+
+# Warn about anything undocumented or documented wrongly. This is the setting
+# that keeps the docs honest as the API grows.
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+# FAIL_ON_WARNINGS rather than YES: report every problem, then exit non-zero.
+# YES stops at the first one, which turns a ten minute cleanup into ten runs.
+WARN_AS_ERROR          = FAIL_ON_WARNINGS
+
+INPUT                  = .
+# Sources only. Add *.md plus an overview document here when there is one
+# worth putting on the front page.
+FILE_PATTERNS          = *.h
+RECURSIVE              = NO
+EXCLUDE                = third_party tests build build-asan design docs
+# No mainpage yet: README.md is still the GitLab template. Point this at a
+# real overview document when one exists, and add it to INPUT.
+# USE_MDFILE_AS_MAINPAGE = README.md
+
+# Show the call relationships between functions without needing Graphviz.
+HAVE_DOT               = NO
+SOURCE_BROWSER         = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+ALPHABETICAL_INDEX     = YES
+SORT_MEMBER_DOCS       = NO
+JAVADOC_AUTOBRIEF      = NO

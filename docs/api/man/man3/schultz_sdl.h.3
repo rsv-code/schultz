@@ -1,0 +1,724 @@
+.TH "schultz_sdl.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_sdl.h \- SDL3 window and presentation\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_event\&.h'\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+\fC#include 'schultz_widget\&.h'\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_sdl_window\fP \fBschultz_sdl_window\fP"
+.br
+.RI "Opaque window state\&. Create with schultz_sdl_window_create\&. "
+.ti -1c
+.RI "typedef struct \fBSDL_Window\fP \fBSDL_Window\fP"
+.br
+.RI "SDL's own window type, forward declared as SDL declares it\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBSDL_Window\fP * \fBschultz_sdl_window_handle\fP (\fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns the platform's own window, for the few calls that need it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_init\fP (const char *video_driver)"
+.br
+.RI "Starts SDL's video subsystem\&. "
+.ti -1c
+.RI "void \fBschultz_sdl_quit\fP (void)"
+.br
+.RI "Shuts SDL down\&. Safe to call without a matching successful init\&. "
+.ti -1c
+.RI "const char * \fBschultz_sdl_error\fP (void)"
+.br
+.RI "Returns SDL's description of the most recent failure\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_create\fP (const char *title, uint32_t width, uint32_t height, int32_t maximized, int32_t resizable, int32_t allow_rotate, \fBschultz_sdl_window\fP **out_window)"
+.br
+.RI "Creates a window, its pixel buffer, and its texture\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_set_orientation\fP (uint32_t orientation)"
+.br
+.RI "Says which ways up a screen may be used, before one is opened\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_set_turn\fP (\fBschultz_sdl_window\fP *window, uint32_t quarters)"
+.br
+.RI "Sets how far the picture is turned before it reaches the panel\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_turns\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Whether the platform turns the screen itself\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_sdl_window_panel_width\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns the panel's own width in pixels, before any turn\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_sdl_window_panel_height\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns the panel's own height in pixels, before any turn\&. "
+.ti -1c
+.RI "void \fBschultz_sdl_window_destroy\fP (\fBschultz_sdl_window\fP *window)"
+.br
+.RI "Destroys a window, its texture, and its pixel buffer\&. "
+.ti -1c
+.RI "float \fBschultz_sdl_window_unit_scale\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns how many buffer pixels the screen packs into one of its own coordinate units\&. "
+.ti -1c
+.RI "float \fBschultz_sdl_window_pixel_density\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "How many pixels sit behind one of the platform's window coordinates\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_set_input_scale\fP (\fBschultz_sdl_window\fP *window, float scale)"
+.br
+.RI "Sets how a platform pointer position becomes a toolkit one\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_safe_area\fP (\fBschultz_sdl_window\fP *window, \fBschultz_rect\fP *out_area)"
+.br
+.RI "Returns the part of the window it is safe to put content in\&. "
+.ti -1c
+.RI "uint32_t * \fBschultz_sdl_window_pixels\fP (\fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns the pixel buffer a rasterizer should target\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_sdl_window_width\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns the buffer width in pixels\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_sdl_window_height\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns the buffer height in pixels\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_sdl_window_stride\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Returns the distance between buffer rows, in pixels\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_focused\fP (const \fBschultz_sdl_window\fP *window)"
+.br
+.RI "Reports whether this window is the one the user is looking at\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_take_resized\fP (\fBschultz_sdl_window\fP *window)"
+.br
+.RI "Reports whether the window changed size, and forgets that it did\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_upload\fP (\fBschultz_sdl_window\fP *window, \fBschultz_rect\fP dirty)"
+.br
+.RI "Uploads one region of the pixel buffer to the texture\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_present\fP (\fBschultz_sdl_window\fP *window)"
+.br
+.RI "Puts the texture on the screen\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_set_vsync\fP (\fBschultz_sdl_window\fP *window, int32_t enabled)"
+.br
+.RI "Turns vertical sync on or off for a window\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_sdl_ticks_ms\fP (void)"
+.br
+.RI "Returns milliseconds since SDL started\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_process_events\fP (\fBschultz_sdl_window\fP *window, \fBschultz_events\fP *events, int32_t *out_should_quit)"
+.br
+.RI "Processes every pending platform event into the toolkit's router\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_set_text_input\fP (\fBschultz_sdl_window\fP *window, int32_t enabled)"
+.br
+.RI "Turns text input on or off for a window\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_has_keyboard\fP (void)"
+.br
+.RI "Whether a physical keyboard is attached\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_window_set_text_area\fP (\fBschultz_sdl_window\fP *window, \fBschultz_rect\fP area, int32_t cursor)"
+.br
+.RI "Tells the platform where the text being edited is on screen\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_clipboard_offer\fP (void *context, const char *const *formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void *make_context)"
+.br
+.RI "Offers formats to the system clipboard, as the toolkit's writer\&. "
+.ti -1c
+.RI "const void * \fBschultz_sdl_clipboard_take\fP (void *context, const char *format, uint64_t *out_length)"
+.br
+.RI "Takes one format off the system clipboard, as the toolkit's reader\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sdl_clipboard_holds\fP (void *context, const char *format)"
+.br
+.RI "Says whether the system clipboard holds a format\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+SDL3 window and presentation\&. 
+
+Internal header\&. This layer owns the window, the CPU pixel buffer that ThorVG rasterizes into, and the texture that buffer is uploaded to\&. It does not draw anything itself\&.
+.PP
+Presentation is deliberately dumb: upload the changed rectangle, draw one textured quad, present\&. The same path serves every target, so there is no GPU renderer to keep in sync with a software one\&.
+.PP
+Platform input is turned into toolkit events here and handed to the router, which is what decides where each one lands\&. Nothing in this layer knows what a widget is\&.
+.PP
+\fBNot part of the host facing interface\&.\fP The platform layer\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_sdl\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_sdl_window\fP \fBschultz_sdl_window\fP"
+
+.PP
+Opaque window state\&. Create with schultz_sdl_window_create\&. 
+.PP
+Definition at line \fB40\fP of file \fBschultz_sdl\&.h\fP\&.
+.SS "typedef struct \fBSDL_Window\fP \fBSDL_Window\fP"
+
+.PP
+SDL's own window type, forward declared as SDL declares it\&. 
+.PP
+Definition at line \fB49\fP of file \fBschultz_sdl\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "\fBSDL_Window\fP * schultz_sdl_window_handle (\fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns the platform's own window, for the few calls that need it\&. A file dialog is told which window it belongs to, and nothing above the platform layer can name one\&. This is the seam\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to unwrap\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The platform window\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_init (const char * video_driver)"
+
+.PP
+Starts SDL's video subsystem\&. Call once before creating a window, and pair with schultz_sdl_quit\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIvideo_driver\fP Which SDL video driver to ask for, such as 'offscreen' or 'kmsdrm', or NULL to let SDL choose\&. Only read here, because SDL settles the choice while it starts and never revisits it\&. What the environment says still wins\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when SDL refused to start\&. Call schultz_sdl_error for the reason\&. 
+.RE
+.PP
+
+.SS "const char * schultz_sdl_error (void)"
+
+.PP
+Returns SDL's description of the most recent failure\&. 
+.PP
+\fBReturns\fP
+.RS 4
+A NUL terminated string owned by SDL\&. Never NULL, but it is empty when nothing has failed\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_create (const char * title, uint32_t width, uint32_t height, int32_t maximized, int32_t resizable, int32_t allow_rotate, \fBschultz_sdl_window\fP ** out_window)"
+
+.PP
+Creates a window, its pixel buffer, and its texture\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItitle\fP Window title, NUL terminated\&. Must not be NULL\&. 
+.br
+\fIwidth\fP Window width in pixels\&. Must be greater than zero\&. When maximized, this is the size the window returns to\&. 
+.br
+\fIheight\fP Window height in pixels\&. Must be greater than zero\&. 
+.br
+\fImaximized\fP Nonzero to open maximized, filling the desktop's work area\&. The buffer is then sized to whatever the window manager actually gave, which may not be either the requested size or the whole display\&. Maximizing implies resizable, because a window manager will not maximize a window that says it cannot be resized\&. 
+.br
+\fIresizable\fP Nonzero to let the user drag the window's edges\&. Zero fixes the window at the size it opened at\&. 
+.br
+\fIallow_rotate\fP Nonzero to let a screen that turns follow the device\&. Zero holds it the way it opened\&. Ignored where the screen does not turn\&. 
+.br
+\fIout_window\fP Receives the new window\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument or an SDL failure, or SCHULTZ_ERR_OUT_OF_MEMORY when the pixel buffer could not be allocated\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_set_orientation (uint32_t orientation)"
+
+.PP
+Says which ways up a screen may be used, before one is opened\&. Read when a window is created and not afterwards, so this belongs beside schultz_sdl_init rather than anywhere later\&. Does nothing on a platform whose screens do not turn\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIorientation\fP SCHULTZ_SCREEN_ANY, _PORTRAIT or _LANDSCAPE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for anything else\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_set_turn (\fBschultz_sdl_window\fP * window, uint32_t quarters)"
+
+.PP
+Sets how far the picture is turned before it reaches the panel\&. For a display fitted into its case the other way round\&. The interface is drawn in the shape it wants and turned on the way out, and a pointer is turned back on the way in, so nothing above this knows the panel is sideways\&.
+.PP
+Set before the first frame\&. It resizes the buffer, so calling it while drawing throws away the frame in hand\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIquarters\fP Quarter turns clockwise, 0 to 3\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_turns (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Whether the platform turns the screen itself\&. True on a phone or a tablet, where the device turns and the toolkit only says which ways up it may\&. False everywhere else, where a screen that has to be the other way round has to be turned on the way out\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Unused, and accepted so this reads as a question about the window rather than about the program\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero where the screen turns on its own\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_sdl_window_panel_width (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns the panel's own width in pixels, before any turn\&. schultz_sdl_window_width is the buffer, which on a quarter turn is the panel on its side\&. This is the panel itself, which is what deciding how far to turn has to be measured against\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Width in pixels\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_sdl_window_panel_height (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns the panel's own height in pixels, before any turn\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Height in pixels\&. 
+.RE
+.PP
+
+.SS "void schultz_sdl_window_destroy (\fBschultz_sdl_window\fP * window)"
+
+.PP
+Destroys a window, its texture, and its pixel buffer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to destroy\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "float schultz_sdl_window_unit_scale (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns how many buffer pixels the screen packs into one of its own coordinate units\&. Three on a dense phone, two on a Retina laptop, one on an ordinary monitor\&. It is what the frame multiplies by when it is scaling to the screen, and what a host divides by when it wants to name a real pixel\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to query\&. NULL yields 1\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The scale\&. Never zero or negative\&. 
+.RE
+.PP
+
+.SS "float schultz_sdl_window_pixel_density (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+How many pixels sit behind one of the platform's window coordinates\&. One where a window is measured in pixels, which is Android and an ordinary monitor; two or three where it is measured in points and the buffer behind it is denser, which is Apple\&. This is what a reported pointer position is in, not what the interface is drawn at\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields 1\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The density\&. Never zero or negative\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_set_input_scale (\fBschultz_sdl_window\fP * window, float scale)"
+
+.PP
+Sets how a platform pointer position becomes a toolkit one\&. The platform reports a pointer in its own window coordinates whatever the buffer's resolution, so the two agree only when the toolkit is working in those same units\&. Tell this layer which it is, or every press lands somewhere other than where it happened\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to configure\&. Must not be NULL\&. 
+.br
+\fIscale\fP Toolkit units per window coordinate\&. One when the frame is scaling to the screen, the pixel scale when it is not\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_safe_area (\fBschultz_sdl_window\fP * window, \fBschultz_rect\fP * out_area)"
+
+.PP
+Returns the part of the window it is safe to put content in\&. A phone puts a camera notch over the top of its screen and a home indicator across the bottom\&. This is what is left\&.
+.PP
+In buffer pixels, not window coordinates: the platform reports it in the latter, and on a three times display those differ by three\&.
+.PP
+A window with nothing in the way of it, which is every desktop, reports the whole buffer\&. So does one the platform will not answer for, because a window that cannot say what is safe is better treated as entirely safe than as entirely unsafe\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to query\&. Must not be NULL\&. 
+.br
+\fIout_area\fP Receives the safe rectangle\&. Must not be NULL\&. Never empty\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer\&. 
+.RE
+.PP
+
+.SS "uint32_t * schultz_sdl_window_pixels (\fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns the pixel buffer a rasterizer should target\&. The buffer is premultiplied ARGB8888 and stays at one address for the life of the window, so a backend may hold the pointer\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to query\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The pixel buffer, or NULL when window is NULL\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_sdl_window_width (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns the buffer width in pixels\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Width in pixels\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_sdl_window_height (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns the buffer height in pixels\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Height in pixels\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_sdl_window_stride (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Returns the distance between buffer rows, in pixels\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Stride in pixels, not bytes\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_focused (const \fBschultz_sdl_window\fP * window)"
+
+.PP
+Reports whether this window is the one the user is looking at\&. A window opens without focus until the platform says otherwise, so this starts at zero and becomes true when the first focus event arrives\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to ask\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the window has focus, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_take_resized (\fBschultz_sdl_window\fP * window)"
+
+.PP
+Reports whether the window changed size, and forgets that it did\&. The pixel buffer and the texture are rebuilt as the change arrives, so by the time this says yes the window's width, height, stride and pixels are already the new ones\&. Anything above the platform layer that remembers a size has to ask this once a frame\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to ask\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the size changed since the last call, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_upload (\fBschultz_sdl_window\fP * window, \fBschultz_rect\fP dirty)"
+
+.PP
+Uploads one region of the pixel buffer to the texture\&. Only the given rectangle is uploaded, which is the point of tracking what changed at all\&. An empty rectangle uploads nothing\&.
+.PP
+Call it once for each area that changed, then schultz_sdl_window_present once\&. The two are apart because a frame has several changed areas and only one of it: presenting per area would show the window several times a frame\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to upload into\&. Must not be NULL\&. 
+.br
+\fIdirty\fP A region changed since the last present, in pixels\&. It is clamped to the buffer, so a caller may pass a region that overhangs an edge\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when window is NULL or SDL rejected the upload\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_present (\fBschultz_sdl_window\fP * window)"
+
+.PP
+Puts the texture on the screen\&. Whatever schultz_sdl_window_upload has put into the texture, plus whatever was already there from previous frames, which is what makes a partial repaint work at all\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to present\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_set_vsync (\fBschultz_sdl_window\fP * window, int32_t enabled)"
+
+.PP
+Turns vertical sync on or off for a window\&. With vsync on, presenting blocks until the display is ready, which paces the frame loop to the refresh rate and stops it spinning a core\&. It is off by default in SDL, so a loop that never enables it runs as fast as the CPU allows\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to configure\&. Must not be NULL\&. 
+.br
+\fIenabled\fP Nonzero to present in step with the display, zero to present as fast as possible, which is what benchmarking wants\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when window is NULL or the driver refused the setting\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_sdl_ticks_ms (void)"
+
+.PP
+Returns milliseconds since SDL started\&. Animation and timing should be driven from this rather than from a frame counter, so behaviour does not change with the frame rate of the machine\&.
+.PP
+\fBReturns\fP
+.RS 4
+Milliseconds elapsed since schultz_sdl_init\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_process_events (\fBschultz_sdl_window\fP * window, \fBschultz_events\fP * events, int32_t * out_should_quit)"
+
+.PP
+Processes every pending platform event into the toolkit's router\&. This is the seam between the platform and the toolkit: SDL's event union is translated into calls on schultz_events, and nothing above this function sees an SDL type\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to poll\&. Must not be NULL\&. 
+.br
+\fIevents\fP The router to feed, or NULL to only watch for a close request\&. 
+.br
+\fIout_should_quit\fP Set to 1 when the user asked to close, 0 otherwise\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when window or out_should_quit is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_set_text_input (\fBschultz_sdl_window\fP * window, int32_t enabled)"
+
+.PP
+Turns text input on or off for a window\&. While it is on, the platform delivers committed text and in progress IME composition\&. It should be enabled only while a text field holds focus, because on mobile it is what raises the on screen keyboard\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to configure\&. Must not be NULL\&. 
+.br
+\fIenabled\fP Nonzero to start text input, zero to stop it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_has_keyboard (void)"
+
+.PP
+Whether a physical keyboard is attached\&. What decides whether a window puts up a keyboard of its own: a machine with keys does not need one drawn, and a touch screen with no keys has no other way to type\&.
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the platform reports at least one keyboard\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_window_set_text_area (\fBschultz_sdl_window\fP * window, \fBschultz_rect\fP area, int32_t cursor)"
+
+.PP
+Tells the platform where the text being edited is on screen\&. An IME places its candidate window relative to this, so a CJK user sees the candidate list beside the text rather than in a corner\&. Call it whenever the caret moves\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to configure\&. Must not be NULL\&. 
+.br
+\fIarea\fP The caret area in window pixels\&. 
+.br
+\fIcursor\fP Cursor offset within that area, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_clipboard_offer (void * context, const char *const * formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void * make_context)"
+
+.PP
+Offers formats to the system clipboard, as the toolkit's writer\&. Matches schultz_clipboard_offer_fn, so it installs straight into a tree with schultz_tree_set_clipboard\&. The context is ignored\&.
+.PP
+An offer of text and nothing else goes through SDL's own text call, because that is the one that knows every platform's other names for plain text\&. Anything else is offered as given and produced only when something asks\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP Ignored\&. 
+.br
+\fIformats\fP The media types, most preferred first\&. 
+.br
+\fIcount\fP How many\&. 
+.br
+\fImake\fP Produces the bytes of whichever is asked for\&. 
+.br
+\fImake_context\fP Passed to make, unchanged\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when the platform refused\&. 
+.RE
+.PP
+
+.SS "const void * schultz_sdl_clipboard_take (void * context, const char * format, uint64_t * out_length)"
+
+.PP
+Takes one format off the system clipboard, as the toolkit's reader\&. Matches schultz_clipboard_take_fn\&. The context is ignored\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP Ignored\&. 
+.br
+\fIformat\fP The media type wanted\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bytes, or NULL when the clipboard holds none in that format\&. Owned here and valid until the next call to this function\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sdl_clipboard_holds (void * context, const char * format)"
+
+.PP
+Says whether the system clipboard holds a format\&. Matches schultz_clipboard_holds_fn\&. The context is ignored\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP Ignored\&. 
+.br
+\fIformat\fP The media type to ask about\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is there\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

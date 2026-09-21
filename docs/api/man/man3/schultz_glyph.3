@@ -1,0 +1,49 @@
+.TH "schultz_glyph" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_glyph \- One positioned glyph\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_paint\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBglyph_id\fP"
+.br
+.ti -1c
+.RI "float \fBx\fP"
+.br
+.ti -1c
+.RI "float \fBy\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One positioned glyph\&. 
+
+The text pipeline produces these; the painter turns them into quads\&. 
+.PP
+Definition at line \fB84\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_glyph::glyph_id"
+Font specific glyph index, not a character code\&. 
+.PP
+Definition at line \fB85\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "float schultz_glyph::x"
+Pen origin x, in pixels\&. 
+.PP
+Definition at line \fB86\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "float schultz_glyph::y"
+Pen origin y, on the baseline\&. 
+.PP
+Definition at line \fB87\fP of file \fBschultz_paint\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,2093 @@
+.TH "schultz_node.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_node.h \- Retained widget tree, invalidation, and the accessibility schema\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_geom\&.h'\fP
+.br
+\fC#include 'schultz_layout\&.h'\fP
+.br
+\fC#include 'schultz_style\&.h'\fP
+.br
+
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBSCHULTZ_TREE_DIRTY_PARTS\fP   8u"
+.br
+.RI "How many separate areas the tree keeps track of repainting\&. "
+.ti -1c
+.RI "#define \fBSCHULTZ_TREE_DIRTY_WASTE\fP   4096\&.0f"
+.br
+.RI "How many wasted pixels are worth paying to avoid a rectangle\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_tree\fP \fBschultz_tree\fP"
+.br
+.RI "Opaque widget tree\&. Create with schultz_tree_create\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_STATE_VISIBLE\fP = 1u << 0, \fBSCHULTZ_STATE_ENABLED\fP = 1u << 1, \fBSCHULTZ_STATE_HOVERED\fP = 1u << 2, \fBSCHULTZ_STATE_FOCUSED\fP = 1u << 3, \fBSCHULTZ_STATE_PRESSED\fP = 1u << 4, \fBSCHULTZ_STATE_CHECKED\fP = 1u << 5, \fBSCHULTZ_STATE_SELECTED\fP = 1u << 6 }"
+.br
+.RI "Interaction and presentation state, as a bit set\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_STATE_DEFAULT\fP = SCHULTZ_STATE_VISIBLE | SCHULTZ_STATE_ENABLED }"
+.br
+.RI "Default state for a new node: visible and enabled\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_ROLE_UNKNOWN\fP = 0, \fBSCHULTZ_ROLE_WINDOW\fP, \fBSCHULTZ_ROLE_GROUP\fP, \fBSCHULTZ_ROLE_LABEL\fP, \fBSCHULTZ_ROLE_BUTTON\fP, \fBSCHULTZ_ROLE_CHECKBOX\fP, \fBSCHULTZ_ROLE_RADIO\fP, \fBSCHULTZ_ROLE_TEXT_INPUT\fP, \fBSCHULTZ_ROLE_LIST\fP, \fBSCHULTZ_ROLE_LIST_ITEM\fP, \fBSCHULTZ_ROLE_IMAGE\fP, \fBSCHULTZ_ROLE_SCROLL_VIEW\fP, \fBSCHULTZ_ROLE_SLIDER\fP, \fBSCHULTZ_ROLE_MENU\fP, \fBSCHULTZ_ROLE_MENU_ITEM\fP, \fBSCHULTZ_ROLE_PROGRESS\fP }"
+.br
+.RI "What a node is, for assistive technology\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_CURSOR_DEFAULT\fP = 0, \fBSCHULTZ_CURSOR_TEXT\fP, \fBSCHULTZ_CURSOR_POINTER\fP, \fBSCHULTZ_CURSOR_RESIZE_H\fP, \fBSCHULTZ_CURSOR_RESIZE_V\fP, \fBSCHULTZ_CURSOR_COUNT\fP }"
+.br
+.RI "The pointer shape shown over a node\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_ACTION_CLICK\fP = 1u << 0, \fBSCHULTZ_ACTION_FOCUS\fP = 1u << 1, \fBSCHULTZ_ACTION_INCREMENT\fP = 1u << 2, \fBSCHULTZ_ACTION_DECREMENT\fP = 1u << 3, \fBSCHULTZ_ACTION_SET_VALUE\fP = 1u << 4, \fBSCHULTZ_ACTION_SCROLL\fP = 1u << 5 }"
+.br
+.RI "What assistive technology may ask a node to do, as a bit set\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_STYLE_STATE_HOVERED\fP = 0, \fBSCHULTZ_STYLE_STATE_FOCUSED\fP, \fBSCHULTZ_STYLE_STATE_CHECKED\fP, \fBSCHULTZ_STYLE_STATE_SELECTED\fP, \fBSCHULTZ_STYLE_STATE_PRESSED\fP, \fBSCHULTZ_STYLE_STATE_DISABLED\fP, \fBSCHULTZ_STYLE_STATE_COUNT\fP }"
+.br
+.RI "The interaction states a node may carry a style patch for\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_tree_create\fP (\fBschultz_tree\fP **out_tree)"
+.br
+.RI "Creates an empty tree with a root node\&. "
+.ti -1c
+.RI "void \fBschultz_tree_destroy\fP (\fBschultz_tree\fP *tree)"
+.br
+.RI "Destroys a tree and every node in it\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_tree_root\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns the tree's root node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_viewport\fP (\fBschultz_tree\fP *tree, \fBschultz_rect\fP viewport)"
+.br
+.RI "Sets the tree's viewport, which bounds every dirty region\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_get_viewport\fP (const \fBschultz_tree\fP *tree, \fBschultz_rect\fP *out_viewport)"
+.br
+.RI "Reads the visible area\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_pixel_scale\fP (\fBschultz_tree\fP *tree, float scale)"
+.br
+.RI "Records how many screen pixels one unit covers\&. "
+.ti -1c
+.RI "float \fBschultz_tree_pixel_scale\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns how many screen pixels one unit covers\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_create\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP parent, \fBschultz_handle\fP *out_node)"
+.br
+.RI "Creates a node, parented to another node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_destroy\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Destroys a node and its entire subtree\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_parent\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_handle\fP parent)"
+.br
+.RI "Moves a node to a new parent, or takes it out of the tree\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_is_attached\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node is in the tree\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_parent\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_handle\fP *out_parent)"
+.br
+.RI "Returns a node's parent\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_node_child_count\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Counts a node's immediate children\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_child_at\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t index, \fBschultz_handle\fP *out_child)"
+.br
+.RI "Returns one of a node's children by position\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_bounds\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_rect\fP bounds)"
+.br
+.RI "Sets a node's bounds, relative to its parent\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_get_bounds\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_rect\fP *out_bounds)"
+.br
+.RI "Reads a node's bounds, relative to its parent\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_absolute_bounds\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_rect\fP *out_bounds)"
+.br
+.RI "Computes a node's bounds in window coordinates\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_state\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t state)"
+.br
+.RI "Replaces a node's state flags\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_node_get_state\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reads a node's state flags\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_is_visible\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node and all its ancestors are visible\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_is_enabled\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node accepts input, itself and all the way up\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_cursor\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t cursor)"
+.br
+.RI "Sets the pointer shape shown over a node\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_node_cursor\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns the pointer shape shown over a node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_invalidate\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Marks a node's own area as needing repaint\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_is_dirty\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node is itself marked dirty\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_subtree_dirty\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node or anything beneath it is dirty\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_is_dirty\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Reports whether anything in the tree needs repainting\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_tree_dirty_count\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "How many separate areas need repainting\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_dirty_at\fP (const \fBschultz_tree\fP *tree, uint32_t index, \fBschultz_rect\fP *out_region)"
+.br
+.RI "Returns one of the areas that need repainting\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_dirty_region\fP (const \fBschultz_tree\fP *tree, \fBschultz_rect\fP *out_region)"
+.br
+.RI "Returns the union of every dirty region, in window coordinates\&. "
+.ti -1c
+.RI "void \fBschultz_tree_clear_dirty\fP (\fBschultz_tree\fP *tree)"
+.br
+.RI "Clears every dirty mark in the tree\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_tree_node_count\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Counts live nodes, including the root\&. "
+.ti -1c
+.RI "int32_t \fBschultz_style_register\fP (\fBschultz_tree\fP *tree, const \fBschultz_patch\fP *patch, \fBschultz_handle\fP *out_style)"
+.br
+.RI "Registers a reusable style and returns a handle for it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_style_register_states\fP (\fBschultz_tree\fP *tree, const \fBschultz_patch\fP *patch, const \fBschultz_patch\fP *states, \fBschultz_handle\fP *out_style)"
+.br
+.RI "Registers a reusable style that also says how it looks in each interaction state\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_add_style\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_handle\fP style)"
+.br
+.RI "Adds a style to a node's ordered list\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_remove_style\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_handle\fP style)"
+.br
+.RI "Removes a style from a node's list\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_node_style_count\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Counts the styles applied to a node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_style_property\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t property, \fBschultz_value\fP value)"
+.br
+.RI "Sets one property directly on a node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_clear_style_property\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t property)"
+.br
+.RI "Removes one inline property from a node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_state_property\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t state, uint32_t property, \fBschultz_value\fP value)"
+.br
+.RI "Sets one property that applies only in a given interaction state\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_clear_style\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Drops every style, inline property and state property from a node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_theme\fP (\fBschultz_tree\fP *tree, const \fBschultz_theme\fP *theme)"
+.br
+.RI "Installs the theme the tree resolves tokens through\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_theme\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const \fBschultz_theme\fP *theme)"
+.br
+.RI "Gives one subtree its own theme\&. "
+.ti -1c
+.RI "const \fBschultz_resolved_style\fP * \fBschultz_node_resolved\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns a node's fully resolved style\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_resolve_styles\fP (\fBschultz_tree\fP *tree)"
+.br
+.RI "Recomputes the resolved style of every node that needs it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_style_dirty\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node's resolved style is stale\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_layout_dirty\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node, or anything under it, needs laying out\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_invalidate_layout\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Marks a node as needing layout again\&. "
+.ti -1c
+.RI "void \fBschultz_tree_clear_layout_dirty\fP (\fBschultz_tree\fP *tree)"
+.br
+.RI "Clears every layout dirty mark in the tree\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_push_overlay\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t captures)"
+.br
+.RI "Registers a node as an overlay layer\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_pop_overlay\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP *out_node)"
+.br
+.RI "Removes the topmost overlay from the list\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_tree_overlay_count\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Counts the overlay layers\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_overlay_at\fP (const \fBschultz_tree\fP *tree, uint32_t index, \fBschultz_handle\fP *out_node, int32_t *out_captures)"
+.br
+.RI "Returns one overlay by position\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_token\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint64_t token)"
+.br
+.RI "Attaches the host's opaque token to a node\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_node_get_token\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reads a node's host token\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_pane\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const \fBschultz_pane_vtable\fP *vtable)"
+.br
+.RI "Gives a node a pane, which decides how its children are placed\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_node_get_pane\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns the pane a node uses\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_pref_size\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float width, float height)"
+.br
+.RI "Sets how big a node would like to be\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_min_size\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float width, float height)"
+.br
+.RI "Sets the size a node may never go below\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_max_size\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float width, float height)"
+.br
+.RI "Sets the size a node may never go above\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_get_pref_size\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float *out_width, float *out_height)"
+.br
+.RI "Reads back the size a node would like to be\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_get_min_size\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float *out_width, float *out_height)"
+.br
+.RI "Reads back the size a node may never go below\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_get_max_size\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float *out_width, float *out_height)"
+.br
+.RI "Reads back the size a node may never go above\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_layout_params\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const \fBschultz_layout_params\fP *params)"
+.br
+.RI "Sets the per child layout properties the parent pane reads\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_get_layout_params\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_layout_params\fP *out_params)"
+.br
+.RI "Reads a node's per child layout properties\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_spacing\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float padding, float gap)"
+.br
+.RI "Sets the padding inside a pane and the gap between its children\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_grid_tracks\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const \fBschultz_grid_track\fP *columns, uint32_t column_count, const \fBschultz_grid_track\fP *rows, uint32_t row_count)"
+.br
+.RI "Defines a GridPane's rows and columns\&. "
+.ti -1c
+.RI "const \fBschultz_grid_track\fP * \fBschultz_node_get_grid_tracks\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t want_rows, uint32_t *out_count)"
+.br
+.RI "Returns a grid's column or row definitions\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_get_spacing\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float *out_padding, float *out_gap)"
+.br
+.RI "Reads a pane's padding and gap\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_role\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t role)"
+.br
+.RI "Sets what a node is, for assistive technology\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_node_get_role\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reads a node's role\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_name\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const char *name)"
+.br
+.RI "Sets a node's accessible name\&. "
+.ti -1c
+.RI "const char * \fBschultz_node_get_name\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reads a node's accessible name\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_value\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const char *value)"
+.br
+.RI "Sets a node's accessible value\&. "
+.ti -1c
+.RI "const char * \fBschultz_node_get_value\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reads a node's accessible value\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_actions\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t actions)"
+.br
+.RI "Sets which actions a node supports\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_node_get_actions\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reads which actions a node supports\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Retained widget tree, invalidation, and the accessibility schema\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+The tree is the persistent structure a retained mode toolkit is built around: nodes hold their own state between frames, and a change marks a region dirty rather than triggering an immediate repaint\&. Getting that marking right is the hardest correctness problem in the design\&. Marking too little leaves stale pixels on screen; marking too much repaints everything and gives up the only advantage retained mode has\&.
+.PP
+Two dirty bits per node carry that:
+.PP
+.IP "\(bu" 2
+\fCdirty\fP means this node's own pixels are wrong\&.
+.IP "\(bu" 2
+\fCsubtree_dirty\fP means this node or something under it is dirty, so a paint walk can skip a clean subtree without descending into it\&.
+.PP
+.PP
+Alongside those, the tree accumulates the union of every dirty rectangle in window coordinates, which is what the presentation layer uploads\&.
+.PP
+Every node also carries accessibility fields\&. They are modelled on AccessKit's node schema but owned by Schultz, so the bridge translates rather than the tree depending on a library\&. Retrofitting this shape later would mean touching every widget\&. 
+.PP
+Definition in file \fBschultz_node\&.h\fP\&.
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define SCHULTZ_TREE_DIRTY_PARTS   8u"
+
+.PP
+How many separate areas the tree keeps track of repainting\&. Enough that scattered changes stay apart, few enough that the fixed cost of a rectangle does not add up\&. Past this they are merged, so the worst case is the single rectangle this used to be rather than anything worse\&. See docs/repainting\&.md\&. 
+.PP
+Definition at line \fB494\fP of file \fBschultz_node\&.h\fP\&.
+.SS "#define SCHULTZ_TREE_DIRTY_WASTE   4096\&.0f"
+
+.PP
+How many wasted pixels are worth paying to avoid a rectangle\&. Two areas close together cost less as one\&. Measured on this toolkit, a rectangle costs about 0\&.17 ms of fixed work and about five nanoseconds a pixel, so anything under a few thousand wasted pixels is cheaper merged\&. 
+.PP
+Definition at line \fB503\fP of file \fBschultz_node\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_tree\fP \fBschultz_tree\fP"
+
+.PP
+Opaque widget tree\&. Create with schultz_tree_create\&. 
+.PP
+Definition at line \fB62\fP of file \fBschultz_node\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Interaction and presentation state, as a bit set\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_STATE_VISIBLE \fP\fP
+Painted and hit tested\&. 
+.TP
+\fB\fISCHULTZ_STATE_ENABLED \fP\fP
+Accepts input\&. 
+.TP
+\fB\fISCHULTZ_STATE_HOVERED \fP\fP
+Pointer is over it\&. 
+.TP
+\fB\fISCHULTZ_STATE_FOCUSED \fP\fP
+Holds keyboard focus\&. 
+.TP
+\fB\fISCHULTZ_STATE_PRESSED \fP\fP
+Being activated\&. 
+.TP
+\fB\fISCHULTZ_STATE_CHECKED \fP\fP
+Checkbox or radio is on\&. 
+.TP
+\fB\fISCHULTZ_STATE_SELECTED \fP\fP
+Selected within a list\&. 
+.PP
+Definition at line \fB65\fP of file \fBschultz_node\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Default state for a new node: visible and enabled\&. 
+.PP
+Definition at line \fB76\fP of file \fBschultz_node\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+What a node is, for assistive technology\&. Modelled on AccessKit's roles\&. Every platform accessibility API wants this classification, so it lives on the node rather than in the bridge\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_ROLE_UNKNOWN \fP\fP
+Not yet classified\&. 
+.TP
+\fB\fISCHULTZ_ROLE_WINDOW \fP\fP
+Top level container\&. 
+.TP
+\fB\fISCHULTZ_ROLE_GROUP \fP\fP
+Container with no semantics of its own\&. 
+.TP
+\fB\fISCHULTZ_ROLE_LABEL \fP\fP
+Static text\&. 
+.TP
+\fB\fISCHULTZ_ROLE_BUTTON \fP\fP
+Activates on click\&. 
+.TP
+\fB\fISCHULTZ_ROLE_CHECKBOX \fP\fP
+Two or three state toggle\&. 
+.TP
+\fB\fISCHULTZ_ROLE_RADIO \fP\fP
+One of a mutually exclusive set\&. 
+.TP
+\fB\fISCHULTZ_ROLE_TEXT_INPUT \fP\fP
+Editable text\&. 
+.TP
+\fB\fISCHULTZ_ROLE_LIST \fP\fP
+Container of list items\&. 
+.TP
+\fB\fISCHULTZ_ROLE_LIST_ITEM \fP\fP
+One entry in a list\&. 
+.TP
+\fB\fISCHULTZ_ROLE_IMAGE \fP\fP
+Picture, with a name as alternative text\&. 
+.TP
+\fB\fISCHULTZ_ROLE_SCROLL_VIEW \fP\fP
+Clipped, scrollable viewport\&. 
+.TP
+\fB\fISCHULTZ_ROLE_SLIDER \fP\fP
+Continuous value in a range\&. 
+.TP
+\fB\fISCHULTZ_ROLE_MENU \fP\fP
+Menu or context menu\&. 
+.TP
+\fB\fISCHULTZ_ROLE_MENU_ITEM \fP\fP
+One entry in a menu\&. 
+.TP
+\fB\fISCHULTZ_ROLE_PROGRESS \fP\fP
+How far along a task is\&. 
+.PP
+Definition at line \fB86\fP of file \fBschultz_node\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+The pointer shape shown over a node\&. A node with the default shape inherits nothing: the platform layer looks at whatever the pointer is over and shows that node's shape, so a container saying nothing simply lets its own default stand\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_CURSOR_DEFAULT \fP\fP
+The ordinary arrow\&. 
+.TP
+\fB\fISCHULTZ_CURSOR_TEXT \fP\fP
+An I-beam, over editable text\&. 
+.TP
+\fB\fISCHULTZ_CURSOR_POINTER \fP\fP
+A hand, over something that activates\&. 
+.TP
+\fB\fISCHULTZ_CURSOR_RESIZE_H \fP\fP
+Left and right, over a vertical divider\&. 
+.TP
+\fB\fISCHULTZ_CURSOR_RESIZE_V \fP\fP
+Up and down, over a horizontal divider\&. 
+.TP
+\fB\fISCHULTZ_CURSOR_COUNT \fP\fP
+How many shapes there are\&. 
+.PP
+Definition at line \fB112\fP of file \fBschultz_node\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+What assistive technology may ask a node to do, as a bit set\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_ACTION_CLICK \fP\fP
+Activate the node\&. 
+.TP
+\fB\fISCHULTZ_ACTION_FOCUS \fP\fP
+Give it keyboard focus\&. 
+.TP
+\fB\fISCHULTZ_ACTION_INCREMENT \fP\fP
+Step a value up\&. 
+.TP
+\fB\fISCHULTZ_ACTION_DECREMENT \fP\fP
+Step a value down\&. 
+.TP
+\fB\fISCHULTZ_ACTION_SET_VALUE \fP\fP
+Replace the value\&. 
+.TP
+\fB\fISCHULTZ_ACTION_SCROLL \fP\fP
+Scroll the node into view\&. 
+.PP
+Definition at line \fB123\fP of file \fBschultz_node\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+The interaction states a node may carry a style patch for\&. Applied in this order during resolution, so a later one overrides an earlier one\&. That is why disabled sits last: a disabled control must not appear to respond to the pointer\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_STYLE_STATE_HOVERED \fP\fP
+The pointer is over the node\&. 
+.TP
+\fB\fISCHULTZ_STYLE_STATE_FOCUSED \fP\fP
+The node holds keyboard focus\&. 
+.TP
+\fB\fISCHULTZ_STYLE_STATE_CHECKED \fP\fP
+A toggle is on\&. 
+.TP
+\fB\fISCHULTZ_STYLE_STATE_SELECTED \fP\fP
+Selected within a list\&. 
+.TP
+\fB\fISCHULTZ_STYLE_STATE_PRESSED \fP\fP
+The node is being activated\&. 
+.TP
+\fB\fISCHULTZ_STYLE_STATE_DISABLED \fP\fP
+The node cannot be used\&. 
+.TP
+\fB\fISCHULTZ_STYLE_STATE_COUNT \fP\fP
+How many state patches exist\&. 
+.PP
+Definition at line \fB584\fP of file \fBschultz_node\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_tree_create (\fBschultz_tree\fP ** out_tree)"
+
+.PP
+Creates an empty tree with a root node\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_tree\fP Receives the new tree\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_tree is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_tree_destroy (\fBschultz_tree\fP * tree)"
+
+.PP
+Destroys a tree and every node in it\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to destroy\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_tree_root (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns the tree's root node\&. The root exists for the life of the tree and cannot be destroyed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The root handle\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_viewport (\fBschultz_tree\fP * tree, \fBschultz_rect\fP viewport)"
+
+.PP
+Sets the tree's viewport, which bounds every dirty region\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIviewport\fP The window area in pixels\&. Dirty regions are clipped to this, so a node moved off screen does not inflate the repaint area\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_get_viewport (const \fBschultz_tree\fP * tree, \fBschultz_rect\fP * out_viewport)"
+
+.PP
+Reads the visible area\&. An overlay needs it to keep itself on screen, and it is the one rectangle that is not any node's bounds\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. Must not be NULL\&. 
+.br
+\fIout_viewport\fP Receives the viewport\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_pixel_scale (\fBschultz_tree\fP * tree, float scale)"
+
+.PP
+Records how many screen pixels one unit covers\&. The frame driver sets this from the screen\&. It is here so that a widget which has to answer in real pixels, a canvas being the one that does, can work it out without being handed the frame\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIscale\fP Screen pixels per unit\&. Must be greater than zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "float schultz_tree_pixel_scale (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns how many screen pixels one unit covers\&. One when nothing set it, which is the truth on a screen with nothing to scale and the safe answer anywhere else\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields 1\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The scale\&. Never zero or negative\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_create (\fBschultz_tree\fP * tree, \fBschultz_handle\fP parent, \fBschultz_handle\fP * out_node)"
+
+.PP
+Creates a node, parented to another node\&. The new node is visible and enabled, with empty bounds, so it paints nothing until it is given a size\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to create in\&. Must not be NULL\&. 
+.br
+\fIparent\fP The parent to attach to\&. Must name a live node, or SCHULTZ_HANDLE_NONE for a node that starts out of the tree\&. See schultz_node_set_parent for what that means\&. 
+.br
+\fIout_node\fP Receives the new node handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, SCHULTZ_ERR_INVALID_HANDLE when the parent is named but not live, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_destroy (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Destroys a node and its entire subtree\&. The area the subtree occupied is marked dirty, because those pixels must be repainted by whatever is now behind them\&. Every handle in the subtree goes stale\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to destroy\&. Destroying the root is refused\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE when the node is not live, or SCHULTZ_ERR_INVALID_ARGUMENT when asked to destroy the root\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_parent (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_handle\fP parent)"
+
+.PP
+Moves a node to a new parent, or takes it out of the tree\&. Both the old and the new position are marked dirty, and both panes are told to place their children again\&.
+.PP
+Passing SCHULTZ_HANDLE_NONE detaches the node: it keeps everything it has, including its children, its styles and whatever state its widget is holding such as a scroll offset or a selection, and it stops being part of the tree\&. A detached node is not laid out, not painted, not hit tested and not read by a screen reader, it is not ticked, and changing it does not mark any part of the window for repainting\&. Handing it a parent again puts it back, laid out and repainted where it lands\&.
+.PP
+This is what a language binding needs for a \fCremove\fP that leaves a widget alive and re-addable, with \fCdestroy\fP as the call that ends it\&. Ask schultz_node_is_attached to tell the two apart\&.
+.PP
+Detaching gives up the two things that name what is on screen: the text selection, and a place in the overlay list\&. Those are asked for again rather than restored, because a node that was an overlay before is not necessarily one afterwards\&. Everything the node asked for itself it keeps, so a widget that was animating carries on where it left off when it goes back in\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding both nodes\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to move\&. The root cannot be reparented\&. 
+.br
+\fIparent\fP The new parent, or SCHULTZ_HANDLE_NONE for no parent\&. Must not be the node itself or one of its descendants, which would form a cycle\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE when the node is not live or the parent is named but not live, SCHULTZ_ERR_INVALID_ARGUMENT for the root or a cycle, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_is_attached (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node is in the tree\&. True when following the node's parents arrives at the root\&. False for a node detached with schultz_node_set_parent, for anything under one, and for a handle that no longer names a live node\&.
+.PP
+This is the difference between a widget that exists and a widget that is on screen, and it is the question a binding's \fCisAttached\fP is really asking\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the node is in the tree, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_parent (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_handle\fP * out_parent)"
+
+.PP
+Returns a node's parent\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_parent\fP Receives the parent, or SCHULTZ_HANDLE_NONE for the root and for a detached node\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_parent is NULL, or SCHULTZ_ERR_INVALID_HANDLE when the node is not live\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_node_child_count (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Counts a node's immediate children\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of children, or 0 when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_child_at (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t index, \fBschultz_handle\fP * out_child)"
+
+.PP
+Returns one of a node's children by position\&. Children are kept in insertion order, which is paint order: later children paint on top of earlier ones\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The parent to query\&. 
+.br
+\fIindex\fP Zero based position among the children\&. 
+.br
+\fIout_child\fP Receives the child handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_child is NULL or index is out of range, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_bounds (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_rect\fP bounds)"
+
+.PP
+Sets a node's bounds, relative to its parent\&. Both the area vacated and the area newly occupied are marked dirty\&. Marking only the new one is the classic invalidation bug: the old position keeps showing whatever was last painted there\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to move or resize\&. 
+.br
+\fIbounds\fP The new bounds, in the parent's coordinate space\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_get_bounds (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_rect\fP * out_bounds)"
+
+.PP
+Reads a node's bounds, relative to its parent\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_bounds\fP Receives the bounds\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_bounds is NULL, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_absolute_bounds (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_rect\fP * out_bounds)"
+
+.PP
+Computes a node's bounds in window coordinates\&. Walks to the root accumulating parent offsets\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to locate\&. 
+.br
+\fIout_bounds\fP Receives the absolute bounds\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_bounds is NULL, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_state (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t state)"
+
+.PP
+Replaces a node's state flags\&. Marks the node dirty when the flags actually change, and not otherwise, so a redundant set costs no repaint\&. Clearing SCHULTZ_STATE_VISIBLE marks the area the node occupied, because it must be repainted without it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to update\&. 
+.br
+\fIstate\fP A bit set of SCHULTZ_STATE_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_node_get_state (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reads a node's state flags\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bit set, or 0 when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_is_visible (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node and all its ancestors are visible\&. A node inside a hidden parent is not drawn even if its own visible flag is set, so this is the question paint and hit testing actually ask\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. A node that is not live yields 0, because a node that does not exist cannot be visible\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the node is effectively visible, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_is_enabled (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node accepts input, itself and all the way up\&. Disabled is inherited, the way being hidden is: a node inside a disabled one is disabled too, so turning a panel off turns off everything on it\&.
+.PP
+A disabled node still stops the pointer reaching whatever is behind it\&. It simply does nothing with what it stops: no hover, no press, no click, and no key\&. That is what a disabled control looks like everywhere else, and it is why this is not done by leaving the node out of hit testing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when it and every node above it are enabled, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_cursor (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t cursor)"
+
+.PP
+Sets the pointer shape shown over a node\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to change\&. 
+.br
+\fIcursor\fP One of the SCHULTZ_CURSOR_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for an unknown shape, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_node_cursor (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns the pointer shape shown over a node\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields SCHULTZ_CURSOR_DEFAULT\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+One of the SCHULTZ_CURSOR_* values\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_invalidate (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Marks a node's own area as needing repaint\&. Use this when something that affects only appearance changes, such as a colour or a label\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to invalidate\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_is_dirty (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node is itself marked dirty\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the node's own pixels need repainting, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_subtree_dirty (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node or anything beneath it is dirty\&. A paint walk tests this to decide whether to descend, which is what lets a clean subtree cost nothing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the subtree contains a dirty node, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_is_dirty (const \fBschultz_tree\fP * tree)"
+
+.PP
+Reports whether anything in the tree needs repainting\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when a repaint is needed, 0 when the frame can be skipped\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_tree_dirty_count (const \fBschultz_tree\fP * tree)"
+
+.PP
+How many separate areas need repainting\&. The repainting a tree asks for is a few rectangles rather than one, because one means two small changes at opposite corners repaint everything between them\&. docs/repainting\&.md explains it and gives the measurements\&.
+.PP
+Zero means nothing changed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many, at most SCHULTZ_TREE_DIRTY_PARTS\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_dirty_at (const \fBschultz_tree\fP * tree, uint32_t index, \fBschultz_rect\fP * out_region)"
+
+.PP
+Returns one of the areas that need repainting\&. They do not overlap in any way worth relying on: a caller that paints each in turn may paint a pixel twice, which costs a little and is never wrong\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. Must not be NULL\&. 
+.br
+\fIindex\fP From zero to schultz_tree_dirty_count minus one\&. 
+.br
+\fIout_region\fP Receives it\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_EXHAUSTED when there is no such area\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_dirty_region (const \fBschultz_tree\fP * tree, \fBschultz_rect\fP * out_region)"
+
+.PP
+Returns the union of every dirty region, in window coordinates\&. This is the rectangle the rasterizer should be restricted to and the presentation layer should upload\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. Must not be NULL\&. 
+.br
+\fIout_region\fP Receives the union, clipped to the viewport\&. Must not be NULL\&. An empty rectangle means nothing needs repainting\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when either pointer is NULL\&. 
+.RE
+.PP
+
+.SS "void schultz_tree_clear_dirty (\fBschultz_tree\fP * tree)"
+
+.PP
+Clears every dirty mark in the tree\&. Call once a frame has been painted and presented\&. Clearing before painting loses the repaint\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to clear\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_tree_node_count (const \fBschultz_tree\fP * tree)"
+
+.PP
+Counts live nodes, including the root\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of nodes\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_style_register (\fBschultz_tree\fP * tree, const \fBschultz_patch\fP * patch, \fBschultz_handle\fP * out_style)"
+
+.PP
+Registers a reusable style and returns a handle for it\&. The patch is copied, so the caller's may be released afterwards\&. A style is immutable once registered: to change one, register another\&. Styles are reference counted and released when the last node using one drops it, or when the tree is destroyed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to register with\&. Must not be NULL\&. 
+.br
+\fIpatch\fP The properties this style sets\&. Must not be NULL\&. 
+.br
+\fIout_style\fP Receives the style handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_style_register_states (\fBschultz_tree\fP * tree, const \fBschultz_patch\fP * patch, const \fBschultz_patch\fP * states, \fBschultz_handle\fP * out_style)"
+
+.PP
+Registers a reusable style that also says how it looks in each interaction state\&. The same as schultz_style_register, plus the hovered, pressed and disabled looks that go with the plain one\&. Those belong to the style rather than to the nodes wearing it, so a rule written once is shared by every node that takes the style, and dropping the style with schultz_node_remove_style takes its state rules away too\&. Set them on the node with schultz_node_set_state_property and neither is true: the rule is copied per node, and removing the style leaves it behind\&.
+.PP
+Where it lands in the cascade: above every layer that has no state, so a hover colour beats the plain one whether that came from a style or from the node; below the node's own state patches, so naming a state on one node still wins, the way an inline property beats a style\&.
+.PP
+Every patch is copied, so the caller's may be released afterwards\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to register with\&. Must not be NULL\&. 
+.br
+\fIpatch\fP The properties this style sets whatever state a node is in\&. Must not be NULL\&. 
+.br
+\fIstates\fP SCHULTZ_STYLE_STATE_COUNT patches, indexed by the SCHULTZ_STYLE_STATE_* values, or NULL for a style with no state rules\&. An empty patch means that state adds nothing\&. 
+.br
+\fIout_style\fP Receives the style handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_add_style (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_handle\fP style)"
+
+.PP
+Adds a style to a node's ordered list\&. Later styles override earlier ones\&. Adding a style already on the node moves nothing and is not an error\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding both\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to style\&. 
+.br
+\fIstyle\fP A style registered with schultz_style_register\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE when either is not live, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_remove_style (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_handle\fP style)"
+
+.PP
+Removes a style from a node's list\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to update\&. 
+.br
+\fIstyle\fP The style to remove\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK whether or not it was present, or SCHULTZ_ERR_INVALID_HANDLE when the node is not live\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_node_style_count (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Counts the styles applied to a node\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many styles are in its list\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_style_property (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t property, \fBschultz_value\fP value)"
+
+.PP
+Sets one property directly on a node\&. This is the inline patch: styling one node without registering a style or touching the theme\&. It sits above the node's style list, so it wins\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to style\&. 
+.br
+\fIproperty\fP One of the SCHULTZ_PROP_* values\&. 
+.br
+\fIvalue\fP What to set it to, literal or a token reference\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for an out of range property, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_clear_style_property (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t property)"
+
+.PP
+Removes one inline property from a node\&. The property then resolves from the layers beneath again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to update\&. 
+.br
+\fIproperty\fP The property to unset\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_state_property (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t state, uint32_t property, \fBschultz_value\fP value)"
+
+.PP
+Sets one property that applies only in a given interaction state\&. State patches sit above everything else, so a hover colour overrides both the node's inline style and its style list\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to style\&. 
+.br
+\fIstate\fP One of the SCHULTZ_STYLE_STATE_* values\&. 
+.br
+\fIproperty\fP One of the SCHULTZ_PROP_* values\&. 
+.br
+\fIvalue\fP What to set it to\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for an out of range state or property, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_clear_style (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Drops every style, inline property and state property from a node\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to strip\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_theme (\fBschultz_tree\fP * tree, const \fBschultz_theme\fP * theme)"
+
+.PP
+Installs the theme the tree resolves tokens through\&. The theme is copied\&. Every node is marked style dirty, since any of them may resolve a token that changed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to update\&. Must not be NULL\&. 
+.br
+\fItheme\fP The theme to install, or NULL to fall back to the built in token values throughout\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_theme (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const \fBschultz_theme\fP * theme)"
+
+.PP
+Gives one subtree its own theme\&. Resolution walks up to the nearest ancestor carrying a theme and falls back to the tree's\&. This is what makes a dark sidebar in a light application expressible without restating every property\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node whose subtree gets the theme\&. 
+.br
+\fItheme\fP The theme to install, copied, or NULL to remove one\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_resolved_style\fP * schultz_node_resolved (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns a node's fully resolved style\&. This is what drawing code reads, and the only thing it should read\&. The pointer is valid until the node is destroyed; its contents change whenever the node is resolved\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The resolved style, or NULL when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_resolve_styles (\fBschultz_tree\fP * tree)"
+
+.PP
+Recomputes the resolved style of every node that needs it\&. Walks the tree in pre-order, resolving nodes marked style dirty and any node beneath one whose inherited properties changed\&. Comparing the old resolved style with the new one is what decides whether a node needs a relayout or only a repaint\&.
+.PP
+Call once per frame, before layout and paint\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to resolve\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_style_dirty (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node's resolved style is stale\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the node must be resolved again, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_layout_dirty (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node, or anything under it, needs laying out\&. Set by resolution when a layout property changed, and by anything else that invalidates geometry\&. It reaches the ancestors as well as the node itself, so asking the root is how a host finds out whether laying anything out is worth the time, without walking the tree to look\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when layout must run again somewhere at or below it, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_invalidate_layout (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Marks a node as needing layout again\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to mark\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "void schultz_tree_clear_layout_dirty (\fBschultz_tree\fP * tree)"
+
+.PP
+Clears every layout dirty mark in the tree\&. Call after a layout pass, in the same way schultz_tree_clear_dirty is called after painting\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to clear\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_push_overlay (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t captures)"
+
+.PP
+Registers a node as an overlay layer\&. A context menu is not a child of the thing it pops from\&. It must escape that parent's bounds and clipping, size itself to its own content, and draw above everything\&. Forcing that into the content tree means fighting it, so the root instead owns an ordered list of overlays\&. Each is its own layout root, positioned by anchor logic rather than by a parent pane\&.
+.PP
+The node should be a child of the root\&. Its placement is worked out in window coordinates and converted into the root's before it is stored, so a root that has been inset for a camera notch places overlays correctly rather than that much too low\&.
+.PP
+An overlay is kept inside the safe area, which is the root's own box: one nudged under a notch is on screen and cannot be read\&. A node that covers the window instead, such as a dialog's scrim, says so with schultz_node_set_fills_viewport and gets the whole window including the notch\&.
+.PP
+Overlays are searched first during hit testing, topmost down\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to register with\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to raise to an overlay layer\&. 
+.br
+\fIcaptures\fP Nonzero when a press outside this overlay should dismiss it and be consumed rather than reaching what is underneath, which is what a menu wants\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_EXHAUSTED when the node is already an overlay\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_pop_overlay (\fBschultz_tree\fP * tree, \fBschultz_handle\fP * out_node)"
+
+.PP
+Removes the topmost overlay from the list\&. The node itself is untouched; destroying or hiding it is the caller's business\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to pop from\&. Must not be NULL\&. 
+.br
+\fIout_node\fP Receives the removed overlay, or NULL if not wanted\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_EXHAUSTED when there are no overlays\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_tree_overlay_count (const \fBschultz_tree\fP * tree)"
+
+.PP
+Counts the overlay layers\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many overlays are registered\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_overlay_at (const \fBschultz_tree\fP * tree, uint32_t index, \fBschultz_handle\fP * out_node, int32_t * out_captures)"
+
+.PP
+Returns one overlay by position\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. Must not be NULL\&. 
+.br
+\fIindex\fP Zero is the bottom overlay; the highest index is topmost\&. 
+.br
+\fIout_node\fP Receives the overlay node\&. Must not be NULL\&. 
+.br
+\fIout_captures\fP Receives whether it captures input, or NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when index is out of range\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_token (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint64_t token)"
+
+.PP
+Attaches the host's opaque token to a node\&. The toolkit never interprets this\&. It is handed back with every event aimed at the node, and the host uses it to find whatever listener it registered\&. Storing a token rather than a callback is what keeps the toolkit from having to trace host memory\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to tag\&. 
+.br
+\fItoken\fP Any value meaningful to the host\&. Zero means no listener\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_node_get_token (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reads a node's host token\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The token, or 0 when none is set\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_pane (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const \fBschultz_pane_vtable\fP * vtable)"
+
+.PP
+Gives a node a pane, which decides how its children are placed\&. A node with no pane is a leaf: it measures to its preferred size hints and places no children\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to configure\&. 
+.br
+\fIvtable\fP The pane implementation, or NULL to make the node a leaf\&. The vtable must outlive the node; the built in panes have static storage duration\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_node_get_pane (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns the pane a node uses\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The pane vtable, or NULL when the node is a leaf\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_pref_size (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float width, float height)"
+
+.PP
+Sets how big a node would like to be\&. A wish, not a rule\&. It says what to be when nothing else decides, and a pane is entitled to decide otherwise: a box pane stretches its children across the cross axis by default, which is why a row of buttons comes out the same height\&. For a size that holds whatever the pane thinks, say so with schultz_node_set_min_size and schultz_node_set_max_size\&.
+.PP
+Both axes are set\&. SCHULTZ_SIZE_UNSET on either leaves that one to be measured from the content, which is what a wrapped label wants: a width to wrap inside, and whatever height that turns out to need\&.
+.PP
+Marks the node dirty, since a size change can alter what is painted\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to size\&. 
+.br
+\fIwidth\fP Wanted width, or SCHULTZ_SIZE_UNSET to measure it\&. 
+.br
+\fIheight\fP Wanted height, or SCHULTZ_SIZE_UNSET to measure it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_min_size (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float width, float height)"
+
+.PP
+Sets the size a node may never go below\&. A rule, unlike a preferred size\&. It binds wherever the node is placed, so a pane that would have squeezed it smaller does not\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to constrain\&. 
+.br
+\fIwidth\fP Smallest width, or SCHULTZ_SIZE_UNSET for no minimum\&. 
+.br
+\fIheight\fP Smallest height, or SCHULTZ_SIZE_UNSET for no minimum\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_max_size (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float width, float height)"
+
+.PP
+Sets the size a node may never go above\&. A rule, unlike a preferred size, and the one that answers 'this wide,
+whatever the column thinks'\&. A maximum on its own caps a stretched child without pinning it; a maximum equal to a minimum pins it exactly\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to constrain\&. 
+.br
+\fIwidth\fP Largest width, or SCHULTZ_SIZE_UNSET for no maximum\&. 
+.br
+\fIheight\fP Largest height, or SCHULTZ_SIZE_UNSET for no maximum\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_get_pref_size (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float * out_width, float * out_height)"
+
+.PP
+Reads back the size a node would like to be\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_width\fP Receives the width, or SCHULTZ_SIZE_UNSET\&. May be NULL\&. 
+.br
+\fIout_height\fP Receives the height, or SCHULTZ_SIZE_UNSET\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_get_min_size (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float * out_width, float * out_height)"
+
+.PP
+Reads back the size a node may never go below\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_width\fP Receives the width\&. Zero means no minimum\&. May be NULL\&. 
+.br
+\fIout_height\fP Receives the height\&. Zero means no minimum\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_get_max_size (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float * out_width, float * out_height)"
+
+.PP
+Reads back the size a node may never go above\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_width\fP Receives the width, or SCHULTZ_SIZE_UNSET\&. May be NULL\&. 
+.br
+\fIout_height\fP Receives the height, or SCHULTZ_SIZE_UNSET\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_layout_params (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const \fBschultz_layout_params\fP * params)"
+
+.PP
+Sets the per child layout properties the parent pane reads\&. Which members matter depends on the parent's kind: a box reads grow and align, a grid reads row and column, an absolute pane reads x and y\&. A member the parent does not use is ignored\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The child to configure\&. 
+.br
+\fIparams\fP The new properties\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when params is NULL, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_get_layout_params (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_layout_params\fP * out_params)"
+
+.PP
+Reads a node's per child layout properties\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_params\fP Receives the properties\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_params is NULL, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_spacing (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float padding, float gap)"
+
+.PP
+Sets the padding inside a pane and the gap between its children\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The pane to configure\&. 
+.br
+\fIpadding\fP Space between the pane's edge and its children, on all four sides\&. Negative values are treated as zero\&. 
+.br
+\fIgap\fP Space between adjacent children\&. Negative is treated as zero\&. Panes that do not stack children ignore it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_grid_tracks (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const \fBschultz_grid_track\fP * columns, uint32_t column_count, const \fBschultz_grid_track\fP * rows, uint32_t row_count)"
+
+.PP
+Defines a GridPane's rows and columns\&. The definitions are copied\&. Counts above SCHULTZ_GRID_MAX_TRACKS are clamped to it\&. Passing zero counts clears the definitions, after which the grid derives a single content sized track per axis\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The grid to configure\&. 
+.br
+\fIcolumns\fP Column definitions, or NULL when column_count is zero\&. 
+.br
+\fIcolumn_count\fP How many columns\&. 
+.br
+\fIrows\fP Row definitions, or NULL when row_count is zero\&. 
+.br
+\fIrow_count\fP How many rows\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_grid_track\fP * schultz_node_get_grid_tracks (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t want_rows, uint32_t * out_count)"
+
+.PP
+Returns a grid's column or row definitions\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The grid to query\&. 
+.br
+\fIwant_rows\fP Nonzero for the rows, zero for the columns\&. 
+.br
+\fIout_count\fP Receives how many there are\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The definitions, owned by the node, or NULL when none are set\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_get_spacing (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float * out_padding, float * out_gap)"
+
+.PP
+Reads a pane's padding and gap\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_padding\fP Receives the padding, or NULL if not wanted\&. 
+.br
+\fIout_gap\fP Receives the gap, or NULL if not wanted\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_role (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t role)"
+
+.PP
+Sets what a node is, for assistive technology\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to classify\&. 
+.br
+\fIrole\fP One of the SCHULTZ_ROLE_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_node_get_role (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reads a node's role\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields SCHULTZ_ROLE_UNKNOWN\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The role\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_name (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const char * name)"
+
+.PP
+Sets a node's accessible name\&. This is what a screen reader announces: a button's label, an image's alternative text\&. The string is copied\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to name\&. 
+.br
+\fIname\fP A NUL terminated string, or NULL to clear the name\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "const char * schultz_node_get_name (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reads a node's accessible name\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The name, owned by the node and valid until it is changed or the node is destroyed, or NULL when unset\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_value (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const char * value)"
+
+.PP
+Sets a node's accessible value\&. The current contents of a text field, or a slider's position rendered as text\&. The string is copied\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to update\&. 
+.br
+\fIvalue\fP A NUL terminated string, or NULL to clear the value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "const char * schultz_node_get_value (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reads a node's accessible value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The value, owned by the node, or NULL when unset\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_actions (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t actions)"
+
+.PP
+Sets which actions a node supports\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to update\&. 
+.br
+\fIactions\fP A bit set of SCHULTZ_ACTION_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_node_get_actions (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reads which actions a node supports\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bit set of supported actions\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

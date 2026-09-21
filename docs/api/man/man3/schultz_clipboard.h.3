@@ -1,0 +1,56 @@
+.TH "schultz_clipboard.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_clipboard.h \- Clipboard shapes that are not one platform's own\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_clipboard_windows_html\fP (const char *html, const char **out_bytes, uint64_t *out_length)"
+.br
+.RI "Wraps markup the way the Windows clipboard wants it\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Clipboard shapes that are not one platform's own\&. 
+
+Not part of the host facing interface\&. Most of what a clipboard needs is the platform's business, and each one has its own file\&. What is here is the part that is plain byte work: building the wrapper Windows puts round markup, which is fiddly enough to be worth testing and does not need Windows to test\&. 
+.PP
+Definition in file \fBschultz_clipboard\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_clipboard_windows_html (const char * html, const char ** out_bytes, uint64_t * out_length)"
+
+.PP
+Wraps markup the way the Windows clipboard wants it\&. Windows carries rich text in a format of its own, registered under the name 'HTML Format'\&. It is the markup with a header in front of it, and the header is a short list of byte offsets saying where the document starts and ends and which part of it was actually copied\&.
+.PP
+The awkward part, and the reason this is worth its own function: \fBthe offsets count from the first byte of the result, header included\fP, so how long the header is depends on the numbers and the numbers depend on how long the header is\&. The way out is the one the format's own specification gives: write each number in a fixed width padded with leading zeros, so the header's length is known before any of the numbers are\&.
+.PP
+Which part was copied is found from the comments the markup already carries, \fC<!--StartFragment-->\fP and \fC<!--EndFragment-->\fP\&. Markup without them is wrapped whole, with the fragment taken as the entire document\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIhtml\fP The markup, NUL terminated\&. Must not be NULL\&. 
+.br
+\fIout_bytes\fP Receives the wrapped bytes, NUL terminated\&. Must not be NULL\&. Owned by the toolkit and valid until the next call\&. 
+.br
+\fIout_length\fP Receives how many bytes, not counting the terminator\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

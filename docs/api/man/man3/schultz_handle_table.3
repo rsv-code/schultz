@@ -1,0 +1,56 @@
+.TH "schultz_handle_table" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_handle_table \- A table of handle slots with a free list\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_handle\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_handle_slot\fP * \fBslots\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcapacity\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBfree_head\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A table of handle slots with a free list\&. 
+
+Zero initialize or call schultz_handle_table_init before use\&. 
+.PP
+Definition at line \fB62\fP of file \fBschultz_handle\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_handle_slot\fP* schultz_handle_table::slots"
+Slot array, capacity entries long\&. 
+.PP
+Definition at line \fB63\fP of file \fBschultz_handle\&.h\fP\&.
+.SS "uint32_t schultz_handle_table::capacity"
+Slots currently allocated\&. 
+.PP
+Definition at line \fB64\fP of file \fBschultz_handle\&.h\fP\&.
+.SS "uint32_t schultz_handle_table::count"
+Slots currently live\&. 
+.PP
+Definition at line \fB65\fP of file \fBschultz_handle\&.h\fP\&.
+.SS "uint32_t schultz_handle_table::free_head"
+First free slot, or UINT32_MAX\&. 
+.PP
+Definition at line \fB66\fP of file \fBschultz_handle\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

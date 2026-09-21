@@ -1,0 +1,1215 @@
+.TH "schultz_video.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_video.h \- Playing video: a node that shows frames fed to it\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdint\&.h>\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_node\&.h'\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_video_encoder\fP \fBschultz_video_encoder\fP"
+.br
+.RI "An encoder: pictures in, compressed packets out\&. "
+.ti -1c
+.RI "typedef struct \fBschultz_video_decoder\fP \fBschultz_video_decoder\fP"
+.br
+.RI "A decoder for the packets an encoder produces\&. "
+.ti -1c
+.RI "typedef struct \fBschultz_video_writer\fP \fBschultz_video_writer\fP"
+.br
+.RI "Writes packets into a WebM file\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_VIDEO_CODEC_NONE\fP = 0, \fBSCHULTZ_VIDEO_CODEC_VP8\fP, \fBSCHULTZ_VIDEO_CODEC_VP9\fP }"
+.br
+.RI "Which codec a video track carries\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_VIDEO_CONTROLS_NONE\fP = 0u, \fBSCHULTZ_VIDEO_CONTROL_PLAY\fP = 1u << 0, \fBSCHULTZ_VIDEO_CONTROL_STOP\fP = 1u << 1, \fBSCHULTZ_VIDEO_CONTROL_POSITION\fP = 1u << 2, \fBSCHULTZ_VIDEO_CONTROL_TIME\fP = 1u << 3, \fBSCHULTZ_VIDEO_CONTROL_MUTE\fP = 1u << 4, \fBSCHULTZ_VIDEO_CONTROL_VOLUME\fP = 1u << 5, \fBSCHULTZ_VIDEO_CONTROLS_ALL\fP = 0x3Fu }"
+.br
+.RI "Which controls a video node shows\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_VIDEO_SPEED_MOST\fP = 10u }"
+.br
+.RI "The quickest an encoder can be asked to be\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_video_create\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP parent, uint32_t threads, \fBschultz_handle\fP *out_node)"
+.br
+.RI "Creates a video node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_open_file\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const char *path)"
+.br
+.RI "Names a file for the node to read and play\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_write\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const void *bytes, uint64_t length)"
+.br
+.RI "Hands the node more of the file\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_video_queued\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns how many bytes have been written and not yet read\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_video_held\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "How much memory a pushed stream is holding\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_play\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Starts playing, from where it stopped\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_pause\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Stops playing and holds the frame that is showing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_stop\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Stops playing and returns to the beginning\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_is_playing\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether it is playing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_set_looping\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t looping)"
+.br
+.RI "Starts again from the beginning when the end is reached\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_can_seek\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether this node can be moved to another point in the film\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_seek\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint64_t at_ms)"
+.br
+.RI "Moves to a point in the film\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_video_position\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns how far into the film the node has played, in milliseconds\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_video_duration\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns how long the film is, in milliseconds\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_set_controls\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t controls)"
+.br
+.RI "Chooses which controls the node shows\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_video_controls\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns which controls the node shows\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_has_sound\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether the film has a sound track this can play\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_set_volume\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float volume)"
+.br
+.RI "Sets how loud the film plays\&. "
+.ti -1c
+.RI "float \fBschultz_video_volume\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns how loud the film plays\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_set_muted\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t muted)"
+.br
+.RI "Silences the film without forgetting how loud it was\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_is_muted\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether the film is muted\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_size\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t *out_width, uint32_t *out_height)"
+.br
+.RI "Returns the size of the picture, once one is known\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_video_codec\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns which codec the opened track carries\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_video_frames_shown\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Counts the frames shown since the node was created\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_encoder_create\fP (uint32_t codec, uint32_t width, uint32_t height, uint32_t per_second, uint32_t bitrate, \fBschultz_video_encoder\fP **out_encoder)"
+.br
+.RI "Creates an encoder\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_video_encoder_codec\fP (const \fBschultz_video_encoder\fP *encoder)"
+.br
+.RI "Returns which codec an encoder is producing\&. "
+.ti -1c
+.RI "void \fBschultz_video_encoder_destroy\fP (\fBschultz_video_encoder\fP *encoder)"
+.br
+.RI "Closes an encoder\&. Safe on NULL\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_encoder_write_frame\fP (\fBschultz_video_encoder\fP *encoder, const uint32_t *argb, uint32_t width, uint32_t height, uint64_t when_ns)"
+.br
+.RI "Hands the encoder one picture\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_encoder_read_packet\fP (\fBschultz_video_encoder\fP *encoder, const void **out_bytes, uint64_t *out_length, uint64_t *out_when_ns, int32_t *out_keyframe)"
+.br
+.RI "Takes the next packet the encoder has ready\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_encoder_set_bitrate\fP (\fBschultz_video_encoder\fP *encoder, uint32_t bitrate)"
+.br
+.RI "Changes the target bitrate, from the next picture onward\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_encoder_force_keyframe\fP (\fBschultz_video_encoder\fP *encoder)"
+.br
+.RI "Makes the next picture a keyframe\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_video_encoder_bitrate\fP (const \fBschultz_video_encoder\fP *encoder)"
+.br
+.RI "Returns the target bitrate the encoder is working to\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_encoder_set_speed\fP (\fBschultz_video_encoder\fP *encoder, uint32_t speed)"
+.br
+.RI "Sets how quickly the encoder works, against how good it looks\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_video_encoder_speed\fP (const \fBschultz_video_encoder\fP *encoder)"
+.br
+.RI "Returns how quickly the encoder has been asked to work\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_decoder_create\fP (uint32_t codec, \fBschultz_video_decoder\fP **out_decoder)"
+.br
+.RI "Creates a decoder for bare packets\&. "
+.ti -1c
+.RI "void \fBschultz_video_decoder_destroy\fP (\fBschultz_video_decoder\fP *decoder)"
+.br
+.RI "Closes a decoder\&. Safe on NULL\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_decoder_write_packet\fP (\fBschultz_video_decoder\fP *decoder, const void *bytes, uint64_t length)"
+.br
+.RI "Hands the decoder one packet\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_decoder_read_frame\fP (\fBschultz_video_decoder\fP *decoder, const uint32_t **out_pixels, uint32_t *out_width, uint32_t *out_height)"
+.br
+.RI "Takes the next picture the decoder has ready\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_writer_create\fP (const char *path, uint32_t codec, uint32_t width, uint32_t height, \fBschultz_video_writer\fP **out_writer)"
+.br
+.RI "Starts a WebM file\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_writer_add_sound\fP (\fBschultz_video_writer\fP *writer, uint32_t channels)"
+.br
+.RI "Adds an Opus sound track\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_writer_write_picture\fP (\fBschultz_video_writer\fP *writer, const void *bytes, uint64_t length, uint64_t when_ns, int32_t keyframe)"
+.br
+.RI "Writes one picture\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_writer_write_sound\fP (\fBschultz_video_writer\fP *writer, const void *bytes, uint64_t length, uint64_t when_ns)"
+.br
+.RI "Writes one packet of sound\&. "
+.ti -1c
+.RI "int32_t \fBschultz_video_writer_close\fP (\fBschultz_video_writer\fP *writer)"
+.br
+.RI "Finishes the file and closes it\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Playing video: a node that shows frames fed to it\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+There are two ways to give a node something to play\&.
+.PP
+.IP "\(bu" 2
+\fBschultz_video_open_file\fP names a file and Schultz reads it\&. This is the one most hosts want, and it keeps a long film out of memory: nothing is held but the part being decoded\&.
+.IP "\(bu" 2
+\fBschultz_video_write\fP hands over bytes the host already has\&. It never opens a socket, so an HTTP response, a pipe and a file the host read itself are all the same thing here\&. That is the arrangement schultz_audio_stream_write uses\&.
+.PP
+.PP
+A file can be seeked in, because Schultz still has it\&. A stream cannot, because the bytes are gone once they have been handed over\&. schultz_video_can_seek says which kind a node holds\&.
+.PP
+\fBShutting down\&.\fP A node playing sound holds a stream that belongs to the sound system, and gives it back when the node is destroyed\&. So a host tears down in this order: the video nodes, then the sound system, then the window\&. The window is last because destroying it ends SDL, and the sound system cannot be taken down after that\&.
+.PP
+WebM only, carrying VP8 or VP9\&. Those are the codecs that can be shipped without a patent licence, which is why every other one was rejected\&.
+.PP
+Sound comes with the picture when the file carries an Opus track and the tree has been given a sound system with schultz_tree_set_audio\&. \fBThe order does not matter\fP: a node built before the sound system exists picks it up when it starts, so a host may set up sound whenever it suits and need not do it before building its widgets\&. The sound is also the clock: pictures are shown against where the sound has actually got to, so a decode that falls behind drops pictures rather than drifting out of step\&. A film with no sound runs on the tree's clock instead\&.
+.PP
+A node shows no controls at all until it is asked for some\&. See schultz_video_set_controls\&.
+.PP
+Encoding is here as well as playing: schultz_video_encoder_create takes pictures and gives back packets, and \fBschultz_camera\&.h\fP is where those pictures come from when they come from a camera\&. 
+.PP
+Definition in file \fBschultz_video\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_video_encoder\fP \fBschultz_video_encoder\fP"
+
+.PP
+An encoder: pictures in, compressed packets out\&. VP8 or VP9, the two codecs that can be shipped without a patent licence, which is why every other one was rejected\&.
+.PP
+\fBWhich to ask for\&.\fP VP9 makes smaller packets for the same picture -- call it a third smaller at the same quality -- and costs considerably more processor to do it\&. VP8 is the one to fall back to when that cost does not fit, and it is what real-time video has spoken for years\&. 
+.PP
+Definition at line \fB461\fP of file \fBschultz_video\&.h\fP\&.
+.SS "typedef struct \fBschultz_video_decoder\fP \fBschultz_video_decoder\fP"
+
+.PP
+A decoder for the packets an encoder produces\&. The other half of the pair, and the one that makes the whole thing testable: what came out of an encoder can be turned back into pictures without a file, a container or a network in between\&.
+.PP
+This is not how a film is played\&. A film arrives as WebM and is played by a video node, which knows about tracks, timing and sound\&. This takes bare packets, in the order they were produced, and gives back pictures -- which is what a receiver on the far end of a transport has and nothing more\&. 
+.PP
+Definition at line \fB656\fP of file \fBschultz_video\&.h\fP\&.
+.SS "typedef struct \fBschultz_video_writer\fP \fBschultz_video_writer\fP"
+
+.PP
+Writes packets into a WebM file\&. The other end of schultz_video_open_file\&. That one reads a film; this one makes one, out of the packets an encoder produces\&.
+.PP
+It is the only piece that turns encoding into something a person can keep\&. An encoder hands back bare packets, which are what a transport wants and nothing a media player will open: a file needs a container, saying which codecs are inside, how big the picture is, when each packet belongs, and where to jump to when somebody drags a slider\&. That is what this writes\&.
+.PP
+WebM, carrying VP8 or VP9 and Opus, which is the same shape this toolkit already reads\&. What comes out opens in a browser\&. 
+.PP
+Definition at line \fB735\fP of file \fBschultz_video\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Which codec a video track carries\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_VIDEO_CODEC_NONE \fP\fP
+Nothing opened yet, or not video\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CODEC_VP8 \fP\fP
+VP8\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CODEC_VP9 \fP\fP
+VP9\&. 
+.PP
+Definition at line \fB70\fP of file \fBschultz_video\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Which controls a video node shows\&. Any set of these\&. They appear as ordinary widgets in a row across the bottom of the picture, built from the button, slider and label that already exist, so a theme that restyles buttons restyles these\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROLS_NONE \fP\fP
+No controls, which is the silent clip on a landing screen\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROL_PLAY \fP\fP
+One button that plays, and pauses once it is playing\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROL_STOP \fP\fP
+Stop, which returns to the beginning\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROL_POSITION \fP\fP
+How far through, draggable when the source can be seeked in\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROL_TIME \fP\fP
+Elapsed and total, as text\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROL_MUTE \fP\fP
+A button that silences the sound and gives it back\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROL_VOLUME \fP\fP
+How loud, as a slider\&. 
+.TP
+\fB\fISCHULTZ_VIDEO_CONTROLS_ALL \fP\fP
+Every one of them, which is a player\&. 
+.PP
+Definition at line \fB83\fP of file \fBschultz_video\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+The quickest an encoder can be asked to be\&. 
+.PP
+Definition at line \fB608\fP of file \fBschultz_video\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_video_create (\fBschultz_tree\fP * tree, \fBschultz_handle\fP parent, uint32_t threads, \fBschultz_handle\fP * out_node)"
+
+.PP
+Creates a video node\&. It starts empty and shows nothing\&. Give it bytes with schultz_video_write and start it with schultz_video_play\&.
+.PP
+The node takes the size the layout gives it and draws the picture to fit, keeping the picture's own proportions\&. It is an ordinary node: it is laid out, clipped and hit tested like any other, and a caption can be drawn over it\&.
+.PP
+**\fCthreads\fP says where decoding happens**, and is the same choice \fC\fBschultz_window_options\&.threads\fP\fP offers for the rasterizer\&.
+.PP
+.IP "\(bu" 2
+\fBZero\fP decodes on whichever thread advances the tree\&. Reproducible, and enough for a small picture: a frame of 480p costs a few milliseconds and a frame budget is sixteen\&.
+.IP "\(bu" 2
+\fBOne or more\fP decodes ahead on that many threads of its own, created here and owned here\&. The first reads the file and drives the decoder; any beyond it are given to the decoder to split a picture between\&. A frame of 1080p costs more than a budget, so anything that size needs this\&.
+.PP
+.PP
+A thread only ever produces pictures\&. It does not touch the tree, the draw list or any handle, so nothing else in the toolkit becomes concurrent\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to create in\&. Must not be NULL\&. 
+.br
+\fIparent\fP The parent node\&. Must name a live node\&. 
+.br
+\fIthreads\fP How many decode threads, or zero for none\&. 
+.br
+\fIout_node\fP Receives the new node\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_open_file (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const char * path)"
+
+.PP
+Names a file for the node to read and play\&. Schultz opens the file and reads from it as it decodes, so a long film costs a buffer rather than its whole size in memory\&. The node takes over the reading; whatever was written to it before is dropped\&.
+.PP
+Opening does not start playing\&. Call schultz_video_play for that\&.
+.PP
+A node given a file can seek\&. See schultz_video_seek\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. Must not be NULL\&. 
+.br
+\fInode\fP The video node\&. 
+.br
+\fIpath\fP The file to play\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when path is NULL, SCHULTZ_ERR_INVALID_HANDLE when the node is not a video node, or SCHULTZ_ERR_UNREADABLE when the file cannot be opened\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_write (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const void * bytes, uint64_t length)"
+
+.PP
+Hands the node more of the file\&. Copied, so the memory is the host's again the moment this returns\&. Bytes may arrive in any size at any rate; nothing is decoded here\&.
+.PP
+Writing continues to work while the node is playing, which is what a stream needs\&. A host with the whole file may write it in one call\&.
+.PP
+\fBEverything written is kept\fP while the node lives, because opening a WebM file means reading backwards through it\&. That is fine for a clip and wrong for an hour of television, and it is one of the things phase two fixes\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.br
+\fIbytes\fP The bytes\&. Must not be NULL when length is not zero\&. 
+.br
+\fIlength\fP How many\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_video_queued (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns how many bytes have been written and not yet read\&. What it is for is deciding when to write more, so a host streaming from a socket can keep a little ahead without reading the whole thing into memory\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields zero\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Bytes waiting\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_video_held (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+How much memory a pushed stream is holding\&. The companion to schultz_video_queued, which counts what has arrived and not been read\&. This counts what is kept, which is a different and usually much smaller number: the header, and everything from the oldest picture still waiting to be decoded\&. A stream that plays for a week holds about a second of video, not a week of it\&.
+.PP
+A node reading a file holds nothing and answers zero\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields zero\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Bytes held\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_play (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Starts playing, from where it stopped\&. A node with nothing written yet starts as soon as there is enough to open\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_pause (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Stops playing and holds the frame that is showing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_stop (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Stops playing and returns to the beginning\&. The difference from schultz_video_pause is where it leaves the film\&. Pausing holds the picture where it is; stopping winds back, so the next schultz_video_play starts from the top\&.
+.PP
+A node that cannot seek stops where it is and plays on from there, because a stream has no beginning to return to\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. Must not be NULL\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_is_playing (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether it is playing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields zero\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero while playing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_set_looping (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t looping)"
+
+.PP
+Starts again from the beginning when the end is reached\&. Off by default, so a clip plays once and holds its last frame\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.br
+\fIlooping\fP Nonzero to loop\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_can_seek (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether this node can be moved to another point in the film\&. True for a file, false for a stream\&. A host building its own controls asks this to decide whether its position bar should accept a drag\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when schultz_video_seek will work\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_seek (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint64_t at_ms)"
+
+.PP
+Moves to a point in the film\&. \fBIt moves to the keyframe at or before the point asked for\fP, not to the point itself, because a keyframe is the last place a decoder can start\&. How far back that is depends on how the film was encoded: a second is common and several seconds happens\&. schultz_video_position afterwards says where it actually went, and is the number to show somebody rather than the one that was asked for\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. Must not be NULL\&. 
+.br
+\fInode\fP The video node\&. 
+.br
+\fIat_ms\fP How far into the film to move, in milliseconds\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_UNAVAILABLE when the node holds a stream rather than a file, or nothing has been opened yet\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_video_position (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns how far into the film the node has played, in milliseconds\&. Zero before anything is shown\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The position in milliseconds\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_video_duration (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns how long the film is, in milliseconds\&. Known once the file has been opened\&. A stream that has not said how long it is answers zero, and so does one that is still arriving\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The length in milliseconds, or zero when it is not known\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_set_controls (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t controls)"
+
+.PP
+Chooses which controls the node shows\&. The controls are child nodes, made here and destroyed here\&. Asking for a different set rebuilds the row; asking for none removes it, and the node goes back to being a picture and nothing else\&.
+.PP
+The position bar shows progress whatever the source is, and accepts a drag only when schultz_video_can_seek says the film can be moved about in\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. Must not be NULL\&. 
+.br
+\fInode\fP The video node\&. 
+.br
+\fIcontrols\fP Any set of the SCHULTZ_VIDEO_CONTROL_* flags, or SCHULTZ_VIDEO_CONTROLS_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_video_controls (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns which controls the node shows\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The flags last set, or SCHULTZ_VIDEO_CONTROLS_NONE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_has_sound (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether the film has a sound track this can play\&. True only once the file has been opened, it carries Opus, and the tree has a sound system\&. Everything else answers no, which is the same thing as saying the film will play silently\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when there is sound\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_set_volume (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float volume)"
+
+.PP
+Sets how loud the film plays\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. Must not be NULL\&. 
+.br
+\fInode\fP The video node\&. 
+.br
+\fIvolume\fP Zero for silence, one for as recorded\&. Clamped\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "float schultz_video_volume (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns how loud the film plays\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The volume last set, or one\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_set_muted (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t muted)"
+
+.PP
+Silences the film without forgetting how loud it was\&. Unmuting returns to the volume that was set, which is what a mute button has to do and what setting the volume to zero cannot\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. Must not be NULL\&. 
+.br
+\fInode\fP The video node\&. 
+.br
+\fImuted\fP Nonzero to silence it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_is_muted (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether the film is muted\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree the node is in\&. 
+.br
+\fInode\fP The video node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero while muted\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_size (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, uint32_t * out_width, uint32_t * out_height)"
+
+.PP
+Returns the size of the picture, once one is known\&. Both are zero until enough has been written to open the file, which is why this is asked rather than assumed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields an error\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.br
+\fIout_width\fP Receives the width in pixels\&. Must not be NULL\&. 
+.br
+\fIout_height\fP Receives the height\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_video_codec (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns which codec the opened track carries\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields SCHULTZ_VIDEO_CODEC_NONE\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+One of the SCHULTZ_VIDEO_CODEC_* values\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_video_frames_shown (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Counts the frames shown since the node was created\&. Intended for tests and for a host that wants to know whether anything is actually arriving, which a still picture cannot answer on its own\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields zero\&. 
+.br
+\fInode\fP A node from schultz_video_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many frames have been decoded and shown\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_encoder_create (uint32_t codec, uint32_t width, uint32_t height, uint32_t per_second, uint32_t bitrate, \fBschultz_video_encoder\fP ** out_encoder)"
+
+.PP
+Creates an encoder\&. Nothing here sends anything anywhere\&. The packets come back to the caller, which decides what they are for: a socket, a file, a recording\&. That is the whole of the arrangement, and it is deliberate -- a transport is a different problem from a codec and this toolkit solves only the second\&.
+.PP
+The bitrate is a target, not a limit\&. The encoder spends more on a picture that changed a lot and less on one that did not, and averages out to what was asked for over a few seconds\&.
+.PP
+Both are set up for real time: nothing is held back to look at the picture after it, and the encoder is asked for its fastest useful setting\&. A call cannot wait for the future, and lag is what people notice first\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcodec\fP SCHULTZ_VIDEO_CODEC_VP8 or SCHULTZ_VIDEO_CODEC_VP9\&. 
+.br
+\fIwidth\fP The picture width\&. Must not be zero\&. 
+.br
+\fIheight\fP The picture height\&. Must not be zero\&. 
+.br
+\fIper_second\fP How many pictures a second are meant to arrive\&. Used for rate control, not enforced\&. Must not be zero\&. 
+.br
+\fIbitrate\fP The target, in bits a second\&. Must not be zero\&. 
+.br
+\fIout_encoder\fP Receives the encoder\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY or SCHULTZ_ERR_UNAVAILABLE when the encoder will not start\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_video_encoder_codec (const \fBschultz_video_encoder\fP * encoder)"
+
+.PP
+Returns which codec an encoder is producing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. NULL yields SCHULTZ_VIDEO_CODEC_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+One of the SCHULTZ_VIDEO_CODEC_* values\&. 
+.RE
+.PP
+
+.SS "void schultz_video_encoder_destroy (\fBschultz_video_encoder\fP * encoder)"
+
+.PP
+Closes an encoder\&. Safe on NULL\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder to close\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_encoder_write_frame (\fBschultz_video_encoder\fP * encoder, const uint32_t * argb, uint32_t width, uint32_t height, uint64_t when_ns)"
+
+.PP
+Hands the encoder one picture\&. Premultiplied ARGB, one word a pixel, width by height with no padding between rows -- the same shape schultz_camera_frame hands back, so a camera can be wired to an encoder without anything in between\&.
+.PP
+Times must go forward\&. A picture whose time is not later than the one before it is refused rather than quietly reordered, because a decoder given such a stream has no way to play it\&.
+.PP
+Encoding happens here, on the calling thread\&. What it produces is collected with schultz_video_encoder_read_packet, which should be called until it says there is nothing more: one picture can produce more than one packet\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. Must not be NULL\&. 
+.br
+\fIargb\fP The picture\&. Must not be NULL\&. 
+.br
+\fIwidth\fP Its width\&. Must match what the encoder was created with\&. 
+.br
+\fIheight\fP Its height\&. Must match what the encoder was created with\&. 
+.br
+\fIwhen_ns\fP When the picture was taken, in nanoseconds\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when an argument is wrong or the time did not go forward, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNREADABLE when the encoder refused the picture\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_encoder_read_packet (\fBschultz_video_encoder\fP * encoder, const void ** out_bytes, uint64_t * out_length, uint64_t * out_when_ns, int32_t * out_keyframe)"
+
+.PP
+Takes the next packet the encoder has ready\&. Call it until it answers SCHULTZ_ERR_EXHAUSTED, which means there is nothing more from the last picture\&.
+.PP
+The bytes belong to the encoder and stay valid until the next call to this or to schultz_video_encoder_write_frame\&. A caller that keeps one copies it\&.
+.PP
+The keyframe flag is what a transport needs to know: a keyframe can be decoded on its own, and everything else depends on the packets before it\&. A receiver that lost something has to be sent one before it can show anything again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. Must not be NULL\&. 
+.br
+\fIout_bytes\fP Receives the packet\&. Must not be NULL\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.br
+\fIout_when_ns\fP Receives the time of the picture it came from\&. May be NULL\&. 
+.br
+\fIout_keyframe\fP Receives nonzero when this packet is a keyframe\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_EXHAUSTED when there is nothing more\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_encoder_set_bitrate (\fBschultz_video_encoder\fP * encoder, uint32_t bitrate)"
+
+.PP
+Changes the target bitrate, from the next picture onward\&. What congestion control is built on\&. A transport that sees the network getting worse turns this down and the pictures get softer; it turns it up again when there is room\&. Nothing here decides that: this is the handle, and the decision belongs to whoever is watching the network\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. Must not be NULL\&. 
+.br
+\fIbitrate\fP The new target, in bits a second\&. Must not be zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_UNAVAILABLE when the encoder refused it\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_encoder_force_keyframe (\fBschultz_video_encoder\fP * encoder)"
+
+.PP
+Makes the next picture a keyframe\&. What loss recovery is built on\&. A receiver that has lost packets cannot show anything until a keyframe reaches it, and asking for one is the only way to shorten that wait\&.
+.PP
+It applies to the next picture written, once\&. Asking twice before writing one is the same as asking once\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_video_encoder_bitrate (const \fBschultz_video_encoder\fP * encoder)"
+
+.PP
+Returns the target bitrate the encoder is working to\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The target, in bits a second\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_encoder_set_speed (\fBschultz_video_encoder\fP * encoder, uint32_t speed)"
+
+.PP
+Sets how quickly the encoder works, against how good it looks\&. Zero is the slowest and the best picture; SCHULTZ_VIDEO_SPEED_MOST is the quickest and the roughest\&. The default is eight, near the quick end, because this is built for calls and lag is what people notice first\&.
+.PP
+\fBIt matters far more to VP9 than to VP8\&.\fP Measured on a build with no SIMD, at 320x240: VP8 takes about six milliseconds a picture whatever it is asked for, and VP9 ranges from 58 milliseconds at zero to under four at eight and above\&. Turning this down is how a host trades the processor it has for a better picture, and on VP9 there is a great deal to trade\&.
+.PP
+Can be changed at any time; it applies from the next picture\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. Must not be NULL\&. 
+.br
+\fIspeed\fP Zero to SCHULTZ_VIDEO_SPEED_MOST\&. Above that is taken as the most\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_UNAVAILABLE when the encoder refused it\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_video_encoder_speed (const \fBschultz_video_encoder\fP * encoder)"
+
+.PP
+Returns how quickly the encoder has been asked to work\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIencoder\fP The encoder\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Zero to SCHULTZ_VIDEO_SPEED_MOST\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_decoder_create (uint32_t codec, \fBschultz_video_decoder\fP ** out_decoder)"
+
+.PP
+Creates a decoder for bare packets\&. The codec has to be said, because a bare packet does not carry it\&. A file would: that is part of what a container is for, and why the video node never has to be told\&. A receiver learns it from whatever agreed the call\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcodec\fP SCHULTZ_VIDEO_CODEC_VP8 or SCHULTZ_VIDEO_CODEC_VP9\&. 
+.br
+\fIout_decoder\fP Receives the decoder\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY or SCHULTZ_ERR_UNAVAILABLE\&. 
+.RE
+.PP
+
+.SS "void schultz_video_decoder_destroy (\fBschultz_video_decoder\fP * decoder)"
+
+.PP
+Closes a decoder\&. Safe on NULL\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIdecoder\fP The decoder to close\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_decoder_write_packet (\fBschultz_video_decoder\fP * decoder, const void * bytes, uint64_t length)"
+
+.PP
+Hands the decoder one packet\&. Packets must arrive in the order they were produced\&. A decoder given the first packet after a loss shows nothing until a keyframe reaches it, which is what schultz_video_encoder_force_keyframe is for\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIdecoder\fP The decoder\&. Must not be NULL\&. 
+.br
+\fIbytes\fP The packet\&. Must not be NULL\&. 
+.br
+\fIlength\fP How many bytes\&. Must not be zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_UNREADABLE when the packet could not be decoded\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_decoder_read_frame (\fBschultz_video_decoder\fP * decoder, const uint32_t ** out_pixels, uint32_t * out_width, uint32_t * out_height)"
+
+.PP
+Takes the next picture the decoder has ready\&. Premultiplied ARGB, one word a pixel, width by height with no padding between rows -- the same shape everything else here hands over\&.
+.PP
+The pixels belong to the decoder and stay valid until the next call to this or to schultz_video_decoder_write_packet\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIdecoder\fP The decoder\&. Must not be NULL\&. 
+.br
+\fIout_pixels\fP Receives the picture\&. Must not be NULL\&. 
+.br
+\fIout_width\fP Receives the width\&. May be NULL\&. 
+.br
+\fIout_height\fP Receives the height\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_EXHAUSTED when there is nothing more, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_writer_create (const char * path, uint32_t codec, uint32_t width, uint32_t height, \fBschultz_video_writer\fP ** out_writer)"
+
+.PP
+Starts a WebM file\&. Nothing is written until the first packet, so a sound track can still be added after this and before then\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIpath\fP The file to write\&. Overwritten if it exists\&. Must not be NULL\&. 
+.br
+\fIcodec\fP SCHULTZ_VIDEO_CODEC_VP8 or SCHULTZ_VIDEO_CODEC_VP9\&. It must match what the encoder is producing: a container that names the wrong codec plays as nothing\&. 
+.br
+\fIwidth\fP The picture width\&. Must not be zero\&. 
+.br
+\fIheight\fP The picture height\&. Must not be zero\&. 
+.br
+\fIout_writer\fP Receives the writer\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY or SCHULTZ_ERR_UNREADABLE when the file will not open\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_writer_add_sound (\fBschultz_video_writer\fP * writer, uint32_t channels)"
+
+.PP
+Adds an Opus sound track\&. Only before the first packet is written, because the tracks are described at the top of the file and nothing can be added to that list afterwards\&.
+.PP
+Forty eight thousand samples a second, which is what Opus works in and what schultz_audio_encoder_create produces\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwriter\fP The writer\&. Must not be NULL\&. 
+.br
+\fIchannels\fP One for mono, two for stereo\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_UNAVAILABLE when something has already been written\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_writer_write_picture (\fBschultz_video_writer\fP * writer, const void * bytes, uint64_t length, uint64_t when_ns, int32_t keyframe)"
+
+.PP
+Writes one picture\&. Straight from schultz_video_encoder_read_packet: the bytes, the time it carries, and whether it is a keyframe\&.
+.PP
+The keyframe flag is not decoration\&. It is what a player jumps to when somebody drags a slider, and this records where each one landed so that seeking the finished file works\&. A file written with every packet marked ordinary plays from the start and cannot be moved about in\&.
+.PP
+Times must go forward\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwriter\fP The writer\&. Must not be NULL\&. 
+.br
+\fIbytes\fP The packet\&. Must not be NULL\&. 
+.br
+\fIlength\fP How many bytes\&. Must not be zero\&. 
+.br
+\fIwhen_ns\fP When it belongs, in nanoseconds from the start\&. 
+.br
+\fIkeyframe\fP Nonzero when the packet can be decoded on its own\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY or SCHULTZ_ERR_UNREADABLE when the file would not take it\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_writer_write_sound (\fBschultz_video_writer\fP * writer, const void * bytes, uint64_t length, uint64_t when_ns)"
+
+.PP
+Writes one packet of sound\&. Straight from schultz_audio_encoder_read_packet\&. Needs a sound track, added with schultz_video_writer_add_sound before anything was written\&.
+.PP
+Every Opus packet stands on its own, so there is no keyframe to say\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwriter\fP The writer\&. Must not be NULL\&. 
+.br
+\fIbytes\fP The packet\&. Must not be NULL\&. 
+.br
+\fIlength\fP How many bytes\&. Must not be zero\&. 
+.br
+\fIwhen_ns\fP When it belongs, in nanoseconds from the start\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY or SCHULTZ_ERR_UNAVAILABLE when there is no sound track\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_video_writer_close (\fBschultz_video_writer\fP * writer)"
+
+.PP
+Finishes the file and closes it\&. This is where the parts that could only be known at the end are written: how long the film is, and the index of where each keyframe landed\&. A writer that is dropped without this leaves a file that plays but cannot be seeked in and does not know its own length\&.
+.PP
+The writer is released either way, so there is nothing to free afterwards and calling it twice is not possible\&. Safe on NULL\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwriter\fP The writer to finish\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_UNREADABLE when the file would not take the last of it\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

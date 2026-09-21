@@ -1,0 +1,253 @@
+.TH "schultz_handle.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_handle.h \- Handle table: opaque 64 bit identity with stale handle detection\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_handle_slot\fP"
+.br
+.RI "One entry in a handle table\&. "
+.ti -1c
+.RI "struct \fBschultz_handle_table\fP"
+.br
+.RI "A table of handle slots with a free list\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_handle_table_init\fP (\fBschultz_handle_table\fP *table, uint32_t initial_capacity)"
+.br
+.RI "Prepares a table for use\&. "
+.ti -1c
+.RI "void \fBschultz_handle_table_free\fP (\fBschultz_handle_table\fP *table)"
+.br
+.RI "Releases a table's storage\&. "
+.ti -1c
+.RI "int32_t \fBschultz_handle_table_insert\fP (\fBschultz_handle_table\fP *table, void *object, \fBschultz_handle\fP *out_handle)"
+.br
+.RI "Stores an object and issues a handle for it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_handle_table_lookup\fP (const \fBschultz_handle_table\fP *table, \fBschultz_handle\fP handle, void **out_object)"
+.br
+.RI "Resolves a handle to the object it names\&. "
+.ti -1c
+.RI "int32_t \fBschultz_handle_table_remove\fP (\fBschultz_handle_table\fP *table, \fBschultz_handle\fP handle)"
+.br
+.RI "Releases the slot a handle names\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_handle_table_count\fP (const \fBschultz_handle_table\fP *table)"
+.br
+.RI "Counts live handles\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_handle_table_capacity\fP (const \fBschultz_handle_table\fP *table)"
+.br
+.RI "Reports allocated slot count\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_handle_make\fP (uint32_t index, uint32_t generation)"
+.br
+.RI "Packs an index and generation into a handle\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_handle_index\fP (\fBschultz_handle\fP handle)"
+.br
+.RI "Extracts the slot index from a handle\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_handle_generation\fP (\fBschultz_handle\fP handle)"
+.br
+.RI "Extracts the generation counter from a handle\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Handle table: opaque 64 bit identity with stale handle detection\&. 
+
+Internal header\&. Not part of the public ABI, so the struct is visible here and callers may place a table on the stack or embed it in another struct\&.
+.PP
+The table maps opaque 64 bit handles to void pointers\&. Each slot carries a generation counter that is bumped when the slot is released, so a handle to a released object is rejected rather than resolving to whatever now occupies the slot\&. That check is what makes use after free a returned error instead of memory corruption, which matters when two language runtimes are calling in\&.
+.PP
+\fBNot part of the host facing interface\&.\fP How the toolkit identifies objects\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_handle\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_handle_table_init (\fBschultz_handle_table\fP * table, uint32_t initial_capacity)"
+
+.PP
+Prepares a table for use\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to initialize\&. Must not be NULL\&. Its previous contents are overwritten, so call schultz_handle_table_free first if it was in use\&. 
+.br
+\fIinitial_capacity\fP Slots to allocate up front\&. Pass 0 to accept the default\&. The table grows on demand regardless\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK on success, SCHULTZ_ERR_INVALID_ARGUMENT when table is NULL or initial_capacity exceeds the maximum, or SCHULTZ_ERR_OUT_OF_MEMORY when the slot array could not be allocated\&. 
+.RE
+.PP
+
+.SS "void schultz_handle_table_free (\fBschultz_handle_table\fP * table)"
+
+.PP
+Releases a table's storage\&. The objects the table pointed at are not touched; ownership of those belongs to the caller\&. The table is left safe to call again and safe to pass to schultz_handle_table_init\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to release\&. NULL and an already freed table are both accepted and do nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_handle_table_insert (\fBschultz_handle_table\fP * table, void * object, \fBschultz_handle\fP * out_handle)"
+
+.PP
+Stores an object and issues a handle for it\&. Reuses a free slot when one exists, otherwise grows the table\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to insert into\&. Must not be NULL\&. 
+.br
+\fIobject\fP The pointer to store\&. Must not be NULL, because NULL is how a released slot is recognized\&. The table does not take ownership and never dereferences it\&. 
+.br
+\fIout_handle\fP Receives the new handle on success\&. Must not be NULL\&. Left untouched on failure\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK on success, SCHULTZ_ERR_INVALID_ARGUMENT when any pointer is NULL, SCHULTZ_ERR_OUT_OF_MEMORY when growth failed, or SCHULTZ_ERR_EXHAUSTED when the index space is used up\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_handle_table_lookup (const \fBschultz_handle_table\fP * table, \fBschultz_handle\fP handle, void ** out_object)"
+
+.PP
+Resolves a handle to the object it names\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to look in\&. NULL yields SCHULTZ_ERR_INVALID_HANDLE rather than a crash\&. 
+.br
+\fIhandle\fP The handle to resolve\&. 
+.br
+\fIout_object\fP Receives the stored pointer on success\&. Must not be NULL\&. Left untouched on failure\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK on success, SCHULTZ_ERR_INVALID_ARGUMENT when out_object is NULL, or SCHULTZ_ERR_INVALID_HANDLE when the handle is zero, out of range, names a free slot, or carries a stale generation\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_handle_table_remove (\fBschultz_handle_table\fP * table, \fBschultz_handle\fP handle)"
+
+.PP
+Releases the slot a handle names\&. Bumps the slot's generation, which invalidates this handle and every copy of it\&. The slot is returned to the free list for reuse\&. The object itself is not freed; that is the caller's business\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to remove from\&. NULL yields SCHULTZ_ERR_INVALID_HANDLE rather than a crash\&. 
+.br
+\fIhandle\fP The handle to release\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK on success, or SCHULTZ_ERR_INVALID_HANDLE when the handle is not currently valid, which includes releasing twice\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_handle_table_count (const \fBschultz_handle_table\fP * table)"
+
+.PP
+Counts live handles\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of handles currently outstanding\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_handle_table_capacity (const \fBschultz_handle_table\fP * table)"
+
+.PP
+Reports allocated slot count\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of slots allocated, live and free together\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_handle_make (uint32_t index, uint32_t generation)"
+
+.PP
+Packs an index and generation into a handle\&. Exposed for tests and debug tooling\&. Ordinary code receives handles from schultz_handle_table_insert instead\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIindex\fP Slot index, in the low 32 bits of the result\&. 
+.br
+\fIgeneration\fP Generation counter, in the high 32 bits of the result\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The packed handle\&. Note that a generation of zero produces a handle that can never be valid\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_handle_index (\fBschultz_handle\fP handle)"
+
+.PP
+Extracts the slot index from a handle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIhandle\fP The handle to unpack\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The low 32 bits, which is the slot index\&. Not validated against any table\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_handle_generation (\fBschultz_handle\fP handle)"
+
+.PP
+Extracts the generation counter from a handle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIhandle\fP The handle to unpack\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The high 32 bits, which is the generation\&. Not validated against any table\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

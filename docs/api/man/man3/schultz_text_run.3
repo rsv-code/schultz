@@ -1,0 +1,84 @@
+.TH "schultz_text_run" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_text_run \- One shaped run: glyphs ready to draw, plus its extent\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_text\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const \fBschultz_glyph\fP * \fBglyphs\fP"
+.br
+.ti -1c
+.RI "const uint32_t * \fBclusters\fP"
+.br
+.ti -1c
+.RI "const \fBschultz_handle\fP * \fBfonts\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "float \fBwidth\fP"
+.br
+.ti -1c
+.RI "float \fBheight\fP"
+.br
+.ti -1c
+.RI "float \fBascent\fP"
+.br
+.ti -1c
+.RI "int32_t \fBdirection\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One shaped run: glyphs ready to draw, plus its extent\&. 
+
+The glyphs are allocated from the arena passed to the shaping call, so they live until that arena is reset\&. Positions are relative to the run's origin, which sits on the baseline at the leading edge\&. 
+.PP
+Definition at line \fB51\fP of file \fBschultz_text\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const \fBschultz_glyph\fP* schultz_text_run::glyphs"
+Positioned glyphs, in visual order\&. 
+.PP
+Definition at line \fB52\fP of file \fBschultz_text\&.h\fP\&.
+.SS "const uint32_t* schultz_text_run::clusters"
+Byte offset into the source string each glyph came from, one per glyph\&. Several glyphs may share one offset when a character shapes into more than one, and one glyph may cover several bytes when characters combine\&. This is what a caret is placed from\&. 
+.PP
+Definition at line \fB59\fP of file \fBschultz_text\&.h\fP\&.
+.SS "const \fBschultz_handle\fP* schultz_text_run::fonts"
+The face each glyph came from, one per glyph\&. Usually every entry is the font that was asked for; it differs where the string held something that face could not draw and the emoji face supplied it\&. A painter draws consecutive glyphs sharing a face as one run\&. 
+.PP
+Definition at line \fB66\fP of file \fBschultz_text\&.h\fP\&.
+.SS "uint32_t schultz_text_run::count"
+Number of glyphs\&. 
+.PP
+Definition at line \fB67\fP of file \fBschultz_text\&.h\fP\&.
+.SS "float schultz_text_run::width"
+Total advance, in pixels\&. 
+.PP
+Definition at line \fB68\fP of file \fBschultz_text\&.h\fP\&.
+.SS "float schultz_text_run::height"
+Line height of the font used\&. 
+.PP
+Definition at line \fB69\fP of file \fBschultz_text\&.h\fP\&.
+.SS "float schultz_text_run::ascent"
+Baseline offset from the run's top\&. 
+.PP
+Definition at line \fB70\fP of file \fBschultz_text\&.h\fP\&.
+.SS "int32_t schultz_text_run::direction"
+Resolved SCHULTZ_DIR_LTR or _RTL\&. 
+.PP
+Definition at line \fB71\fP of file \fBschultz_text\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

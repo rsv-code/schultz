@@ -1,0 +1,56 @@
+.TH "schultz_text_line" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_text_line \- One line produced by wrapping\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_text\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBstart\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBend\fP"
+.br
+.ti -1c
+.RI "float \fBwidth\fP"
+.br
+.ti -1c
+.RI "float \fBheight\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One line produced by wrapping\&. 
+
+Offsets are byte offsets into the original string, so a caller can shape or highlight the line without copying it\&. 
+.PP
+Definition at line \fB246\fP of file \fBschultz_text\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_text_line::start"
+Byte offset of the first byte on the line\&. 
+.PP
+Definition at line \fB247\fP of file \fBschultz_text\&.h\fP\&.
+.SS "uint32_t schultz_text_line::end"
+Byte offset one past the last byte, excluding the break character itself\&. 
+.PP
+Definition at line \fB248\fP of file \fBschultz_text\&.h\fP\&.
+.SS "float schultz_text_line::width"
+Measured width of the line, in pixels\&. 
+.PP
+Definition at line \fB250\fP of file \fBschultz_text\&.h\fP\&.
+.SS "float schultz_text_line::height"
+Line height of the tallest face on this line\&. Measuring already had to shape the line to learn its width, so this costs nothing and saves a caller shaping it again only to find out how tall it is\&. With one face throughout it is that face's line height, every line the same\&. 
+.PP
+Definition at line \fB257\fP of file \fBschultz_text\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

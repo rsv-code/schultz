@@ -1,0 +1,92 @@
+.TH "schultz_value" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_value \- One property value: a literal, or a reference to a token\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_style\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint8_t \fBsource\fP"
+.br
+.ti -1c
+.RI "uint16_t \fBtoken\fP"
+.br
+.ti -1c
+.RI "uint8_t \fBkind\fP"
+.br
+.ti -1c
+.RI "union {"
+.br
+.ti -1c
+.RI "   \fBschultz_color\fP \fBcolor\fP"
+.br
+.ti -1c
+.RI "   float \fBnumber\fP"
+.br
+.ti -1c
+.RI "   \fBschultz_handle\fP \fBfont\fP"
+.br
+.ti -1c
+.RI "   \fBschultz_handle\fP \fBgradient\fP"
+.br
+.ti -1c
+.RI "   \fBschultz_handle\fP \fBdash\fP"
+.br
+.ti -1c
+.RI "} \fBliteral\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One property value: a literal, or a reference to a token\&. 
+
+A style that references tokens follows a theme change\&. One that writes literals does not, which is occasionally what is wanted and usually not\&. 
+.PP
+Definition at line \fB273\fP of file \fBschultz_style\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint8_t schultz_value::source"
+SCHULTZ_SOURCE_LITERAL or SCHULTZ_SOURCE_TOKEN\&. 
+.PP
+Definition at line \fB274\fP of file \fBschultz_style\&.h\fP\&.
+.SS "uint16_t schultz_value::token"
+Which token, when source is SCHULTZ_SOURCE_TOKEN\&. 
+.PP
+Definition at line \fB275\fP of file \fBschultz_style\&.h\fP\&.
+.SS "uint8_t schultz_value::kind"
+SCHULTZ_VALUE_GRADIENT marks a gradient literal\&. 
+.PP
+Definition at line \fB276\fP of file \fBschultz_style\&.h\fP\&.
+.SS "\fBschultz_color\fP schultz_value::color"
+When the property holds a colour\&. 
+.PP
+Definition at line \fB278\fP of file \fBschultz_style\&.h\fP\&.
+.SS "float schultz_value::number"
+When the property holds a number\&. 
+.PP
+Definition at line \fB279\fP of file \fBschultz_style\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_value::font"
+When the property holds a font\&. 
+.PP
+Definition at line \fB280\fP of file \fBschultz_style\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_value::gradient"
+When a colour property takes one\&. 
+.PP
+Definition at line \fB281\fP of file \fBschultz_style\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_value::dash"
+When the property holds a dash\&. 
+.PP
+Definition at line \fB282\fP of file \fBschultz_style\&.h\fP\&.
+.SS "union  { \&.\&.\&. }  schultz_value::literal"
+The value, when source is SCHULTZ_SOURCE_LITERAL\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

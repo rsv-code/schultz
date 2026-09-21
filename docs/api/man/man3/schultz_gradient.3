@@ -1,0 +1,70 @@
+.TH "schultz_gradient" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_gradient \- A registered gradient, as the renderer reads it\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_resource\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBkind\fP"
+.br
+.ti -1c
+.RI "\fBschultz_point\fP \fBfrom\fP"
+.br
+.ti -1c
+.RI "\fBschultz_point\fP \fBto\fP"
+.br
+.ti -1c
+.RI "float \fBradius\fP"
+.br
+.ti -1c
+.RI "\fBschultz_gradient_stop\fP \fBstops\fP [SCHULTZ_GRADIENT_STOPS_MAX]"
+.br
+.ti -1c
+.RI "uint32_t \fBcount\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A registered gradient, as the renderer reads it\&. 
+
+Geometry is in the 0 to 1 range of whatever shape is being painted, so one gradient scales to a button and to a window alike\&. 
+.PP
+Definition at line \fB78\fP of file \fBschultz_resource\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_gradient::kind"
+SCHULTZ_GRADIENT_LINEAR or _RADIAL\&. 
+.PP
+Definition at line \fB79\fP of file \fBschultz_resource\&.h\fP\&.
+.SS "\fBschultz_point\fP schultz_gradient::from"
+Linear: the start\&. Radial: the centre\&. 
+.PP
+Definition at line \fB80\fP of file \fBschultz_resource\&.h\fP\&.
+.SS "\fBschultz_point\fP schultz_gradient::to"
+Linear: the end\&. Unused for radial\&. 
+.PP
+Definition at line \fB81\fP of file \fBschultz_resource\&.h\fP\&.
+.SS "float schultz_gradient::radius"
+Radial: how far out, as a fraction\&. 
+.PP
+Definition at line \fB82\fP of file \fBschultz_resource\&.h\fP\&.
+.SS "\fBschultz_gradient_stop\fP schultz_gradient::stops[SCHULTZ_GRADIENT_STOPS_MAX]"
+In order\&. 
+.PP
+Definition at line \fB83\fP of file \fBschultz_resource\&.h\fP\&.
+.SS "uint32_t schultz_gradient::count"
+How many stops are used\&. 
+.PP
+Definition at line \fB84\fP of file \fBschultz_resource\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

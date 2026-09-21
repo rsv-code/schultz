@@ -1,0 +1,54 @@
+.TH "schultz_draw_chunk" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_draw_chunk \- A fixed run of commands\&. Lists chain these rather than realloc\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_paint\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_draw_chunk\fP * \fBnext\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcapacity\fP"
+.br
+.ti -1c
+.RI "\fBschultz_draw_cmd\fP \fBcommands\fP []"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A fixed run of commands\&. Lists chain these rather than realloc\&. 
+.PP
+Definition at line \fB190\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_draw_chunk\fP* schultz_draw_chunk::next"
+Next chunk, or NULL\&. 
+.PP
+Definition at line \fB191\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_chunk::count"
+Commands used in this chunk\&. 
+.PP
+Definition at line \fB192\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_chunk::capacity"
+Commands this chunk can hold\&. 
+.PP
+Definition at line \fB193\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_draw_cmd\fP schultz_draw_chunk::commands[]"
+The commands themselves\&. 
+.PP
+Definition at line \fB194\fP of file \fBschultz_paint\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

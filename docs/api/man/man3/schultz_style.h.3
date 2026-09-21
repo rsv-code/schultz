@@ -1,0 +1,1151 @@
+.TH "schultz_style.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_style.h \- Tokens, properties, style patches and themes\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_geom\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_value\fP"
+.br
+.RI "One property value: a literal, or a reference to a token\&. "
+.ti -1c
+.RI "struct \fBschultz_patch_entry\fP"
+.br
+.RI "One property setting inside a patch\&. "
+.ti -1c
+.RI "struct \fBschultz_patch\fP"
+.br
+.RI "A sparse set of property values\&. "
+.ti -1c
+.RI "struct \fBschultz_theme\fP"
+.br
+.RI "A theme: a sparse override table over the compiled in token values\&. "
+.ti -1c
+.RI "struct \fBschultz_resolved_style\fP"
+.br
+.RI "A node's fully resolved style: every property, no gaps\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_TOKEN_COLOR_WINDOW\fP = 0, \fBSCHULTZ_TOKEN_COLOR_SURFACE\fP, \fBSCHULTZ_TOKEN_COLOR_SURFACE_RAISED\fP, \fBSCHULTZ_TOKEN_COLOR_SURFACE_SUNKEN\fP, \fBSCHULTZ_TOKEN_COLOR_ACCENT\fP, \fBSCHULTZ_TOKEN_COLOR_BORDER\fP, \fBSCHULTZ_TOKEN_COLOR_TEXT\fP, \fBSCHULTZ_TOKEN_COLOR_TEXT_MUTED\fP, \fBSCHULTZ_TOKEN_COLOR_TEXT_ON_ACCENT\fP, \fBSCHULTZ_TOKEN_COLOR_TEXT_DISABLED\fP, \fBSCHULTZ_TOKEN_COLOR_FOCUS_RING\fP, \fBSCHULTZ_TOKEN_COLOR_SELECTION\fP, \fBSCHULTZ_TOKEN_COLOR_DANGER\fP, \fBSCHULTZ_TOKEN_COLOR_SURFACE_INVERSE\fP, \fBSCHULTZ_TOKEN_COLOR_TEXT_ON_INVERSE\fP, \fBSCHULTZ_TOKEN_COLOR_TITLE_BAR\fP, \fBSCHULTZ_TOKEN_COLOR_TITLE_TEXT\fP, \fBSCHULTZ_TOKEN_COLOR_SCROLL_TRACK\fP, \fBSCHULTZ_TOKEN_COLOR_SCROLL_THUMB\fP, \fBSCHULTZ_TOKEN_COLOR_SHADOW\fP, \fBSCHULTZ_TOKEN_COLOR_TRANSPARENT\fP, \fBSCHULTZ_TOKEN_COLOR_COUNT\fP }"
+.br
+.RI "Named colours in a theme\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_TOKEN_SPACE_XS\fP = 0, \fBSCHULTZ_TOKEN_SPACE_SM\fP, \fBSCHULTZ_TOKEN_SPACE_MD\fP, \fBSCHULTZ_TOKEN_SPACE_LG\fP, \fBSCHULTZ_TOKEN_SPACE_XL\fP, \fBSCHULTZ_TOKEN_RADIUS_STRUCTURE\fP, \fBSCHULTZ_TOKEN_RADIUS_CONTROL_SMALL\fP, \fBSCHULTZ_TOKEN_RADIUS_CONTROL\fP, \fBSCHULTZ_TOKEN_BORDER_WIDTH\fP, \fBSCHULTZ_TOKEN_FOCUS_RING_WIDTH\fP, \fBSCHULTZ_TOKEN_CONTROL_HEIGHT\fP, \fBSCHULTZ_TOKEN_FONT_SIZE_SM\fP, \fBSCHULTZ_TOKEN_FONT_SIZE_BODY\fP, \fBSCHULTZ_TOKEN_FONT_SIZE_TITLE\fP, \fBSCHULTZ_TOKEN_LINE_SPACING\fP, \fBSCHULTZ_TOKEN_NUMBER_COUNT\fP }"
+.br
+.RI "Named lengths in a theme, in pixels\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_TOKEN_FONT_BODY\fP = 0, \fBSCHULTZ_TOKEN_FONT_TITLE\fP, \fBSCHULTZ_TOKEN_FONT_MONO\fP, \fBSCHULTZ_TOKEN_FONT_EMOJI\fP, \fBSCHULTZ_TOKEN_FONT_COUNT\fP }"
+.br
+.RI "Named font slots in a theme\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_TEXT_ALIGN_START\fP = 0, \fBSCHULTZ_TEXT_ALIGN_CENTER\fP, \fBSCHULTZ_TEXT_ALIGN_END\fP, \fBSCHULTZ_TEXT_ALIGN_JUSTIFY\fP }"
+.br
+.RI "Where the lines of a wrapped block sit across its width\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_PROP_BACKGROUND\fP = 0, \fBSCHULTZ_PROP_BORDER_COLOR\fP, \fBSCHULTZ_PROP_CORNER_RADIUS\fP, \fBSCHULTZ_PROP_TEXT_COLOR\fP, \fBSCHULTZ_PROP_FOCUS_RING_COLOR\fP, \fBSCHULTZ_PROP_SELECTION_COLOR\fP, \fBSCHULTZ_PROP_OPACITY\fP, \fBSCHULTZ_PROP_SHADOW_COLOR\fP, \fBSCHULTZ_PROP_SHADOW_ANGLE\fP, \fBSCHULTZ_PROP_SHADOW_DISTANCE\fP, \fBSCHULTZ_PROP_SHADOW_BLUR\fP, \fBSCHULTZ_PROP_PADDING\fP, \fBSCHULTZ_PROP_GAP\fP, \fBSCHULTZ_PROP_BORDER_WIDTH\fP, \fBSCHULTZ_PROP_FONT\fP, \fBSCHULTZ_PROP_FONT_SIZE\fP, \fBSCHULTZ_PROP_MIN_WIDTH\fP, \fBSCHULTZ_PROP_MIN_HEIGHT\fP, \fBSCHULTZ_PROP_PREF_WIDTH\fP, \fBSCHULTZ_PROP_PREF_HEIGHT\fP, \fBSCHULTZ_PROP_MAX_WIDTH\fP, \fBSCHULTZ_PROP_MAX_HEIGHT\fP, \fBSCHULTZ_PROP_BORDER_DASH\fP, \fBSCHULTZ_PROP_BORDER_CAP\fP, \fBSCHULTZ_PROP_BORDER_JOIN\fP, \fBSCHULTZ_PROP_BORDER_DASH_OFFSET\fP, \fBSCHULTZ_PROP_BORDER_MITER_LIMIT\fP, \fBSCHULTZ_PROP_TEXT_ALIGN\fP, \fBSCHULTZ_PROP_LINE_SPACING\fP, \fBSCHULTZ_PROP_COUNT\fP }"
+.br
+.RI "Everything a node can be styled with\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_VALUE_COLOR\fP = 0, \fBSCHULTZ_VALUE_NUMBER\fP, \fBSCHULTZ_VALUE_FONT\fP, \fBSCHULTZ_VALUE_DASH\fP, \fBSCHULTZ_VALUE_GRADIENT\fP }"
+.br
+.RI "What type a property holds\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_SOURCE_LITERAL\fP = 0, \fBSCHULTZ_SOURCE_TOKEN\fP }"
+.br
+.RI "Where a property value comes from\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBschultz_property_kind\fP (uint32_t property)"
+.br
+.RI "Returns what type a property holds\&. "
+.ti -1c
+.RI "int32_t \fBschultz_property_affects_layout\fP (uint32_t property)"
+.br
+.RI "Reports whether changing a property forces a relayout\&. "
+.ti -1c
+.RI "int32_t \fBschultz_property_inherits\fP (uint32_t property)"
+.br
+.RI "Reports whether a property is inherited from ancestors\&. "
+.ti -1c
+.RI "const char * \fBschultz_property_name\fP (uint32_t property)"
+.br
+.RI "Returns a property's name, for debugging and error messages\&. "
+.ti -1c
+.RI "int32_t \fBschultz_theme_init\fP (\fBschultz_theme\fP *theme)"
+.br
+.RI "Clears a theme so every token falls back to its built in value\&. "
+.ti -1c
+.RI "int32_t \fBschultz_theme_preset_light\fP (\fBschultz_theme\fP *theme)"
+.br
+.RI "Fills a theme with a light set of colours\&. "
+.ti -1c
+.RI "int32_t \fBschultz_theme_set_color\fP (\fBschultz_theme\fP *theme, uint32_t token, \fBschultz_color\fP color)"
+.br
+.RI "Overrides one colour token\&. "
+.ti -1c
+.RI "int32_t \fBschultz_theme_set_number\fP (\fBschultz_theme\fP *theme, uint32_t token, float value)"
+.br
+.RI "Overrides one number token\&. "
+.ti -1c
+.RI "int32_t \fBschultz_theme_set_font\fP (\fBschultz_theme\fP *theme, uint32_t token, \fBschultz_handle\fP font)"
+.br
+.RI "Overrides one font slot\&. "
+.ti -1c
+.RI "\fBschultz_color\fP \fBschultz_theme_color\fP (const \fBschultz_theme\fP *theme, uint32_t token)"
+.br
+.RI "Reads a colour token, falling back to the built in default\&. "
+.ti -1c
+.RI "float \fBschultz_theme_number\fP (const \fBschultz_theme\fP *theme, uint32_t token)"
+.br
+.RI "Reads a number token, falling back to the built in default\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_theme_font\fP (const \fBschultz_theme\fP *theme, uint32_t token)"
+.br
+.RI "Reads a font slot, falling back to the built in default\&. "
+.ti -1c
+.RI "int32_t \fBschultz_patch_init\fP (\fBschultz_patch\fP *patch)"
+.br
+.RI "Prepares an empty patch\&. "
+.ti -1c
+.RI "void \fBschultz_patch_free\fP (\fBschultz_patch\fP *patch)"
+.br
+.RI "Releases a patch's storage\&. "
+.ti -1c
+.RI "void \fBschultz_patch_clear\fP (\fBschultz_patch\fP *patch)"
+.br
+.RI "Removes every setting from a patch, keeping its storage\&. "
+.ti -1c
+.RI "int32_t \fBschultz_patch_set\fP (\fBschultz_patch\fP *patch, uint32_t property, \fBschultz_value\fP value)"
+.br
+.RI "Sets a property to a value, replacing any previous setting\&. "
+.ti -1c
+.RI "int32_t \fBschultz_patch_unset\fP (\fBschultz_patch\fP *patch, uint32_t property)"
+.br
+.RI "Removes one property from a patch\&. "
+.ti -1c
+.RI "int32_t \fBschultz_patch_get\fP (const \fBschultz_patch\fP *patch, uint32_t property, \fBschultz_value\fP *out_value)"
+.br
+.RI "Reads one property from a patch\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_patch_count\fP (const \fBschultz_patch\fP *patch)"
+.br
+.RI "Counts the properties a patch sets\&. "
+.ti -1c
+.RI "int32_t \fBschultz_patch_merge\fP (\fBschultz_patch\fP *dest, const \fBschultz_patch\fP *source)"
+.br
+.RI "Copies every setting from one patch onto another\&. "
+.ti -1c
+.RI "\fBschultz_value\fP \fBschultz_value_color\fP (\fBschultz_color\fP color)"
+.br
+.RI "Builds a literal colour value\&. "
+.ti -1c
+.RI "\fBschultz_value\fP \fBschultz_value_number\fP (float number)"
+.br
+.RI "Builds a literal number value\&. "
+.ti -1c
+.RI "\fBschultz_value\fP \fBschultz_value_font\fP (\fBschultz_handle\fP font)"
+.br
+.RI "Builds a literal font value\&. "
+.ti -1c
+.RI "\fBschultz_value\fP \fBschultz_value_token\fP (uint32_t token)"
+.br
+.RI "Builds a value that refers to a theme token\&. "
+.ti -1c
+.RI "\fBschultz_value\fP \fBschultz_value_gradient\fP (\fBschultz_handle\fP gradient)"
+.br
+.RI "Makes a value that fills a colour property with a gradient\&. "
+.ti -1c
+.RI "\fBschultz_value\fP \fBschultz_value_dash\fP (\fBschultz_handle\fP dash)"
+.br
+.RI "Makes a value naming a registered dash pattern\&. "
+.ti -1c
+.RI "int32_t \fBschultz_resolved_defaults\fP (\fBschultz_resolved_style\fP *resolved, const \fBschultz_theme\fP *theme)"
+.br
+.RI "Fills a resolved style with the built in defaults for every property\&. "
+.ti -1c
+.RI "int32_t \fBschultz_resolved_apply\fP (\fBschultz_resolved_style\fP *resolved, const \fBschultz_patch\fP *patch, const \fBschultz_theme\fP *theme)"
+.br
+.RI "Applies a patch over a resolved style\&. "
+.ti -1c
+.RI "\fBschultz_color\fP \fBschultz_resolved_color\fP (const \fBschultz_resolved_style\fP *resolved, uint32_t property)"
+.br
+.RI "Reads a colour property from a resolved style\&. "
+.ti -1c
+.RI "float \fBschultz_resolved_number\fP (const \fBschultz_resolved_style\fP *resolved, uint32_t property)"
+.br
+.RI "Reads a number property from a resolved style\&. "
+.ti -1c
+.RI "\fBschultz_paint\fP \fBschultz_resolved_paint\fP (const \fBschultz_resolved_style\fP *resolved, uint32_t property)"
+.br
+.RI "Reads a resolved colour property as a paint\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_resolved_dash\fP (const \fBschultz_resolved_style\fP *resolved, uint32_t property)"
+.br
+.RI "Reads a resolved dash property\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_resolved_font\fP (const \fBschultz_resolved_style\fP *resolved, uint32_t property)"
+.br
+.RI "Reads a font property from a resolved style\&. "
+.ti -1c
+.RI "int32_t \fBschultz_resolved_layout_differs\fP (const \fBschultz_resolved_style\fP *a, const \fBschultz_resolved_style\fP *b)"
+.br
+.RI "Reports whether two resolved styles differ in any layout property\&. "
+.ti -1c
+.RI "int32_t \fBschultz_resolved_differs\fP (const \fBschultz_resolved_style\fP *a, const \fBschultz_resolved_style\fP *b)"
+.br
+.RI "Reports whether two resolved styles differ in any property at all\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Tokens, properties, style patches and themes\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+Four concepts, from the bottom up:
+.PP
+.IP "\(bu" 2
+A \fBtoken\fP is a named value such as \fCcolor\&.accent\fP or \fCspace\&.md\fP\&. Every token has a value compiled into the toolkit, so a lookup can never find a hole\&.
+.IP "\(bu" 2
+A \fBtheme\fP is a sparse override table over those defaults\&. An empty theme is valid and means 'use the defaults throughout'\&.
+.IP "\(bu" 2
+A \fBproperty\fP is something a node can set: background, padding, text colour\&. Each one declares whether changing it costs a repaint or a relayout\&.
+.IP "\(bu" 2
+A \fBpatch\fP is a sparse set of property values\&. Styles, inline node style and per state style are all patches\&.
+.PP
+.PP
+A property value is either a literal or a reference to a token\&. The token form is what lets a style follow a theme change; a literal will not\&. 
+.PP
+Definition in file \fBschultz_style\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Named colours in a theme\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_WINDOW \fP\fP
+Behind everything\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_SURFACE \fP\fP
+A panel or control background\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_SURFACE_RAISED \fP\fP
+A surface above another surface\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_SURFACE_SUNKEN \fP\fP
+A surface pressed into another\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_ACCENT \fP\fP
+The primary action colour\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_BORDER \fP\fP
+Outline of a control\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_TEXT \fP\fP
+Body text\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_TEXT_MUTED \fP\fP
+Secondary text\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_TEXT_ON_ACCENT \fP\fP
+Text drawn on the accent colour\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_TEXT_DISABLED \fP\fP
+Text that cannot be used\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_FOCUS_RING \fP\fP
+Ring around the focused control\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_SELECTION \fP\fP
+Selected text or list row\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_DANGER \fP\fP
+Destructive action\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_SURFACE_INVERSE \fP\fP
+A surface deliberately opposite to the rest of the page, and the text that goes on it\&. Dark where the page is light and light where it is dark, so that something laid over the page reads as being in front of it rather than part of it\&. Tooltips and popovers use it\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_TITLE_BAR \fP\fP
+The band across the top of a dialog, and the title written on it\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_SCROLL_TRACK \fP\fP
+A scroll bar's groove, and the part of it that moves\&. These are their own colours rather than borrowed ones because the two have to stay apart from each other, and a token that means something else is free to drift until they meet\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_SHADOW \fP\fP
+The colour a drop shadow is drawn in\&. Black at an alpha, rather than a grey, so that it darkens whatever it falls on instead of tinting it\&.
+.PP
+It is a theme's colour because how heavy a shadow is says as much about a design as a surface tone does, and because a shadow needs a different strength on a dark page than on a light one to read as the same depth\&.
+.PP
+Nothing carries a shadow unless it is asked to: SCHULTZ_PROP_SHADOW_COLOR still defaults to transparent, and this is the colour to reach for when a host wants one\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_TRANSPARENT \fP\fP
+Fully transparent\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_COLOR_COUNT \fP\fP
+How many colour tokens exist\&. 
+.PP
+Definition at line \fB55\fP of file \fBschultz_style\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Named lengths in a theme, in pixels\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_TOKEN_SPACE_XS \fP\fP
+Tightest spacing step\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_SPACE_SM \fP\fP
+Small spacing step\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_SPACE_MD \fP\fP
+Default spacing step\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_SPACE_LG \fP\fP
+Large spacing step\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_SPACE_XL \fP\fP
+Largest spacing step\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_RADIUS_STRUCTURE \fP\fP
+Square\&. Surfaces, containers, and rows: what you look at\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_RADIUS_CONTROL_SMALL \fP\fP
+Rounding for a small pressed object, such as a checkbox's box\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_RADIUS_CONTROL \fP\fP
+Rounding for an ordinary pressed object, such as a button\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_BORDER_WIDTH \fP\fP
+Default control outline width\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FOCUS_RING_WIDTH \fP\fP
+Focus ring width\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_CONTROL_HEIGHT \fP\fP
+Smallest height a control may have\&. This is the published touch target minimum on both mobile platforms, so it is an accessibility floor rather than a style preference\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_SIZE_SM \fP\fP
+Caption text size\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_SIZE_BODY \fP\fP
+Body text size\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_SIZE_TITLE \fP\fP
+Heading text size\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_LINE_SPACING \fP\fP
+How far apart lines of wrapped text sit, as a multiple of the font's own line height\&. Prose needs more air between lines than a caption does, and the font's own figure is the caption's\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_NUMBER_COUNT \fP\fP
+How many number tokens exist\&. 
+.PP
+Definition at line \fB107\fP of file \fBschultz_style\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Named font slots in a theme\&. A slot the application does not fill falls back to the matching face compiled into the library, so text draws whether or not a host has said anything about fonts\&. See schultz_font_builtin\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_BODY \fP\fP
+Default text\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_TITLE \fP\fP
+Headings\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_MONO \fP\fP
+Fixed pitch text\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_EMOJI \fP\fP
+Emoji, which no text face has\&. This slot is never chosen by a style the way the three above are: it is the face that draws what the chosen one has no glyph for\&. See schultz_font_set_emoji\&. 
+.TP
+\fB\fISCHULTZ_TOKEN_FONT_COUNT \fP\fP
+How many font slots exist\&. 
+.PP
+Definition at line \fB158\fP of file \fBschultz_style\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Where the lines of a wrapped block sit across its width\&. Start and end rather than left and right, because a line of Arabic starts on the right\&. For left to right text start is the left edge, and for right to left text it is the right one\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_TEXT_ALIGN_START \fP\fP
+Against the leading edge\&. 
+.TP
+\fB\fISCHULTZ_TEXT_ALIGN_CENTER \fP\fP
+Centred in the width\&. 
+.TP
+\fB\fISCHULTZ_TEXT_ALIGN_END \fP\fP
+Against the trailing edge\&. 
+.TP
+\fB\fISCHULTZ_TEXT_ALIGN_JUSTIFY \fP\fP
+Spread to both edges, last line not\&. 
+.PP
+Definition at line \fB179\fP of file \fBschultz_style\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Everything a node can be styled with\&. Each property has a fixed type and a fixed invalidation class; see schultz_property_kind and schultz_property_affects_layout\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_PROP_BACKGROUND \fP\fP
+Fill behind the node\&. 
+.TP
+\fB\fISCHULTZ_PROP_BORDER_COLOR \fP\fP
+Outline colour\&. 
+.TP
+\fB\fISCHULTZ_PROP_CORNER_RADIUS \fP\fP
+Rounded corner radius\&. 
+.TP
+\fB\fISCHULTZ_PROP_TEXT_COLOR \fP\fP
+Text colour\&. Inherits\&. 
+.TP
+\fB\fISCHULTZ_PROP_FOCUS_RING_COLOR \fP\fP
+Focus ring colour\&. 
+.TP
+\fB\fISCHULTZ_PROP_SELECTION_COLOR \fP\fP
+Selection highlight colour\&. 
+.TP
+\fB\fISCHULTZ_PROP_OPACITY \fP\fP
+0 transparent to 1 opaque\&. 
+.TP
+\fB\fISCHULTZ_PROP_SHADOW_COLOR \fP\fP
+Shadow colour\&. Clear means none\&. 
+.TP
+\fB\fISCHULTZ_PROP_SHADOW_ANGLE \fP\fP
+Which way the shadow falls, in degrees clockwise, with 0 above the node\&. So 90 is to its right, 180 directly below it, 270 to its left\&. Clockwise to agree with every other angle in the toolkit\&. 
+.TP
+\fB\fISCHULTZ_PROP_SHADOW_DISTANCE \fP\fP
+How far that way, in units\&. 
+.TP
+\fB\fISCHULTZ_PROP_SHADOW_BLUR \fP\fP
+How soft its edge is\&. 0 is hard\&. 
+.TP
+\fB\fISCHULTZ_PROP_PADDING \fP\fP
+Inset from this node's own edges\&. 
+.TP
+\fB\fISCHULTZ_PROP_GAP \fP\fP
+Space between adjacent children\&. 
+.TP
+\fB\fISCHULTZ_PROP_BORDER_WIDTH \fP\fP
+Outline width, which insets content\&. 
+.TP
+\fB\fISCHULTZ_PROP_FONT \fP\fP
+Font to draw text with\&. Inherits\&. 
+.TP
+\fB\fISCHULTZ_PROP_FONT_SIZE \fP\fP
+Text size\&. Inherits\&. 
+.TP
+\fB\fISCHULTZ_PROP_MIN_WIDTH \fP\fP
+Never narrower than this\&. 
+.TP
+\fB\fISCHULTZ_PROP_MIN_HEIGHT \fP\fP
+Never shorter than this\&. 
+.TP
+\fB\fISCHULTZ_PROP_PREF_WIDTH \fP\fP
+Wanted width, negative to compute\&. 
+.TP
+\fB\fISCHULTZ_PROP_PREF_HEIGHT \fP\fP
+Wanted height, negative to compute\&. 
+.TP
+\fB\fISCHULTZ_PROP_MAX_WIDTH \fP\fP
+Never wider, negative for no limit\&. 
+.TP
+\fB\fISCHULTZ_PROP_MAX_HEIGHT \fP\fP
+Never taller, negative for no limit\&. 
+.TP
+\fB\fISCHULTZ_PROP_BORDER_DASH \fP\fP
+Dash pattern for the outline\&. 
+.TP
+\fB\fISCHULTZ_PROP_BORDER_CAP \fP\fP
+One of the SCHULTZ_CAP_* values\&. 
+.TP
+\fB\fISCHULTZ_PROP_BORDER_JOIN \fP\fP
+One of the SCHULTZ_JOIN_* values\&. 
+.TP
+\fB\fISCHULTZ_PROP_BORDER_DASH_OFFSET \fP\fP
+How far along the dash pattern the outline starts, in pixels\&. Drawing the same border at two offsets is how a dashed outline is made to look like it is moving\&. Ignored when there is no dash pattern\&. 
+.TP
+\fB\fISCHULTZ_PROP_BORDER_MITER_LIMIT \fP\fP
+How far a mitred corner may reach past the corner itself, as a multiple of the outline's width\&. Past this the corner is cut flat instead, which is what stops a very sharp angle running away\&. Four by default; ignored unless \fCborder\&.join\fP is SCHULTZ_JOIN_MITER\&. 
+.TP
+\fB\fISCHULTZ_PROP_TEXT_ALIGN \fP\fP
+SCHULTZ_TEXT_ALIGN_*\&. Inherits\&. 
+.TP
+\fB\fISCHULTZ_PROP_LINE_SPACING \fP\fP
+Line height multiplier\&. Inherits\&. 
+.TP
+\fB\fISCHULTZ_PROP_COUNT \fP\fP
+How many properties exist\&. 
+.PP
+Definition at line \fB192\fP of file \fBschultz_style\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+What type a property holds\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_VALUE_COLOR \fP\fP
+A colour, or a gradient in its place\&. 
+.TP
+\fB\fISCHULTZ_VALUE_NUMBER \fP\fP
+A float in pixels\&. 
+.TP
+\fB\fISCHULTZ_VALUE_FONT \fP\fP
+A loaded font handle\&. 
+.TP
+\fB\fISCHULTZ_VALUE_DASH \fP\fP
+A registered dash pattern handle\&. 
+.TP
+\fB\fISCHULTZ_VALUE_GRADIENT \fP\fP
+Not a property kind: the kind of a value handed to a colour property when a gradient is wanted instead of a flat colour\&. A property is either a colour property or it is not; what fills it is the value's business\&. 
+.PP
+Definition at line \fB246\fP of file \fBschultz_style\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Where a property value comes from\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_SOURCE_LITERAL \fP\fP
+The value is written in the patch\&. 
+.TP
+\fB\fISCHULTZ_SOURCE_TOKEN \fP\fP
+The value is looked up in the theme\&. 
+.PP
+Definition at line \fB262\fP of file \fBschultz_style\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "uint32_t schultz_property_kind (uint32_t property)"
+
+.PP
+Returns what type a property holds\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIproperty\fP One of the SCHULTZ_PROP_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_VALUE_COLOR, SCHULTZ_VALUE_NUMBER or SCHULTZ_VALUE_FONT\&. An out of range property reports SCHULTZ_VALUE_NUMBER\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_property_affects_layout (uint32_t property)"
+
+.PP
+Reports whether changing a property forces a relayout\&. This is the table that keeps a colour change from causing a relayout, which is the whole advantage of retained mode\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIproperty\fP One of the SCHULTZ_PROP_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the property affects layout, 0 when it only affects paint\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_property_inherits (uint32_t property)"
+
+.PP
+Reports whether a property is inherited from ancestors\&. The inheriting set is fixed and short on purpose: text colour, font and font size\&. A short list keeps resolution cheap and keeps 'why is this the
+wrong colour' answerable by looking at one ancestor chain\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIproperty\fP One of the SCHULTZ_PROP_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the property inherits, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "const char * schultz_property_name (uint32_t property)"
+
+.PP
+Returns a property's name, for debugging and error messages\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIproperty\fP One of the SCHULTZ_PROP_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The name, such as 'background', or NULL when out of range\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_theme_init (\fBschultz_theme\fP * theme)"
+
+.PP
+Clears a theme so every token falls back to its built in value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to clear\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when theme is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_theme_preset_light (\fBschultz_theme\fP * theme)"
+
+.PP
+Fills a theme with a light set of colours\&. The compiled in defaults are a dark look, so this is the one preset worth shipping\&. It populates a struct and installs nothing; use schultz_tree_set_theme to apply it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to fill\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when theme is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_theme_set_color (\fBschultz_theme\fP * theme, uint32_t token, \fBschultz_color\fP color)"
+
+.PP
+Overrides one colour token\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to update\&. Must not be NULL\&. 
+.br
+\fItoken\fP One of the SCHULTZ_TOKEN_COLOR_* values\&. 
+.br
+\fIcolor\fP The value to use\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL theme or an out of range token\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_theme_set_number (\fBschultz_theme\fP * theme, uint32_t token, float value)"
+
+.PP
+Overrides one number token\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to update\&. Must not be NULL\&. 
+.br
+\fItoken\fP One of the SCHULTZ_TOKEN_SPACE_* and related values\&. 
+.br
+\fIvalue\fP The value to use\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_theme_set_font (\fBschultz_theme\fP * theme, uint32_t token, \fBschultz_handle\fP font)"
+
+.PP
+Overrides one font slot\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to update\&. Must not be NULL\&. 
+.br
+\fItoken\fP One of the SCHULTZ_TOKEN_FONT_* values\&. 
+.br
+\fIfont\fP The loaded font to use\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "\fBschultz_color\fP schultz_theme_color (const \fBschultz_theme\fP * theme, uint32_t token)"
+
+.PP
+Reads a colour token, falling back to the built in default\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to read, or NULL to read the built in default\&. 
+.br
+\fItoken\fP One of the SCHULTZ_TOKEN_COLOR_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The colour\&. An out of range token yields opaque magenta, so a bad lookup is obvious on screen rather than passing for a design choice\&. 
+.RE
+.PP
+
+.SS "float schultz_theme_number (const \fBschultz_theme\fP * theme, uint32_t token)"
+
+.PP
+Reads a number token, falling back to the built in default\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to read, or NULL to read the built in default\&. 
+.br
+\fItoken\fP One of the number token values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The value, or 0 when the token is out of range\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_theme_font (const \fBschultz_theme\fP * theme, uint32_t token)"
+
+.PP
+Reads a font slot, falling back to the built in default\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItheme\fP The theme to read, or NULL to read the built in default\&. 
+.br
+\fItoken\fP One of the SCHULTZ_TOKEN_FONT_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The font handle, or SCHULTZ_HANDLE_NONE when unset or out of range\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_patch_init (\fBschultz_patch\fP * patch)"
+
+.PP
+Prepares an empty patch\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpatch\fP The patch to initialize\&. Must not be NULL\&. Previous contents are overwritten, so call schultz_patch_free first if it was in use\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when patch is NULL\&. 
+.RE
+.PP
+
+.SS "void schultz_patch_free (\fBschultz_patch\fP * patch)"
+
+.PP
+Releases a patch's storage\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpatch\fP The patch to release\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "void schultz_patch_clear (\fBschultz_patch\fP * patch)"
+
+.PP
+Removes every setting from a patch, keeping its storage\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpatch\fP The patch to clear\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_patch_set (\fBschultz_patch\fP * patch, uint32_t property, \fBschultz_value\fP value)"
+
+.PP
+Sets a property to a value, replacing any previous setting\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpatch\fP The patch to update\&. Must not be NULL\&. 
+.br
+\fIproperty\fP One of the SCHULTZ_PROP_* values\&. 
+.br
+\fIvalue\fP What to set it to\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL patch or an out of range property, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_patch_unset (\fBschultz_patch\fP * patch, uint32_t property)"
+
+.PP
+Removes one property from a patch\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpatch\fP The patch to update\&. Must not be NULL\&. 
+.br
+\fIproperty\fP The property to unset\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK whether or not the property was set, or SCHULTZ_ERR_INVALID_ARGUMENT when patch is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_patch_get (const \fBschultz_patch\fP * patch, uint32_t property, \fBschultz_value\fP * out_value)"
+
+.PP
+Reads one property from a patch\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpatch\fP The patch to read\&. Must not be NULL\&. 
+.br
+\fIproperty\fP The property to look for\&. 
+.br
+\fIout_value\fP Receives the value when it is set\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK when the property is set, or SCHULTZ_ERR_INVALID_HANDLE when it is not\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_patch_count (const \fBschultz_patch\fP * patch)"
+
+.PP
+Counts the properties a patch sets\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpatch\fP The patch to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many properties are set\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_patch_merge (\fBschultz_patch\fP * dest, const \fBschultz_patch\fP * source)"
+
+.PP
+Copies every setting from one patch onto another\&. Settings already in the destination that the source does not mention are left alone; the rest are replaced\&. This is how the layers stack\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIdest\fP The patch to update\&. Must not be NULL\&. 
+.br
+\fIsource\fP The patch to copy from\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "\fBschultz_value\fP schultz_value_color (\fBschultz_color\fP color)"
+
+.PP
+Builds a literal colour value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcolor\fP The colour\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A value holding it directly, which will not follow a theme change\&. 
+.RE
+.PP
+
+.SS "\fBschultz_value\fP schultz_value_number (float number)"
+
+.PP
+Builds a literal number value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fInumber\fP The value in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A value holding it directly\&. 
+.RE
+.PP
+
+.SS "\fBschultz_value\fP schultz_value_font (\fBschultz_handle\fP font)"
+
+.PP
+Builds a literal font value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfont\fP The loaded font\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A value holding it directly\&. 
+.RE
+.PP
+
+.SS "\fBschultz_value\fP schultz_value_token (uint32_t token)"
+
+.PP
+Builds a value that refers to a theme token\&. Which token namespace applies follows from the property it is set on: a colour property reads a colour token, a number property a number token\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItoken\fP The token index within its namespace\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A value that resolves through whatever theme is in effect\&. 
+.RE
+.PP
+
+.SS "\fBschultz_value\fP schultz_value_gradient (\fBschultz_handle\fP gradient)"
+
+.PP
+Makes a value that fills a colour property with a gradient\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIgradient\fP A handle from schultz_gradient_linear or _radial\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The value\&. 
+.RE
+.PP
+
+.SS "\fBschultz_value\fP schultz_value_dash (\fBschultz_handle\fP dash)"
+
+.PP
+Makes a value naming a registered dash pattern\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIdash\fP A handle from schultz_dash_register, or SCHULTZ_HANDLE_NONE for a solid line\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The value\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_resolved_defaults (\fBschultz_resolved_style\fP * resolved, const \fBschultz_theme\fP * theme)"
+
+.PP
+Fills a resolved style with the built in defaults for every property\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIresolved\fP The struct to fill\&. Must not be NULL\&. 
+.br
+\fItheme\fP The theme to resolve tokens through, or NULL for the built in values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when resolved is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_resolved_apply (\fBschultz_resolved_style\fP * resolved, const \fBschultz_patch\fP * patch, const \fBschultz_theme\fP * theme)"
+
+.PP
+Applies a patch over a resolved style\&. Token references are looked up in the theme as they are applied, so the result holds no indirection\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIresolved\fP The struct to update\&. Must not be NULL\&. 
+.br
+\fIpatch\fP The patch to apply\&. NULL is accepted and does nothing\&. 
+.br
+\fItheme\fP The theme token references resolve through, or NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when resolved is NULL\&. 
+.RE
+.PP
+
+.SS "\fBschultz_color\fP schultz_resolved_color (const \fBschultz_resolved_style\fP * resolved, uint32_t property)"
+
+.PP
+Reads a colour property from a resolved style\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIresolved\fP The resolved style\&. Must not be NULL\&. 
+.br
+\fIproperty\fP A property whose kind is SCHULTZ_VALUE_COLOR\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The colour, or opaque magenta for a NULL struct or a property that does not hold a colour\&. 
+.RE
+.PP
+
+.SS "float schultz_resolved_number (const \fBschultz_resolved_style\fP * resolved, uint32_t property)"
+
+.PP
+Reads a number property from a resolved style\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIresolved\fP The resolved style\&. Must not be NULL\&. 
+.br
+\fIproperty\fP A property whose kind is SCHULTZ_VALUE_NUMBER\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The value, or 0 for a NULL struct or a mismatched property\&. 
+.RE
+.PP
+
+.SS "\fBschultz_paint\fP schultz_resolved_paint (const \fBschultz_resolved_style\fP * resolved, uint32_t property)"
+
+.PP
+Reads a resolved colour property as a paint\&. This is what drawing code should read: it carries a gradient as readily as a colour\&. schultz_resolved_color remains for the many places that only ever want a colour, such as text\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIresolved\fP The resolved style\&. NULL yields a solid magenta, which is loud on purpose\&. 
+.br
+\fIproperty\fP A property whose kind is SCHULTZ_VALUE_COLOR\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The paint\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_resolved_dash (const \fBschultz_resolved_style\fP * resolved, uint32_t property)"
+
+.PP
+Reads a resolved dash property\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIresolved\fP The resolved style\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.br
+\fIproperty\fP A property whose kind is SCHULTZ_VALUE_DASH\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The dash handle, or SCHULTZ_HANDLE_NONE for a solid line\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_resolved_font (const \fBschultz_resolved_style\fP * resolved, uint32_t property)"
+
+.PP
+Reads a font property from a resolved style\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIresolved\fP The resolved style\&. Must not be NULL\&. 
+.br
+\fIproperty\fP A property whose kind is SCHULTZ_VALUE_FONT\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The font handle, or SCHULTZ_HANDLE_NONE for a NULL struct or a mismatched property\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_resolved_layout_differs (const \fBschultz_resolved_style\fP * a, const \fBschultz_resolved_style\fP * b)"
+
+.PP
+Reports whether two resolved styles differ in any layout property\&. This is what lets resolution decide whether a change costs a relayout or only a repaint\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIa\fP First resolved style\&. Must not be NULL\&. 
+.br
+\fIb\fP Second resolved style\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when any layout property differs, 0 when they agree\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_resolved_differs (const \fBschultz_resolved_style\fP * a, const \fBschultz_resolved_style\fP * b)"
+
+.PP
+Reports whether two resolved styles differ in any property at all\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIa\fP First resolved style\&. Must not be NULL\&. 
+.br
+\fIb\fP Second resolved style\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when any property differs, 0 when they are identical\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

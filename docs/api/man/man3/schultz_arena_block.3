@@ -1,0 +1,54 @@
+.TH "schultz_arena_block" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_arena_block \- One contiguous run of arena memory\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_arena\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_arena_block\fP * \fBnext\fP"
+.br
+.ti -1c
+.RI "size_t \fBcapacity\fP"
+.br
+.ti -1c
+.RI "size_t \fBused\fP"
+.br
+.ti -1c
+.RI "unsigned char \fBdata\fP []"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One contiguous run of arena memory\&. 
+.PP
+Definition at line \fB57\fP of file \fBschultz_arena\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_arena_block\fP* schultz_arena_block::next"
+Next block in the chain, or NULL\&. 
+.PP
+Definition at line \fB58\fP of file \fBschultz_arena\&.h\fP\&.
+.SS "size_t schultz_arena_block::capacity"
+Usable bytes in data\&. 
+.PP
+Definition at line \fB59\fP of file \fBschultz_arena\&.h\fP\&.
+.SS "size_t schultz_arena_block::used"
+Bytes handed out from this block\&. 
+.PP
+Definition at line \fB60\fP of file \fBschultz_arena\&.h\fP\&.
+.SS "unsigned char schultz_arena_block::data[]"
+The memory itself\&. 
+.PP
+Definition at line \fB61\fP of file \fBschultz_arena\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

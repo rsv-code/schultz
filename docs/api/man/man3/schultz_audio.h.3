@@ -1,0 +1,1652 @@
+.TH "schultz_audio.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_audio.h \- Sound out and microphone in\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdint\&.h>\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_audio\fP \fBschultz_audio\fP"
+.br
+.RI "Opaque audio system\&. One per application is plenty\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_AUDIO_S16\fP = 0, \fBSCHULTZ_AUDIO_F32\fP }"
+.br
+.RI "How one sample is written\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_audio_create\fP (\fBschultz_audio\fP **out_audio)"
+.br
+.RI "Starts the audio system\&. "
+.ti -1c
+.RI "void \fBschultz_audio_destroy\fP (\fBschultz_audio\fP *audio)"
+.br
+.RI "Stops everything and releases it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_set_volume\fP (\fBschultz_audio\fP *audio, float volume)"
+.br
+.RI "Sets the volume everything is scaled by, from zero to one\&. "
+.ti -1c
+.RI "float \fBschultz_audio_volume\fP (const \fBschultz_audio\fP *audio)"
+.br
+.RI "Returns the volume everything is scaled by\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_audio_output_count\fP (\fBschultz_audio\fP *audio)"
+.br
+.RI "Counts the devices sound can be played to, and lists them\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_audio_input_count\fP (\fBschultz_audio\fP *audio)"
+.br
+.RI "Counts the devices that can record, and lists them\&. "
+.ti -1c
+.RI "const char * \fBschultz_audio_device_name\fP (\fBschultz_audio\fP *audio, uint32_t index)"
+.br
+.RI "Returns one device's name, for showing to a person\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_audio_device_id\fP (\fBschultz_audio\fP *audio, uint32_t index)"
+.br
+.RI "Returns one device's number, which is what is chosen by\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_set_output\fP (\fBschultz_audio\fP *audio, uint64_t device)"
+.br
+.RI "Says which device sound is played to\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_audio_output\fP (const \fBschultz_audio\fP *audio)"
+.br
+.RI "Returns the device sound is played to, or zero for the default\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_set_input\fP (\fBschultz_audio\fP *audio, uint64_t device)"
+.br
+.RI "Says which device the microphone is read from\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_audio_input\fP (const \fBschultz_audio\fP *audio)"
+.br
+.RI "Returns the device the microphone is read from, or zero\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_devices_changed\fP (\fBschultz_audio\fP *audio)"
+.br
+.RI "Reports whether the devices have changed since this was last asked\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sound_load_file\fP (\fBschultz_audio\fP *audio, const char *path, \fBschultz_handle\fP *out_sound)"
+.br
+.RI "Decodes a sound and keeps it, ready to play\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sound_load_memory\fP (\fBschultz_audio\fP *audio, const void *bytes, uint64_t length, \fBschultz_handle\fP *out_sound)"
+.br
+.RI "The same, from bytes already in memory\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sound_play\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP sound)"
+.br
+.RI "Plays a sound, over anything already playing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sound_stop\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP sound)"
+.br
+.RI "Stops a sound wherever it is playing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sound_set_volume\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP sound, float volume)"
+.br
+.RI "Sets how loud a sound plays, from the next time it is played\&. "
+.ti -1c
+.RI "float \fBschultz_sound_volume\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP sound)"
+.br
+.RI "Returns how loud a sound plays\&. "
+.ti -1c
+.RI "int32_t \fBschultz_sound_destroy\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP sound)"
+.br
+.RI "Forgets a sound and the samples it held\&. "
+.ti -1c
+.RI "int32_t \fBschultz_music_play\fP (\fBschultz_audio\fP *audio, const char *path, int32_t repeats)"
+.br
+.RI "Plays a long piece of music, decoded as it goes\&. "
+.ti -1c
+.RI "int32_t \fBschultz_music_pause\fP (\fBschultz_audio\fP *audio)"
+.br
+.RI "Stops the music where it is, ready to carry on\&. "
+.ti -1c
+.RI "int32_t \fBschultz_music_resume\fP (\fBschultz_audio\fP *audio)"
+.br
+.RI "Carries on from where schultz_music_pause stopped\&. "
+.ti -1c
+.RI "int32_t \fBschultz_music_stop\fP (\fBschultz_audio\fP *audio)"
+.br
+.RI "Stops the music and goes back to its beginning\&. "
+.ti -1c
+.RI "int32_t \fBschultz_music_is_playing\fP (const \fBschultz_audio\fP *audio)"
+.br
+.RI "Reports whether music is playing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_music_set_volume\fP (\fBschultz_audio\fP *audio, float volume)"
+.br
+.RI "Sets how loud the music plays\&. "
+.ti -1c
+.RI "float \fBschultz_music_volume\fP (const \fBschultz_audio\fP *audio)"
+.br
+.RI "Returns how loud the music plays\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_create\fP (\fBschultz_audio\fP *audio, uint32_t format, uint32_t channels, uint32_t rate, \fBschultz_handle\fP *out_stream)"
+.br
+.RI "Opens a stream the host writes samples into\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_write\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP stream, const void *bytes, uint64_t length)"
+.br
+.RI "Hands the stream more samples\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_audio_stream_queued\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP stream)"
+.br
+.RI "Returns how many bytes are waiting to be played\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_play\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP stream)"
+.br
+.RI "Starts or resumes a stream\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_pause\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP stream)"
+.br
+.RI "Stops a stream where it is, keeping what is queued\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_is_playing\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP stream)"
+.br
+.RI "Reports whether a stream is running\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_clear\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP stream)"
+.br
+.RI "Throws away everything queued but not yet played\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_set_volume\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP stream, float volume)"
+.br
+.RI "Sets one stream's own volume, from zero to one\&. "
+.ti -1c
+.RI "float \fBschultz_audio_stream_volume\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP stream)"
+.br
+.RI "Returns one stream's own volume\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_stream_destroy\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP stream)"
+.br
+.RI "Closes a stream and drops whatever it still held\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_encoder_create\fP (\fBschultz_audio\fP *audio, uint32_t channels, uint32_t bitrate, \fBschultz_handle\fP *out_encoder)"
+.br
+.RI "Opens an encoder: samples in, Opus packets out\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_encoder_write\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP encoder, const float *samples, uint64_t frames)"
+.br
+.RI "Hands the encoder more samples\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_encoder_read_packet\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP encoder, const void **out_bytes, uint64_t *out_length, uint64_t *out_when_ns)"
+.br
+.RI "Takes the next packet the encoder has ready\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_encoder_set_bitrate\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP encoder, uint32_t bitrate)"
+.br
+.RI "Changes the target bitrate, from the next packet onward\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_encoder_destroy\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP encoder)"
+.br
+.RI "Closes an encoder and releases what it held\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_packet_decoder_create\fP (\fBschultz_audio\fP *audio, uint32_t channels, \fBschultz_handle\fP *out_decoder)"
+.br
+.RI "Opens a packet decoder: Opus packets in, samples out\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_packet_decoder_write\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder, const void *bytes, uint64_t length)"
+.br
+.RI "Hands the decoder one packet\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_packet_decoder_read\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder, const float **out_samples, uint64_t *out_frames)"
+.br
+.RI "Takes the samples from the last packet written\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_packet_decoder_destroy\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Closes a packet decoder and releases what it held\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_create\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP *out_decoder)"
+.br
+.RI "Opens a decoder the host pushes an encoded file into, a piece at a time\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_write\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder, const void *bytes, uint64_t length)"
+.br
+.RI "Hands the decoder more of the file\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_audio_decoder_queued\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Returns how many bytes have been written but not yet decoded\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_finish\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Says that the file has ended and no more is coming\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_play\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Starts or resumes a decoder\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_pause\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Stops a decoder where it is, keeping what it has\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_is_playing\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Reports whether a decoder is playing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_set_volume\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder, float volume)"
+.br
+.RI "Sets one decoder's own volume\&. "
+.ti -1c
+.RI "float \fBschultz_audio_decoder_volume\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Returns one decoder's own volume\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_decoder_destroy\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP decoder)"
+.br
+.RI "Closes a decoder and drops what it still held\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_create\fP (\fBschultz_audio\fP *audio, uint32_t format, uint32_t channels, uint32_t rate, \fBschultz_handle\fP *out_recorder)"
+.br
+.RI "Opens the microphone\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_start\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Starts or resumes capturing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_stop\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Stops capturing, keeping whatever has not been read\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_is_running\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Reports whether a recorder is capturing\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_audio_recorder_available\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Returns how many bytes the microphone has ready\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_read\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder, void *bytes, uint64_t length, uint64_t *out_read)"
+.br
+.RI "Takes what the microphone has, up to a limit\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_save\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder, const char *path)"
+.br
+.RI "Writes what the microphone makes straight into a WAV file\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_stop_saving\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Finishes the file and stops writing to it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_is_saving\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Reports whether a recorder is writing to a file\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_audio_recorder_saved\fP (const \fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Returns how many bytes of samples have gone into the file\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_clear\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Throws away what the microphone has not yet been read from\&. "
+.ti -1c
+.RI "int32_t \fBschultz_audio_recorder_destroy\fP (\fBschultz_audio\fP *audio, \fBschultz_handle\fP recorder)"
+.br
+.RI "Closes a recorder\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Sound out and microphone in\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+Audio stands on its own\&. It is not part of a window, because everything else the toolkit owns has a lifetime tied to something on screen and sound does not: a tool with no window may still want to make one, a phone carries on playing while the window is in the background, and a machine with two windows still has one set of speakers\&.
+.SS "The host gives bytes, and the toolkit never asks for them"
+SDL will call an application back on its audio thread when it wants more data\&. Nothing here does that\&. A host writes a chunk when it has one and asks how much is still unplayed, which is the same loop in C and in a language with a garbage collector, and which never puts a host's code on a realtime thread:
+.PP
+.PP
+.nf
+if (schultz_audio_stream_queued(audio, stream) < want) {
+    schultz_audio_stream_write(audio, stream, bytes, length);
+}
+.fi
+.PP
+.PP
+Recording is the same rule the other way round: the toolkit holds what the microphone produced and the host reads it when it likes\&. 
+.PP
+Definition in file \fBschultz_audio\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_audio\fP \fBschultz_audio\fP"
+
+.PP
+Opaque audio system\&. One per application is plenty\&. 
+.PP
+Definition at line \fB53\fP of file \fBschultz_audio\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+How one sample is written\&. Two of the formats SDL understands, which are the two anything produces: signed sixteen bit whole numbers, and floating point between minus one and one\&. Anything else a host has, it converts before writing\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_AUDIO_S16 \fP\fP
+Signed 16 bit, little endian\&. 
+.TP
+\fB\fISCHULTZ_AUDIO_F32 \fP\fP
+32 bit float, little endian\&. 
+.PP
+Definition at line \fB62\fP of file \fBschultz_audio\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_audio_create (\fBschultz_audio\fP ** out_audio)"
+
+.PP
+Starts the audio system\&. Opens nothing yet: a device is opened when the first thing wants to play, so an application that creates this and never plays anything costs nothing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_audio\fP Receives the system\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when the platform has no audio at all\&. 
+.RE
+.PP
+
+.SS "void schultz_audio_destroy (\fBschultz_audio\fP * audio)"
+
+.PP
+Stops everything and releases it\&. Every sound, stream and recorder made from this system goes with it, so a host does not have to take them down in order\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system, or NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_set_volume (\fBschultz_audio\fP * audio, float volume)"
+
+.PP
+Sets the volume everything is scaled by, from zero to one\&. Applied on top of each sound's or stream's own volume, so one call quiets an application without disturbing the balance inside it\&. Above one is allowed and will distort, which is the platform's business rather than this one's\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIvolume\fP Zero for silence, one for as recorded\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "float schultz_audio_volume (const \fBschultz_audio\fP * audio)"
+
+.PP
+Returns the volume everything is scaled by\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The volume last set, or one\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_audio_output_count (\fBschultz_audio\fP * audio)"
+
+.PP
+Counts the devices sound can be played to, and lists them\&. Calling this settles the list that schultz_audio_device_name and schultz_audio_device_id read from, so ask for the count first and then walk it\&. Asking again, for either kind, replaces the list\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many there are\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_audio_input_count (\fBschultz_audio\fP * audio)"
+
+.PP
+Counts the devices that can record, and lists them\&. The same arrangement as schultz_audio_output_count, and the same list is read afterwards\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many there are\&. 
+.RE
+.PP
+
+.SS "const char * schultz_audio_device_name (\fBschultz_audio\fP * audio, uint32_t index)"
+
+.PP
+Returns one device's name, for showing to a person\&. Good until the next time either count is asked for, which is long enough to fill in a menu and not long enough to keep\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIindex\fP Below whichever count was asked for last\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The name, or NULL when the index names nothing\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_audio_device_id (\fBschultz_audio\fP * audio, uint32_t index)"
+
+.PP
+Returns one device's number, which is what is chosen by\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIindex\fP Below whichever count was asked for last\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number to pass to schultz_audio_set_output or _set_input, or zero when the index names nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_set_output (\fBschultz_audio\fP * audio, uint64_t device)"
+
+.PP
+Says which device sound is played to\&. Zero, which is what a system starts with, means whatever the platform calls the default\&. That is the better answer on a phone: it follows the platform when a headset is plugged in or pulled out, without an application doing anything\&.
+.PP
+\fBWhat is already open stays where it is\&.\fP This decides where the next stream, sound or decoder opens, so an application changing device recreates what it wants moved\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdevice\fP A number from schultz_audio_device_id, or zero for the default\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_audio_output (const \fBschultz_audio\fP * audio)"
+
+.PP
+Returns the device sound is played to, or zero for the default\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The device number, or zero\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_set_input (\fBschultz_audio\fP * audio, uint64_t device)"
+
+.PP
+Says which device the microphone is read from\&. As schultz_audio_set_output, for recording\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdevice\fP A number from schultz_audio_device_id, or zero for the default\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_audio_input (const \fBschultz_audio\fP * audio)"
+
+.PP
+Returns the device the microphone is read from, or zero\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The device number, or zero\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_devices_changed (\fBschultz_audio\fP * audio)"
+
+.PP
+Reports whether the devices have changed since this was last asked\&. A headset arriving or leaving changes what an application should be offering in its settings\&. Asked rather than announced, like everything else here: a host that has a window checks this on a turn of its loop, and one with no window checks it whenever it likes\&.
+.PP
+The first call after the system is made reports a change, because there was nothing to compare against\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the list of devices is not what it was\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sound_load_file (\fBschultz_audio\fP * audio, const char * path, \fBschultz_handle\fP * out_sound)"
+
+.PP
+Decodes a sound and keeps it, ready to play\&. For anything short and played often: a click, an alert, a chime\&. It is decoded now rather than while it plays, because a sound decoded again on every press is work done twice for nothing\&.
+.PP
+WAV, AIFF, VOC and AU, plus MP3, FLAC and Ogg Vorbis\&. What is deliberately absent is MOD, MIDI and the console formats, whose decoders are copyleft or need a set of instruments shipped with them; see THIRD_PARTY_NOTICES\&.md\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIpath\fP The file\&. Must not be NULL\&. 
+.br
+\fIout_sound\fP Receives the sound\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, SCHULTZ_ERR_UNREADABLE when the file is missing or is not something this build decodes, or SCHULTZ_ERR_UNAVAILABLE when no device would open\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sound_load_memory (\fBschultz_audio\fP * audio, const void * bytes, uint64_t length, \fBschultz_handle\fP * out_sound)"
+
+.PP
+The same, from bytes already in memory\&. For a sound that arrived over a network or was built into the program\&. The bytes are decoded during the call and are the host's again afterwards\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIbytes\fP The file's contents\&. Must not be NULL\&. 
+.br
+\fIlength\fP How many bytes\&. 
+.br
+\fIout_sound\fP Receives the sound\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+As schultz_sound_load_file\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sound_play (\fBschultz_audio\fP * audio, \fBschultz_handle\fP sound)"
+
+.PP
+Plays a sound, over anything already playing\&. The same sound may be playing several times at once, which is what a run of key presses sounds like\&. There are eight places to play at a time, and asking for a ninth says so rather than cutting off one that can be heard\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIsound\fP A sound from schultz_sound_load_file or _load_memory\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_EXHAUSTED when every place is busy\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sound_stop (\fBschultz_audio\fP * audio, \fBschultz_handle\fP sound)"
+
+.PP
+Stops a sound wherever it is playing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIsound\fP A sound from schultz_sound_load_file or _load_memory\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sound_set_volume (\fBschultz_audio\fP * audio, \fBschultz_handle\fP sound, float volume)"
+
+.PP
+Sets how loud a sound plays, from the next time it is played\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIsound\fP A sound from schultz_sound_load_file or _load_memory\&. 
+.br
+\fIvolume\fP Zero for silence, one for as recorded\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "float schultz_sound_volume (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP sound)"
+
+.PP
+Returns how loud a sound plays\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIsound\fP A sound from schultz_sound_load_file or _load_memory\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The volume last set, or one\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_sound_destroy (\fBschultz_audio\fP * audio, \fBschultz_handle\fP sound)"
+
+.PP
+Forgets a sound and the samples it held\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIsound\fP A sound from schultz_sound_load_file or _load_memory\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_music_play (\fBschultz_audio\fP * audio, const char * path, int32_t repeats)"
+
+.PP
+Plays a long piece of music, decoded as it goes\&. One at a time: asking for another replaces what is playing\&. Unlike a sound it is not held in memory, because minutes of samples is tens of megabytes and nothing is gained by keeping them\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIpath\fP The file\&. Must not be NULL\&. 
+.br
+\fIrepeats\fP How many times to play it again after the first, zero for once and -1 to keep going until stopped\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_UNREADABLE or SCHULTZ_ERR_UNAVAILABLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_music_pause (\fBschultz_audio\fP * audio)"
+
+.PP
+Stops the music where it is, ready to carry on\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_music_resume (\fBschultz_audio\fP * audio)"
+
+.PP
+Carries on from where schultz_music_pause stopped\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_music_stop (\fBschultz_audio\fP * audio)"
+
+.PP
+Stops the music and goes back to its beginning\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_music_is_playing (const \fBschultz_audio\fP * audio)"
+
+.PP
+Reports whether music is playing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero while something is playing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_music_set_volume (\fBschultz_audio\fP * audio, float volume)"
+
+.PP
+Sets how loud the music plays\&. Kept apart from the sounds on purpose: turning the music down while the alerts stay where they were is what everyone expects of the two\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIvolume\fP Zero for silence, one for as recorded\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "float schultz_music_volume (const \fBschultz_audio\fP * audio)"
+
+.PP
+Returns how loud the music plays\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The volume last set, or one\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_create (\fBschultz_audio\fP * audio, uint32_t format, uint32_t channels, uint32_t rate, \fBschultz_handle\fP * out_stream)"
+
+.PP
+Opens a stream the host writes samples into\&. What internet radio, a speech synthesiser and anything generated all want\&. The samples are converted and resampled to whatever the device asked for, so a host writes what it has rather than what the hardware wants\&.
+.PP
+Nothing is heard until schultz_audio_stream_play\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIformat\fP SCHULTZ_AUDIO_S16 or SCHULTZ_AUDIO_F32\&. 
+.br
+\fIchannels\fP One for mono, two for stereo\&. More is allowed\&. 
+.br
+\fIrate\fP Samples per second, such as 44100 or 48000\&. 
+.br
+\fIout_stream\fP Receives the stream\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when no device would open\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_write (\fBschultz_audio\fP * audio, \fBschultz_handle\fP stream, const void * bytes, uint64_t length)"
+
+.PP
+Hands the stream more samples\&. Copied, so the memory is the host's again the moment this returns\&. There is no limit but memory: a host that writes faster than the device plays is what schultz_audio_stream_queued is for\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.br
+\fIbytes\fP The samples\&. Must not be NULL when length is not zero\&. 
+.br
+\fIlength\fP How many bytes, not how many samples\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_audio_stream_queued (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP stream)"
+
+.PP
+Returns how many bytes are waiting to be played\&. Counted as they were written, in the format the stream was created with, because nothing is converted until the device asks for it\&. So a stream written at 22050 and played at 48000 reports what was written, and dividing by the rate, the channel count and the sample size gives how many seconds of sound are still to come\&. That is what makes this usable as a clock as well as for deciding when to write more\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Bytes not yet played\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_play (\fBschultz_audio\fP * audio, \fBschultz_handle\fP stream)"
+
+.PP
+Starts or resumes a stream\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_pause (\fBschultz_audio\fP * audio, \fBschultz_handle\fP stream)"
+
+.PP
+Stops a stream where it is, keeping what is queued\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_is_playing (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP stream)"
+
+.PP
+Reports whether a stream is running\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is playing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_clear (\fBschultz_audio\fP * audio, \fBschultz_handle\fP stream)"
+
+.PP
+Throws away everything queued but not yet played\&. What a station change wants: the seconds already buffered belong to the thing that is no longer playing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_set_volume (\fBschultz_audio\fP * audio, \fBschultz_handle\fP stream, float volume)"
+
+.PP
+Sets one stream's own volume, from zero to one\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.br
+\fIvolume\fP Zero for silence, one for as written\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "float schultz_audio_stream_volume (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP stream)"
+
+.PP
+Returns one stream's own volume\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The volume last set, or one\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_stream_destroy (\fBschultz_audio\fP * audio, \fBschultz_handle\fP stream)"
+
+.PP
+Closes a stream and drops whatever it still held\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIstream\fP A stream from schultz_audio_stream_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_encoder_create (\fBschultz_audio\fP * audio, uint32_t channels, uint32_t bitrate, \fBschultz_handle\fP * out_encoder)"
+
+.PP
+Opens an encoder: samples in, Opus packets out\&. The sound half of recording rather than playing\&. Nothing here sends anything anywhere: the packets come back to the caller, which decides what they are for\&. A transport is a different problem\&.
+.PP
+Opus, because it is the audio codec that can be shipped without a patent licence and the best of them at the bitrates a call uses\&. It is already vendored for playback, so encoding adds nothing to the binary but the encoder itself\&.
+.PP
+\fBForty eight thousand samples a second\&.\fP That is what Opus works in and what everything else in this toolkit hands about, so there is nothing to resample and no rate to choose\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIchannels\fP One for mono, two for stereo\&. 
+.br
+\fIbitrate\fP The target, in bits a second\&. Six thousand to half a million; a voice call is usually twenty four thousand\&. 
+.br
+\fIout_encoder\fP Receives the encoder\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when the encoder will not start\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_encoder_write (\fBschultz_audio\fP * audio, \fBschultz_handle\fP encoder, const float * samples, uint64_t frames)"
+
+.PP
+Hands the encoder more samples\&. Float samples, interleaved when there is more than one channel, at forty eight thousand a second\&. Copied, so the memory is the caller's again when this returns\&.
+.PP
+Opus codes in fixed lengths of time, so samples are held here until there are enough for a packet\&. Twenty milliseconds is the length used, which is 960 sample frames: writing fewer produces nothing yet, and writing more produces several packets\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIencoder\fP An encoder from schultz_audio_encoder_create\&. 
+.br
+\fIsamples\fP The samples\&. Must not be NULL when frames is not zero\&. 
+.br
+\fIframes\fP How many sample frames, not how many samples: a stereo pair is one frame\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_encoder_read_packet (\fBschultz_audio\fP * audio, \fBschultz_handle\fP encoder, const void ** out_bytes, uint64_t * out_length, uint64_t * out_when_ns)"
+
+.PP
+Takes the next packet the encoder has ready\&. Call it until it answers SCHULTZ_ERR_EXHAUSTED, which means there are not yet enough samples for another\&.
+.PP
+The bytes belong to the encoder and stay valid until the next call to this or to schultz_audio_encoder_write\&. A caller that keeps one copies it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIencoder\fP An encoder from schultz_audio_encoder_create\&. 
+.br
+\fIout_bytes\fP Receives the packet\&. Must not be NULL\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.br
+\fIout_when_ns\fP Receives how far into the sound the packet starts, in nanoseconds from the first sample written\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_EXHAUSTED when there is nothing ready\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_encoder_set_bitrate (\fBschultz_audio\fP * audio, \fBschultz_handle\fP encoder, uint32_t bitrate)"
+
+.PP
+Changes the target bitrate, from the next packet onward\&. The same handle congestion control needs on the video side, for the same reason\&. Sound is the half worth protecting when the network gets bad: a call whose picture stutters is annoying, and one whose sound breaks up is over\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIencoder\fP An encoder from schultz_audio_encoder_create\&. 
+.br
+\fIbitrate\fP The new target, in bits a second\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_encoder_destroy (\fBschultz_audio\fP * audio, \fBschultz_handle\fP encoder)"
+
+.PP
+Closes an encoder and releases what it held\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIencoder\fP An encoder from schultz_audio_encoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_packet_decoder_create (\fBschultz_audio\fP * audio, uint32_t channels, \fBschultz_handle\fP * out_decoder)"
+
+.PP
+Opens a packet decoder: Opus packets in, samples out\&. The other end of schultz_audio_encoder_create, and what a receiver at the far end of a transport needs\&. Packets arrive, samples come back, and the caller plays them or does whatever else it likes with them\&.
+.PP
+\fBNot the same thing as schultz_audio_decoder_create\fP, which is a player for a whole encoded file -- an MP3, an Ogg, a FLAC -- arriving in pieces, and which plays it itself\&. This takes bare Opus packets in the order they were produced, gives back the samples, and plays nothing\&.
+.PP
+Forty eight thousand samples a second, like the encoder, because that is what Opus works in\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIchannels\fP One for mono, two for stereo\&. Must match what the far end encoded\&. 
+.br
+\fIout_decoder\fP Receives the decoder\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY or SCHULTZ_ERR_UNAVAILABLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_packet_decoder_write (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder, const void * bytes, uint64_t length)"
+
+.PP
+Hands the decoder one packet\&. Packets must arrive in the order they were produced\&. What comes out is taken with schultz_audio_packet_decoder_read\&.
+.PP
+A packet that is lost is not the end: pass NULL with a length of zero and Opus works out something plausible to cover the gap, which is what keeps a call going through a bad moment rather than clicking\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_packet_decoder_create\&. 
+.br
+\fIbytes\fP The packet, or NULL for one that was lost\&. 
+.br
+\fIlength\fP How many bytes, or zero for one that was lost\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_UNREADABLE when the packet could not be decoded\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_packet_decoder_read (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder, const float ** out_samples, uint64_t * out_frames)"
+
+.PP
+Takes the samples from the last packet written\&. Float samples, interleaved when there is more than one channel, at forty eight thousand a second -- the same shape schultz_audio_stream_write takes, so a decoded packet can go straight out to the speakers\&.
+.PP
+The samples belong to the decoder and stay valid until the next call to schultz_audio_packet_decoder_write\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_packet_decoder_create\&. 
+.br
+\fIout_samples\fP Receives the samples\&. Must not be NULL\&. 
+.br
+\fIout_frames\fP Receives how many sample frames, not how many samples\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_EXHAUSTED when nothing has been written since the last read\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_packet_decoder_destroy (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Closes a packet decoder and releases what it held\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_packet_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_create (\fBschultz_audio\fP * audio, \fBschultz_handle\fP * out_decoder)"
+
+.PP
+Opens a decoder the host pushes an encoded file into, a piece at a time\&. What internet radio wants\&. A stream takes samples and this takes the file itself -- MP3, Ogg Vorbis, FLAC, WAV -- in whatever chunks it arrives in, and works them out as it plays\&.
+.PP
+The rule is the same as everywhere else here: the host writes, and nothing calls the host back\&. The decoder reads from what has been written, on its own thread, and an empty buffer means 'not yet' rather than 'the end', so a station that is slow for a moment does not stop\&.
+.PP
+\fBWrite some bytes before playing\&.\fP The decoder reads the start of the file to see what kind it is, so schultz_audio_decoder_play on an empty decoder has nothing to decide from\&. A few kilobytes is plenty\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIout_decoder\fP Receives the decoder\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when no device would open\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_write (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder, const void * bytes, uint64_t length)"
+
+.PP
+Hands the decoder more of the file\&. Copied, so the memory is the host's again when this returns\&. What has been read is dropped as it goes, so a station may play for hours without the memory growing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.br
+\fIbytes\fP The next piece of the file\&. Must not be NULL when length is not zero\&. 
+.br
+\fIlength\fP How many bytes\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_audio_decoder_queued (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Returns how many bytes have been written but not yet decoded\&. The number a host writes its loop against, in the file's own bytes rather than in samples\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Bytes waiting to be decoded\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_finish (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Says that the file has ended and no more is coming\&. Without this a decoder that runs dry waits, because a station that has not sent the next second yet is still a station\&. This is how a host says the difference between a pause and an ending\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_play (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Starts or resumes a decoder\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_UNREADABLE when what has been written is not a sound file this build decodes\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_pause (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Stops a decoder where it is, keeping what it has\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_is_playing (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Reports whether a decoder is playing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero while it is playing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_set_volume (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder, float volume)"
+
+.PP
+Sets one decoder's own volume\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.br
+\fIvolume\fP Zero for silence, one for as recorded\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "float schultz_audio_decoder_volume (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Returns one decoder's own volume\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The volume last set, or one\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_decoder_destroy (\fBschultz_audio\fP * audio, \fBschultz_handle\fP decoder)"
+
+.PP
+Closes a decoder and drops what it still held\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIdecoder\fP A decoder from schultz_audio_decoder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_create (\fBschultz_audio\fP * audio, uint32_t format, uint32_t channels, uint32_t rate, \fBschultz_handle\fP * out_recorder)"
+
+.PP
+Opens the microphone\&. \fBThe platform has to allow it\&.\fP iOS refuses without NSMicrophoneUsageDescription in the application's Info\&.plist and asks the person the first time; Android needs RECORD_AUDIO in the manifest and a request while running\&. Neither is something the toolkit can do on an application's behalf, and where permission is missing this fails rather than recording silence\&.
+.PP
+Nothing is captured until schultz_audio_recorder_start\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIformat\fP SCHULTZ_AUDIO_S16 or SCHULTZ_AUDIO_F32\&. 
+.br
+\fIchannels\fP One for mono, two for stereo\&. 
+.br
+\fIrate\fP Samples per second\&. 
+.br
+\fIout_recorder\fP Receives the recorder\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when there is no microphone or no permission to use it\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_start (\fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Starts or resumes capturing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_stop (\fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Stops capturing, keeping whatever has not been read\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_is_running (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Reports whether a recorder is capturing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is running\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_audio_recorder_available (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Returns how many bytes the microphone has ready\&. In the format the recorder was asked for\&. A host polls this and reads when it is worth reading, which is the whole of the arrangement: nothing here calls the host\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Bytes waiting\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_read (\fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder, void * bytes, uint64_t length, uint64_t * out_read)"
+
+.PP
+Takes what the microphone has, up to a limit\&. Reading less than is waiting is fine; the rest stays for the next call\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.br
+\fIbytes\fP Where to put them\&. Must not be NULL when length is not zero\&. 
+.br
+\fIlength\fP How many bytes there is room for\&. 
+.br
+\fIout_read\fP Receives how many were written\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_save (\fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder, const char * path)"
+
+.PP
+Writes what the microphone makes straight into a WAV file\&. For recording rather than listening\&. The toolkit takes the samples as the device produces them and writes them out, so nothing has to be read on a clock and nothing is lost while an application is busy\&.
+.PP
+\fBSaving and reading are two ways to the same bytes\&.\fP While a recorder is saving, the toolkit drains it, so schultz_audio_recorder_read has nothing to give\&. An application picks one\&.
+.PP
+The file is a WAV of exactly what was asked for at schultz_audio_recorder_create\&. Its header is written when the file opens and corrected when it closes, so a file left behind by a crash still opens, with whatever had been written by then\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.br
+\fIpath\fP Where to write\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE, SCHULTZ_ERR_EXHAUSTED when it is already saving somewhere, or SCHULTZ_ERR_UNREADABLE when the file could not be opened\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_stop_saving (\fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Finishes the file and stops writing to it\&. The recorder carries on capturing; only the writing stops\&. Doing this to a recorder that is not saving is allowed and does nothing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_is_saving (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Reports whether a recorder is writing to a file\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero while it is saving\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_audio_recorder_saved (const \fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Returns how many bytes of samples have gone into the file\&. Not the file's size, which is this plus a header of forty four bytes\&. What it is for is showing how long a recording has run, which is this divided by the rate and the size of a frame\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. NULL yields zero\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Bytes written\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_clear (\fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Throws away what the microphone has not yet been read from\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_audio_recorder_destroy (\fBschultz_audio\fP * audio, \fBschultz_handle\fP recorder)"
+
+.PP
+Closes a recorder\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIaudio\fP The system\&. Must not be NULL\&. 
+.br
+\fIrecorder\fP A recorder from schultz_audio_recorder_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

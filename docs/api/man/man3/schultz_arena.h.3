@@ -1,0 +1,200 @@
+.TH "schultz_arena.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_arena.h \- Bump allocator for per frame scratch memory\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stddef\&.h>\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_arena_block\fP"
+.br
+.RI "One contiguous run of arena memory\&. "
+.ti -1c
+.RI "struct \fBschultz_arena\fP"
+.br
+.RI "A chain of blocks that allocates by bumping a cursor\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_arena_block\fP \fBschultz_arena_block\fP"
+.br
+.RI "Forward declaration so a block can chain to the next one\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_arena_init\fP (\fBschultz_arena\fP *arena, size_t block_size)"
+.br
+.RI "Prepares an arena for use\&. "
+.ti -1c
+.RI "void \fBschultz_arena_free\fP (\fBschultz_arena\fP *arena)"
+.br
+.RI "Releases every block back to the system\&. "
+.ti -1c
+.RI "void * \fBschultz_arena_alloc\fP (\fBschultz_arena\fP *arena, size_t size, size_t alignment)"
+.br
+.RI "Allocates aligned, uninitialized memory from the arena\&. "
+.ti -1c
+.RI "void \fBschultz_arena_reset\fP (\fBschultz_arena\fP *arena)"
+.br
+.RI "Makes every prior allocation available again\&. "
+.ti -1c
+.RI "size_t \fBschultz_arena_used\fP (const \fBschultz_arena\fP *arena)"
+.br
+.RI "Reports bytes handed out since the last reset\&. "
+.ti -1c
+.RI "size_t \fBschultz_arena_capacity\fP (const \fBschultz_arena\fP *arena)"
+.br
+.RI "Reports bytes currently held from the system\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_arena_block_count\fP (const \fBschultz_arena\fP *arena)"
+.br
+.RI "Counts blocks held\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Bump allocator for per frame scratch memory\&. 
+
+Internal header\&. The layout and paint passes must not call malloc, both because allocation in the middle of a frame is a latency hazard and because on the C host it can trigger a collection at a bad moment\&. They allocate from an arena instead\&.
+.PP
+An arena hands out memory by advancing a pointer, and reclaims all of it at once\&. Reset keeps the blocks it has already obtained, so a steady state frame loop stops calling malloc entirely after the first few frames\&.
+.PP
+Memory returned by the arena is invalidated by schultz_arena_reset\&. Nothing that outlives a frame belongs here\&.
+.PP
+\fBNot part of the host facing interface\&.\fP How the toolkit allocates per frame scratch\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_arena\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_arena_block\fP \fBschultz_arena_block\fP"
+
+.PP
+Forward declaration so a block can chain to the next one\&. 
+.PP
+Definition at line \fB54\fP of file \fBschultz_arena\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_arena_init (\fBschultz_arena\fP * arena, size_t block_size)"
+
+.PP
+Prepares an arena for use\&. No memory is obtained from the system until the first allocation\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIarena\fP The arena to initialize\&. Must not be NULL\&. Its previous contents are overwritten, so call schultz_arena_free first if it was in use\&. 
+.br
+\fIblock_size\fP Bytes to request per block\&. Pass 0 to accept the default\&. A single allocation larger than this still succeeds; the arena takes an oversized block for it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK on success, or SCHULTZ_ERR_INVALID_ARGUMENT when arena is NULL\&. 
+.RE
+.PP
+
+.SS "void schultz_arena_free (\fBschultz_arena\fP * arena)"
+
+.PP
+Releases every block back to the system\&. Every pointer the arena has returned becomes invalid\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIarena\fP The arena to release\&. NULL and an already freed arena are both accepted and do nothing\&. 
+.RE
+.PP
+
+.SS "void * schultz_arena_alloc (\fBschultz_arena\fP * arena, size_t size, size_t alignment)"
+
+.PP
+Allocates aligned, uninitialized memory from the arena\&. The returned memory stays valid until schultz_arena_reset or schultz_arena_free is called on this arena\&. It must never be passed to free()\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIarena\fP The arena to allocate from\&. NULL yields NULL\&. 
+.br
+\fIsize\fP Bytes to allocate\&. Must be greater than zero\&. 
+.br
+\fIalignment\fP Required address alignment in bytes\&. Must be a power of two\&. Pass 0 to accept the platform's maximum fundamental alignment, which is correct for any ordinary object\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to at least size bytes aligned as requested, or NULL when arena is NULL, size is zero, alignment is not a power of two, or the underlying allocation failed\&. 
+.RE
+.PP
+
+.SS "void schultz_arena_reset (\fBschultz_arena\fP * arena)"
+
+.PP
+Makes every prior allocation available again\&. Blocks are kept rather than returned to the system, which is what lets a frame loop settle and stop calling malloc\&. Every pointer the arena has returned becomes invalid\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIarena\fP The arena to reset\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "size_t schultz_arena_used (const \fBschultz_arena\fP * arena)"
+
+.PP
+Reports bytes handed out since the last reset\&. Includes bytes lost to alignment padding, so it may exceed the sum of the sizes requested\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIarena\fP The arena to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Bytes currently handed out across all blocks\&. 
+.RE
+.PP
+
+.SS "size_t schultz_arena_capacity (const \fBschultz_arena\fP * arena)"
+
+.PP
+Reports bytes currently held from the system\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIarena\fP The arena to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The sum of every block's capacity, whether in use or not\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_arena_block_count (const \fBschultz_arena\fP * arena)"
+
+.PP
+Counts blocks held\&. Useful for asserting that a frame loop has settled: once this stops growing, the arena has stopped calling malloc\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIarena\fP The arena to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of blocks in the chain\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

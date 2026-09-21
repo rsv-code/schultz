@@ -1,0 +1,49 @@
+.TH "schultz_patch" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_patch \- A sparse set of property values\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_style\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_patch_entry\fP * \fBentries\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcapacity\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A sparse set of property values\&. 
+
+Only the properties actually set appear\&. A property that is absent does not mean transparent or zero: it means whatever layer is beneath decides\&. 
+.PP
+Definition at line \fB298\fP of file \fBschultz_style\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_patch_entry\fP* schultz_patch::entries"
+Settings, in the order they were set\&. 
+.PP
+Definition at line \fB299\fP of file \fBschultz_style\&.h\fP\&.
+.SS "uint32_t schultz_patch::count"
+How many are set\&. 
+.PP
+Definition at line \fB300\fP of file \fBschultz_style\&.h\fP\&.
+.SS "uint32_t schultz_patch::capacity"
+Slots allocated\&. 
+.PP
+Definition at line \fB301\fP of file \fBschultz_style\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

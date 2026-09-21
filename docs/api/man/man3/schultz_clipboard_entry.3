@@ -1,0 +1,47 @@
+.TH "schultz_clipboard_entry" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_clipboard_entry \- One format the clipboard is being given, and the bytes for it\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_widget\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBformat\fP"
+.br
+.ti -1c
+.RI "const void * \fBbytes\fP"
+.br
+.ti -1c
+.RI "uint64_t \fBlength\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One format the clipboard is being given, and the bytes for it\&. 
+.PP
+Definition at line \fB872\fP of file \fBschultz_widget\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const char* schultz_clipboard_entry::format"
+The media type, such as 'image/png'\&. 
+.PP
+Definition at line \fB873\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "const void* schultz_clipboard_entry::bytes"
+The bytes\&. Copied, so a local is fine\&. 
+.PP
+Definition at line \fB874\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint64_t schultz_clipboard_entry::length"
+How many\&. Must not be zero\&. 
+.PP
+Definition at line \fB875\fP of file \fBschultz_widget\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

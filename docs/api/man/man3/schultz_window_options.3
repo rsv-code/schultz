@@ -1,0 +1,163 @@
+.TH "schultz_window_options" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_window_options \- How a window should open\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_window\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBtitle\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBwidth\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBheight\fP"
+.br
+.ti -1c
+.RI "int32_t \fBvsync\fP"
+.br
+.ti -1c
+.RI "\fBschultz_color\fP \fBdebug_tint\fP"
+.br
+.ti -1c
+.RI "int32_t \fBmaximized\fP"
+.br
+.ti -1c
+.RI "const char * \fBvideo_driver\fP"
+.br
+.ti -1c
+.RI "int32_t \fBresizable\fP"
+.br
+.ti -1c
+.RI "int32_t \fBallow_rotate\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBorientation\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBturn\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBthreads\fP"
+.br
+.ti -1c
+.RI "int32_t \fBaccessible\fP"
+.br
+.ti -1c
+.RI "const char * \fBapp_name\fP"
+.br
+.ti -1c
+.RI "int32_t \fBscale_to_screen\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+How a window should open\&. 
+
+Zero every field first, then set the ones that matter\&. A zeroed struct asks for an 800x600 window named 'Schultz' with vertical sync on and no debug tint, which is a working choice rather than a broken one\&. 
+.PP
+Definition at line \fB110\fP of file \fBschultz_window\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const char* schultz_window_options::title"
+Window title\&. NULL means 'Schultz'\&. 
+.PP
+Definition at line \fB111\fP of file \fBschultz_window\&.h\fP\&.
+.SS "uint32_t schultz_window_options::width"
+Window width in pixels\&. 0 means 800\&. 
+.PP
+Definition at line \fB112\fP of file \fBschultz_window\&.h\fP\&.
+.SS "uint32_t schultz_window_options::height"
+Window height in pixels\&. 0 means 600\&. 
+.PP
+Definition at line \fB113\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_window_options::vsync"
+Nonzero paces the loop to the display, which is what an application wants\&. Zero presents as fast as the machine allows, which is what measuring wants\&. A zeroed struct means zero, so schultz_window_options_init exists to turn it back on\&. 
+.PP
+Definition at line \fB120\fP of file \fBschultz_window\&.h\fP\&.
+.SS "\fBschultz_color\fP schultz_window_options::debug_tint"
+Tints the region being repainted each frame, so the dirty rectangles can be seen\&. An alpha of zero, which is what a zeroed struct holds, turns it off\&. 
+.PP
+Definition at line \fB126\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_window_options::maximized"
+Nonzero opens the window maximized, filling the desktop's work area\&. The width and height above become the size the window returns to when it is restored\&. Ask schultz_window_width and schultz_window_height for the size it actually opened at\&.
+.PP
+Maximizing needs a window a desktop is allowed to resize, so this turns resizable on whatever it was set to\&. 
+.PP
+Definition at line \fB136\fP of file \fBschultz_window\&.h\fP\&.
+.SS "const char* schultz_window_options::video_driver"
+Which SDL video driver to ask for, such as 'offscreen' for a window nobody sees or 'kmsdrm' for a board with no desktop\&. NULL, which is what a zeroed struct holds, lets SDL choose, which is right on every machine that has a desktop running\&.
+.PP
+Read once, when the first window opens, because that is when SDL settles the choice\&. Setting it on a later window does nothing\&.
+.PP
+What the environment says still wins: SDL_VIDEO_DRIVER set by whoever is running the program overrides this\&. That is the right way round\&. A program says what it would like; a person running it on hardware nobody anticipated gets the last word\&. 
+.PP
+Definition at line \fB151\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_window_options::resizable"
+Nonzero lets the user drag the window's edges\&. On by default, because a window a desktop cannot resize is the unusual one\&.
+.PP
+Zero fixes the window at the size it opened at\&. That is what a kiosk or a fixed layout wants, and it is what a phone gets either way, since the window is the screen there\&. 
+.PP
+Definition at line \fB160\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_window_options::allow_rotate"
+Nonzero lets the screen turn with the device\&. On by default\&.
+.PP
+Only phones and tablets turn, so this does nothing on a desktop\&. It is a separate switch from \fCresizable\fP because the two are separate questions that one platform flag happens to answer: a kiosk wants a window nobody can drag the edges of and may still want it to turn, and a window that cannot turn is not thereby fixed in size\&.
+.PP
+The application still has the last word\&. An Android activity that declares \fCandroid:screenOrientation\fP, or an Info\&.plist naming one orientation, is not overruled from here: this can only narrow what those already allow\&. 
+.PP
+Definition at line \fB175\fP of file \fBschultz_window\&.h\fP\&.
+.SS "uint32_t schultz_window_options::orientation"
+Which way up the screen may be used: SCHULTZ_SCREEN_ANY, SCHULTZ_SCREEN_PORTRAIT or SCHULTZ_SCREEN_LANDSCAPE\&. Any by default\&.
+.PP
+Naming one of the two holds the screen that way whichever way the device is turned, which is what a kiosk display wants\&. With \fCallow_rotate\fP still on it turns only between the two ways up that match: a portrait screen turns end over end and never onto its side\&.
+.PP
+Phones and tablets only, for the same reason as above\&. A panel that is physically mounted the other way round is a different problem and this does not solve it; see docs/building\&.md\&. 
+.PP
+Definition at line \fB189\fP of file \fBschultz_window\&.h\fP\&.
+.SS "uint32_t schultz_window_options::turn"
+How far to turn the picture on its way to the panel: SCHULTZ_TURN_AUTO, _NONE, _90, _180 or _270\&. Auto by default\&.
+.PP
+This is the low level of the same idea as \fCorientation\fP, and it is what a fixed panel needs\&. Auto asks \fCorientation\fP instead: a portrait interface on a landscape panel turns a quarter, and anything already the right shape does not turn\&.
+.PP
+Naming a turn is the only way to say which quarter, and the only way to say upside down\&. A board whose display is fitted head down needs SCHULTZ_TURN_180, and no description of the shape wanted can imply it\&.
+.PP
+Ignored where the platform turns the screen itself, which is phones and tablets: there the device does the turning and this would turn it twice\&. 
+.PP
+Definition at line \fB207\fP of file \fBschultz_window\&.h\fP\&.
+.SS "uint32_t schultz_window_options::threads"
+How many worker threads the rasterizer may use\&. Zero rasterizes on the calling thread, which is reproducible; a small number is faster on a large window\&. 
+.PP
+Definition at line \fB213\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_window_options::accessible"
+Nonzero describes the window to whatever assistive technology is running, so a screen reader can read it\&. On by default, because a toolkit that has to be asked for accessibility is one that ships without it\&.
+.PP
+Starting it costs nothing when nothing is listening, and a reader may connect at any time afterwards\&. 
+.PP
+Definition at line \fB223\fP of file \fBschultz_window\&.h\fP\&.
+.SS "const char* schultz_window_options::app_name"
+The application's name, as a user would recognize it, for the accessibility layer\&. NULL uses the window title\&. 
+.PP
+Definition at line \fB228\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_window_options::scale_to_screen"
+Nonzero draws everything larger on a screen that packs more pixels into the same space\&. On by default\&.
+.PP
+A size is a number of pixels either way\&. What this decides is which pixels\&. With it on, one unit is a pixel on an ordinary monitor, and a phone that fits three of its own into that space is given three: a two unit border is two pixels on a desktop and six on the phone, and looks the same weight on both\&. Everything moves together, so a hand written size and a size out of the theme always agree\&.
+.PP
+With it off, one unit is one pixel of the screen in front of you, and a two unit border is two pixels of it\&. That is the setting for work that has to land on exact pixels, and it means a host does its own arithmetic: the built in theme is written for an ordinary monitor, so a phone gets a control forty four of its own pixels tall, which is about two millimetres\&. Ask schultz_window_pixel_scale and multiply, or build a theme with the numbers you want\&.
+.PP
+A screen with nothing to scale is unaffected either way\&. 
+.PP
+Definition at line \fB250\fP of file \fBschultz_window\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

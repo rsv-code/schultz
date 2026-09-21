@@ -1,0 +1,91 @@
+.TH "schultz_layout_params" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_layout_params \- Per child layout properties, interpreted by the parent pane\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_layout\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBgrow\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBalign\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBrow\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcolumn\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBrow_span\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcolumn_span\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBslot\fP"
+.br
+.ti -1c
+.RI "float \fBx\fP"
+.br
+.ti -1c
+.RI "float \fBy\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Per child layout properties, interpreted by the parent pane\&. 
+
+These do not live as fields on every node\&. HBox wants a grow flag, GridPane wants a row and column, an absolute Pane wants coordinates: putting all of them on the node would mean a struct full of values that are ignored, and users setting a property that silently does nothing\&. Instead each node carries one of these, and a parent reads only the member matching its own kind\&. A child under a pane that does not use its member gets that pane's documented default\&. 
+.PP
+Definition at line \fB141\fP of file \fBschultz_layout\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_layout_params::grow"
+Box panes: one of SCHULTZ_GROW_*\&. 
+.PP
+Definition at line \fB142\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "uint32_t schultz_layout_params::align"
+Box and stack panes: one of SCHULTZ_ALIGN_*\&. 
+.PP
+Definition at line \fB143\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "uint32_t schultz_layout_params::row"
+GridPane: zero based row\&. 
+.PP
+Definition at line \fB145\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "uint32_t schultz_layout_params::column"
+GridPane: zero based column\&. 
+.PP
+Definition at line \fB146\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "uint32_t schultz_layout_params::row_span"
+GridPane: rows covered, at least one\&. 
+.PP
+Definition at line \fB147\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "uint32_t schultz_layout_params::column_span"
+GridPane: columns covered, at least one\&. 
+.PP
+Definition at line \fB148\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "uint32_t schultz_layout_params::slot"
+BorderPane: one of SCHULTZ_SLOT_*\&. 
+.PP
+Definition at line \fB150\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "float schultz_layout_params::x"
+Absolute Pane: x in the parent's space\&. 
+.PP
+Definition at line \fB152\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "float schultz_layout_params::y"
+Absolute Pane: y in the parent's space\&. 
+.PP
+Definition at line \fB153\fP of file \fBschultz_layout\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

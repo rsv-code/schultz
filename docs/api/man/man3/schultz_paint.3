@@ -1,0 +1,57 @@
+.TH "schultz_paint" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_paint \- A fill or a stroke: a colour, or a gradient named by handle\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_geom\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBkind\fP"
+.br
+.ti -1c
+.RI "union {"
+.br
+.ti -1c
+.RI "   \fBschultz_color\fP \fBcolor\fP"
+.br
+.ti -1c
+.RI "   \fBschultz_handle\fP \fBgradient\fP"
+.br
+.ti -1c
+.RI "} \fBas\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A fill or a stroke: a colour, or a gradient named by handle\&. 
+
+A gradient is more data than fits in a style value and is usually shared, so it is registered once and referred to\&. Its geometry is expressed in the 0 to 1 range of whatever shape it is painting, so one gradient serves a button and a window alike\&. 
+.PP
+Definition at line \fB130\fP of file \fBschultz_geom\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_paint::kind"
+SCHULTZ_PAINT_SOLID or SCHULTZ_PAINT_GRADIENT\&. 
+.PP
+Definition at line \fB131\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "\fBschultz_color\fP schultz_paint::color"
+Valid when kind is SOLID\&. 
+.PP
+Definition at line \fB133\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_paint::gradient"
+Valid when kind is GRADIENT\&. 
+.PP
+Definition at line \fB134\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "union  { \&.\&.\&. }  schultz_paint::as"
+Read \fCkind\fP first, then the matching member\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

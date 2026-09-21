@@ -1,0 +1,99 @@
+.TH "schultz_selectable_vtable" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_selectable_vtable \- What a widget must provide to take part in a selection\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_widget\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t(* \fBlength\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.ti -1c
+.RI "uint32_t(* \fBoffset_at\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_point\fP local)"
+.br
+.ti -1c
+.RI "void(* \fBset_range\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t low, uint32_t high)"
+.br
+.ti -1c
+.RI "void(* \fBrange\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t *out_low, uint32_t *out_high)"
+.br
+.ti -1c
+.RI "const char *(* \fBtext\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.ti -1c
+.RI "int32_t(* \fBis_picture\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.ti -1c
+.RI "const \fBschultz_span\fP *(* \fBspans\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t *out_count)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+What a widget must provide to take part in a selection\&. 
+
+A selection area covers a subtree and a drag across it selects whatever is underneath\&. The area decides which nodes are inside the range and how much of each; the node itself still owns its own span, paints it, and hands back its own text\&. So a widget that already knew how to be selected on its own, as a label does, needs very little to join in\&.
+.PP
+A widget with no selectable vtable takes no part\&. That is the right default for a control: a button's caption is a label on a machine part rather than something written to be read, and selecting it when a drag passes over looks broken\&. 
+.PP
+Definition at line \fB128\fP of file \fBschultz_widget\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t(* schultz_selectable_vtable::length) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+How many bytes of selectable text this node holds\&.
+.PP
+Zero means it is taking no part at the moment, which is how a label that has been told it is not selectable declines without the area needing to know what a label is\&. 
+.PP
+Definition at line \fB136\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint32_t(* schultz_selectable_vtable::offset_at) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_point\fP local)"
+Which byte offset a point lands on, in the node's own coordinates\&.
+.PP
+Used when a drag arrives over this node\&. An offset past the end is the end, and a point above the first line is the beginning, so a drag that leaves the node still gives a sensible answer\&. 
+.PP
+Definition at line \fB145\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "void(* schultz_selectable_vtable::set_range) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t low, uint32_t high)"
+Marks the bytes from \fClow\fP up to but not including \fChigh\fP as selected\&.
+.PP
+Equal values mean nothing here is selected, which is what every node outside the range is told\&. Called whenever the range moves, so it is expected to be cheap and to repaint only when something changed\&. 
+.PP
+Definition at line \fB155\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "void(* schultz_selectable_vtable::range) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t *out_low, uint32_t *out_high)"
+What is selected here now, as the pair set_range was last given\&.
+.PP
+The mirror of set_range, and needed because a copy has to ask each node what its share turned out to be rather than working it out a second time and hoping the two agree\&.
+.PP
+Equal values mean nothing is selected here\&. 
+.PP
+Definition at line \fB167\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "const char *(* schultz_selectable_vtable::text) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+This node's whole text, for the caller to take its share of\&.
+.PP
+NUL terminated, owned by the node, and valid until the node changes\&. NULL from a picture, which has no text to give\&. 
+.PP
+Definition at line \fB176\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "int32_t(* schultz_selectable_vtable::is_picture) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+Nonzero when this node is a picture rather than text\&.
+.PP
+A picture is in the range or out of it and has no inside, so it counts as one place: a length of one, and an offset of zero or one\&. It adds nothing to plain text, and is only worth anything to a format that can carry a picture, which is why it costs nothing until one asks\&.
+.PP
+Nothing is needed to hand the picture over\&. Whoever wants it renders this node, which works for a picture that was loaded and for one that is drawn on the spot\&. 
+.PP
+Definition at line \fB190\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "const \fBschultz_span\fP *(* schultz_selectable_vtable::spans) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint32_t *out_count)"
+The spans covering this node's text, or NULL when it has none\&.
+.PP
+What lets a copied selection carry its bold and its colours rather than arriving as flat words\&. Offsets are into the same text \fCtext\fP returns, so a reader can line the two up without asking the widget anything else\&.
+.PP
+Optional\&. A widget that leaves it NULL is copied as plain text in the paragraph's own style, which is what every widget did before spans\&. 
+.PP
+Definition at line \fB202\fP of file \fBschultz_widget\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

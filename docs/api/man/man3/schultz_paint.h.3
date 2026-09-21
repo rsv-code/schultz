@@ -1,0 +1,928 @@
+.TH "schultz_paint.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_paint.h \- Draw command list and the painter interface\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_arena\&.h'\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_glyph\fP"
+.br
+.RI "One positioned glyph\&. "
+.ti -1c
+.RI "struct \fBschultz_draw_cmd\fP"
+.br
+.RI "One drawing operation\&. "
+.ti -1c
+.RI "struct \fBschultz_draw_chunk\fP"
+.br
+.RI "A fixed run of commands\&. Lists chain these rather than realloc\&. "
+.ti -1c
+.RI "struct \fBschultz_draw_list\fP"
+.br
+.RI "An ordered list of draw commands backed by an arena\&. "
+.ti -1c
+.RI "struct \fBschultz_painter_vtable\fP"
+.br
+.RI "The painter interface a rendering backend implements\&. "
+.ti -1c
+.RI "struct \fBschultz_painter\fP"
+.br
+.RI "A backend: its function table plus its own state\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_draw_chunk\fP \fBschultz_draw_chunk\fP"
+.br
+.RI "Forward declaration so a chunk can chain to the next one\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_DRAW_FILL_RECT\fP = 1, \fBSCHULTZ_DRAW_STROKE_RECT\fP, \fBSCHULTZ_DRAW_FILL_ROUND_RECT\fP, \fBSCHULTZ_DRAW_STROKE_ROUND_RECT\fP, \fBSCHULTZ_DRAW_FILL_ELLIPSE\fP, \fBSCHULTZ_DRAW_STROKE_ELLIPSE\fP, \fBSCHULTZ_DRAW_LINE\fP, \fBSCHULTZ_DRAW_FILL_POLYGON\fP, \fBSCHULTZ_DRAW_STROKE_POLYGON\fP, \fBSCHULTZ_DRAW_FILL_PATH\fP, \fBSCHULTZ_DRAW_STROKE_PATH\fP, \fBSCHULTZ_DRAW_IMAGE\fP, \fBSCHULTZ_DRAW_GLYPH_RUN\fP, \fBSCHULTZ_DRAW_GLYPH_OUTLINE\fP, \fBSCHULTZ_DRAW_CLIP_BEGIN\fP, \fBSCHULTZ_DRAW_CLIP_END\fP, \fBSCHULTZ_DRAW_OFFSET_BEGIN\fP, \fBSCHULTZ_DRAW_OFFSET_END\fP, \fBSCHULTZ_DRAW_ROTATION_BEGIN\fP, \fBSCHULTZ_DRAW_ROTATION_END\fP, \fBSCHULTZ_DRAW_DEVICE_PIXELS_BEGIN\fP, \fBSCHULTZ_DRAW_DEVICE_PIXELS_END\fP, \fBSCHULTZ_DRAW_GROUP_BEGIN\fP, \fBSCHULTZ_DRAW_GROUP_END\fP }"
+.br
+.RI "Discriminator for \fBschultz_draw_cmd\fP\&. Zero is never a valid kind\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_draw_list_init\fP (\fBschultz_draw_list\fP *list, \fBschultz_arena\fP *arena, uint32_t chunk_capacity)"
+.br
+.RI "Prepares a draw list that appends into an arena\&. "
+.ti -1c
+.RI "void \fBschultz_draw_list_reset\fP (\fBschultz_draw_list\fP *list)"
+.br
+.RI "Drops every command from the list\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_draw_list_count\fP (const \fBschultz_draw_list\fP *list)"
+.br
+.RI "Counts commands in the list\&. "
+.ti -1c
+.RI "const \fBschultz_draw_cmd\fP * \fBschultz_draw_list_at\fP (const \fBschultz_draw_list\fP *list, uint32_t index)"
+.br
+.RI "Returns the command at an index\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_list_overflowed\fP (const \fBschultz_draw_list\fP *list)"
+.br
+.RI "Reports whether any append has failed\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_fill_rect\fP (\fBschultz_draw_list\fP *list, \fBschultz_rect\fP rect, \fBschultz_paint\fP paint)"
+.br
+.RI "Appends a filled rectangle\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_stroke_rect\fP (\fBschultz_draw_list\fP *list, \fBschultz_rect\fP rect, \fBschultz_stroke\fP stroke)"
+.br
+.RI "Appends a rectangle outline\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_fill_round_rect\fP (\fBschultz_draw_list\fP *list, \fBschultz_rect\fP rect, \fBschultz_paint\fP paint, float radius)"
+.br
+.RI "Appends a filled rounded rectangle\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_stroke_round_rect\fP (\fBschultz_draw_list\fP *list, \fBschultz_rect\fP rect, \fBschultz_stroke\fP stroke, float radius)"
+.br
+.RI "Appends a rounded rectangle outline\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_fill_ellipse\fP (\fBschultz_draw_list\fP *list, \fBschultz_rect\fP rect, \fBschultz_paint\fP paint)"
+.br
+.RI "Appends a filled ellipse inscribed in a rectangle\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_stroke_ellipse\fP (\fBschultz_draw_list\fP *list, \fBschultz_rect\fP rect, \fBschultz_stroke\fP stroke)"
+.br
+.RI "Appends an ellipse outline inscribed in a rectangle\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_line\fP (\fBschultz_draw_list\fP *list, \fBschultz_point\fP from, \fBschultz_point\fP to, \fBschultz_stroke\fP stroke)"
+.br
+.RI "Appends a straight line segment\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_fill_polygon\fP (\fBschultz_draw_list\fP *list, const \fBschultz_point\fP *points, uint32_t count, \fBschultz_paint\fP paint, uint32_t rule)"
+.br
+.RI "Appends a filled polygon\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_stroke_polygon\fP (\fBschultz_draw_list\fP *list, const \fBschultz_point\fP *points, uint32_t count, \fBschultz_stroke\fP stroke, int32_t closed)"
+.br
+.RI "Appends a polygon outline, or a line through a series of points\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_fill_path\fP (\fBschultz_draw_list\fP *list, const uint8_t *steps, uint32_t step_count, const \fBschultz_point\fP *points, uint32_t point_count, \fBschultz_paint\fP paint, uint32_t rule)"
+.br
+.RI "Appends a filled path, which may curve and may have holes\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_stroke_path\fP (\fBschultz_draw_list\fP *list, const uint8_t *steps, uint32_t step_count, const \fBschultz_point\fP *points, uint32_t point_count, \fBschultz_stroke\fP stroke)"
+.br
+.RI "Appends a stroked path, which may curve and may have holes\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_image\fP (\fBschultz_draw_list\fP *list, \fBschultz_handle\fP image, \fBschultz_rect\fP source, \fBschultz_rect\fP dest, uint8_t opacity)"
+.br
+.RI "Appends an image blit\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_glyph_run\fP (\fBschultz_draw_list\fP *list, \fBschultz_handle\fP font, const \fBschultz_glyph\fP *glyphs, uint32_t count, \fBschultz_paint\fP paint)"
+.br
+.RI "Appends a run of positioned glyphs\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_clip_begin\fP (\fBschultz_draw_list\fP *list, \fBschultz_rect\fP rect)"
+.br
+.RI "Starts a clip, narrowing the drawable region\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_clip_end\fP (\fBschultz_draw_list\fP *list)"
+.br
+.RI "Ends a clip, restoring the previous clip region\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_offset_begin\fP (\fBschultz_draw_list\fP *list, float dx, float dy)"
+.br
+.RI "Appends a translation that offsets subsequent drawing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_offset_end\fP (\fBschultz_draw_list\fP *list)"
+.br
+.RI "Ends an offset, restoring the previous one\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_group_begin\fP (\fBschultz_draw_list\fP *list, float opacity, \fBschultz_shadow\fP shadow)"
+.br
+.RI "Starts a group\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_group_end\fP (\fBschultz_draw_list\fP *list)"
+.br
+.RI "Finishes the group started by schultz_draw_group_begin\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_device_pixels_begin\fP (\fBschultz_draw_list\fP *list)"
+.br
+.RI "Draws what follows in screen pixels rather than toolkit units\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_glyph_outline\fP (\fBschultz_draw_list\fP *list, \fBschultz_handle\fP font, const \fBschultz_glyph\fP *glyphs, uint32_t count, \fBschultz_stroke\fP stroke)"
+.br
+.RI "Appends a run of glyphs drawn as outlines and stroked\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_rotation_begin\fP (\fBschultz_draw_list\fP *list, float degrees, float cx, float cy)"
+.br
+.RI "Appends a rotation, turning everything drawn after it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_rotation_end\fP (\fBschultz_draw_list\fP *list)"
+.br
+.RI "Ends a rotation, restoring the previous one\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_device_pixels_end\fP (\fBschultz_draw_list\fP *list)"
+.br
+.RI "Restores the unit saved by the matching device_pixels_begin\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_list_replay_one\fP (\fBschultz_draw_list\fP *list, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.RI "Appends a command that already exists\&. "
+.ti -1c
+.RI "int32_t \fBschultz_draw_list_play\fP (const \fBschultz_draw_list\fP *list, const \fBschultz_painter\fP *painter, \fBschultz_rect\fP bounds)"
+.br
+.RI "Plays a command list into a backend\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Draw command list and the painter interface\&. 
+
+Internal header\&.
+.PP
+Widgets never talk to a rasterizer\&. A paint pass appends commands to a draw list, and a backend consumes that list through the painter interface\&. The indirection is what lets the same widget code run against ThorVG, a test fake, or anything added later\&.
+.PP
+Command storage comes from an arena, in chunks, so a frame's worth of commands costs no malloc once the arena has settled and nothing has to be reallocated while the list is being built\&.
+.PP
+\fBNot part of the host facing interface\&.\fP The draw command list a widget written in C emits into\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_paint\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_draw_chunk\fP \fBschultz_draw_chunk\fP"
+
+.PP
+Forward declaration so a chunk can chain to the next one\&. 
+.PP
+Definition at line \fB187\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Discriminator for \fBschultz_draw_cmd\fP\&. Zero is never a valid kind\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_DRAW_FILL_RECT \fP\fP
+Filled rectangle\&. 
+.TP
+\fB\fISCHULTZ_DRAW_STROKE_RECT \fP\fP
+Rectangle outline\&. 
+.TP
+\fB\fISCHULTZ_DRAW_FILL_ROUND_RECT \fP\fP
+Filled rounded rectangle\&. 
+.TP
+\fB\fISCHULTZ_DRAW_STROKE_ROUND_RECT \fP\fP
+Rounded rectangle outline\&. 
+.TP
+\fB\fISCHULTZ_DRAW_FILL_ELLIPSE \fP\fP
+Filled ellipse in a rectangle\&. 
+.TP
+\fB\fISCHULTZ_DRAW_STROKE_ELLIPSE \fP\fP
+Ellipse outline\&. 
+.TP
+\fB\fISCHULTZ_DRAW_LINE \fP\fP
+Straight line segment\&. 
+.TP
+\fB\fISCHULTZ_DRAW_FILL_POLYGON \fP\fP
+Filled polygon\&. 
+.TP
+\fB\fISCHULTZ_DRAW_STROKE_POLYGON \fP\fP
+Outlined polygon or polyline\&. 
+.TP
+\fB\fISCHULTZ_DRAW_FILL_PATH \fP\fP
+Filled path, curves and all\&. 
+.TP
+\fB\fISCHULTZ_DRAW_STROKE_PATH \fP\fP
+Outlined path, curves and all\&. 
+.TP
+\fB\fISCHULTZ_DRAW_IMAGE \fP\fP
+Image blit\&. 
+.TP
+\fB\fISCHULTZ_DRAW_GLYPH_RUN \fP\fP
+Run of positioned glyphs\&. 
+.TP
+\fB\fISCHULTZ_DRAW_GLYPH_OUTLINE \fP\fP
+Run of positioned glyphs, stroked\&. 
+.TP
+\fB\fISCHULTZ_DRAW_CLIP_BEGIN \fP\fP
+Narrow the clip region\&. 
+.TP
+\fB\fISCHULTZ_DRAW_CLIP_END \fP\fP
+Restore the previous clip region\&. 
+.TP
+\fB\fISCHULTZ_DRAW_OFFSET_BEGIN \fP\fP
+Offset subsequent drawing\&. 
+.TP
+\fB\fISCHULTZ_DRAW_OFFSET_END \fP\fP
+Restore the previous offset\&. 
+.TP
+\fB\fISCHULTZ_DRAW_ROTATION_BEGIN \fP\fP
+Turn what follows about a point\&. 
+.TP
+\fB\fISCHULTZ_DRAW_ROTATION_END \fP\fP
+Restore the previous rotation\&. 
+.TP
+\fB\fISCHULTZ_DRAW_DEVICE_PIXELS_BEGIN \fP\fP
+Draw in screen pixels from here\&. 
+.TP
+\fB\fISCHULTZ_DRAW_DEVICE_PIXELS_END \fP\fP
+Go back to the toolkit's units\&. 
+.TP
+\fB\fISCHULTZ_DRAW_GROUP_BEGIN \fP\fP
+Draw what follows as one picture\&. 
+.TP
+\fB\fISCHULTZ_DRAW_GROUP_END \fP\fP
+Finish it and blend it in\&. 
+.PP
+Definition at line \fB52\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_draw_list_init (\fBschultz_draw_list\fP * list, \fBschultz_arena\fP * arena, uint32_t chunk_capacity)"
+
+.PP
+Prepares a draw list that appends into an arena\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to initialize\&. Must not be NULL\&. 
+.br
+\fIarena\fP The arena chunks are taken from\&. Must not be NULL and must outlive the list\&. 
+.br
+\fIchunk_capacity\fP Commands per chunk\&. Pass 0 to accept the default\&. Affects only how often a chunk is taken from the arena, never the list's capacity, which is unbounded\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK on success, or SCHULTZ_ERR_INVALID_ARGUMENT when list or arena is NULL\&. 
+.RE
+.PP
+
+.SS "void schultz_draw_list_reset (\fBschultz_draw_list\fP * list)"
+
+.PP
+Drops every command from the list\&. Chunks already taken from the arena are kept and reused, so a list reset each frame settles and stops asking for memory\&. This does not reset the arena; the frame loop owns that\&. Pointers previously returned by schultz_draw_list_at become invalid\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to reset\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_draw_list_count (const \fBschultz_draw_list\fP * list)"
+
+.PP
+Counts commands in the list\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of commands appended since the last reset\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_draw_cmd\fP * schultz_draw_list_at (const \fBschultz_draw_list\fP * list, uint32_t index)"
+
+.PP
+Returns the command at an index\&. Walks the chunk chain, so this is meant for tests and tooling\&. A backend should use schultz_draw_list_play instead\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to read\&. NULL yields NULL\&. 
+.br
+\fIindex\fP Zero based position in append order\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to the command, valid until the list is reset or the arena is reset, or NULL when index is out of range\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_list_overflowed (const \fBschultz_draw_list\fP * list)"
+
+.PP
+Reports whether any append has failed\&. Lets a caller build a whole frame and check once at the end rather than testing the result of every append\&. Cleared by schultz_draw_list_reset\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when at least one append could not allocate\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_fill_rect (\fBschultz_draw_list\fP * list, \fBschultz_rect\fP rect, \fBschultz_paint\fP paint)"
+
+.PP
+Appends a filled rectangle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIrect\fP The rectangle to fill, in pixels\&. 
+.br
+\fIpaint\fP What to fill with: a colour or a gradient\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_stroke_rect (\fBschultz_draw_list\fP * list, \fBschultz_rect\fP rect, \fBschultz_stroke\fP stroke)"
+
+.PP
+Appends a rectangle outline\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIrect\fP The rectangle to outline, in pixels\&. 
+.br
+\fIstroke\fP What the outline is drawn with: its paint, width, dash pattern, cap and join\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_fill_round_rect (\fBschultz_draw_list\fP * list, \fBschultz_rect\fP rect, \fBschultz_paint\fP paint, float radius)"
+
+.PP
+Appends a filled rounded rectangle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIrect\fP The rectangle to fill, in pixels\&. 
+.br
+\fIpaint\fP What to fill with\&. 
+.br
+\fIradius\fP Corner radius in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_stroke_round_rect (\fBschultz_draw_list\fP * list, \fBschultz_rect\fP rect, \fBschultz_stroke\fP stroke, float radius)"
+
+.PP
+Appends a rounded rectangle outline\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIrect\fP The rectangle to outline, in pixels\&. 
+.br
+\fIstroke\fP What the outline is drawn with\&. 
+.br
+\fIradius\fP Corner radius in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_fill_ellipse (\fBschultz_draw_list\fP * list, \fBschultz_rect\fP rect, \fBschultz_paint\fP paint)"
+
+.PP
+Appends a filled ellipse inscribed in a rectangle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIrect\fP The rectangle the ellipse fills, in pixels\&. A square gives a circle\&. 
+.br
+\fIpaint\fP What to fill with\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_stroke_ellipse (\fBschultz_draw_list\fP * list, \fBschultz_rect\fP rect, \fBschultz_stroke\fP stroke)"
+
+.PP
+Appends an ellipse outline inscribed in a rectangle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIrect\fP The rectangle the ellipse fills, in pixels\&. 
+.br
+\fIstroke\fP What the outline is drawn with\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_line (\fBschultz_draw_list\fP * list, \fBschultz_point\fP from, \fBschultz_point\fP to, \fBschultz_stroke\fP stroke)"
+
+.PP
+Appends a straight line segment\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIfrom\fP Start point, in pixels\&. 
+.br
+\fIto\fP End point, in pixels\&. 
+.br
+\fIstroke\fP What the line is drawn with\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_fill_polygon (\fBschultz_draw_list\fP * list, const \fBschultz_point\fP * points, uint32_t count, \fBschultz_paint\fP paint, uint32_t rule)"
+
+.PP
+Appends a filled polygon\&. The points are copied into the arena, so the caller's array may be a stack local and need not outlive the call\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIpoints\fP The vertices, in order\&. Must not be NULL\&. The polygon is implicitly closed from the last point back to the first\&. 
+.br
+\fIcount\fP Number of vertices\&. Must be greater than zero\&. 
+.br
+\fIpaint\fP What to fill with\&. 
+.br
+\fIrule\fP SCHULTZ_FILL_NONZERO or SCHULTZ_FILL_EVEN_ODD\&. Only tells them apart when the outline crosses itself\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list or points is NULL, count is zero, or the rule is neither of the two, or SCHULTZ_ERR_OUT_OF_MEMORY when the copy or the chunk could not be allocated\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_stroke_polygon (\fBschultz_draw_list\fP * list, const \fBschultz_point\fP * points, uint32_t count, \fBschultz_stroke\fP stroke, int32_t closed)"
+
+.PP
+Appends a polygon outline, or a line through a series of points\&. The points are copied into the arena, so a stack local array is fine\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIpoints\fP The vertices, in order\&. Must not be NULL\&. 
+.br
+\fIcount\fP How many\&. Must be at least two\&. 
+.br
+\fIstroke\fP What the outline is drawn with\&. 
+.br
+\fIclosed\fP Nonzero joins the last point back to the first, making an outline; zero leaves it open, making a polyline\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_fill_path (\fBschultz_draw_list\fP * list, const uint8_t * steps, uint32_t step_count, const \fBschultz_point\fP * points, uint32_t point_count, \fBschultz_paint\fP paint, uint32_t rule)"
+
+.PP
+Appends a filled path, which may curve and may have holes\&. The counterpart to schultz_draw_fill_polygon for anything a straight sided outline cannot say\&. Both arrays are copied into the arena, so stack local arrays are fine\&.
+.PP
+A quadratic step is raised to a cubic here, so what the backend sees is always one of CLOSE, MOVE, LINE and CURVE\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIsteps\fP SCHULTZ_PATH_* values, in order\&. Must not be NULL, and must begin with SCHULTZ_PATH_MOVE\&. 
+.br
+\fIstep_count\fP How many steps\&. Must be greater than zero\&. 
+.br
+\fIpoints\fP The points the steps use\&. Must not be NULL\&. 
+.br
+\fIpoint_count\fP How many points\&. Must be exactly the number the steps together ask for, which schultz_path_step_points gives\&. 
+.br
+\fIpaint\fP What to fill with\&. 
+.br
+\fIrule\fP SCHULTZ_FILL_NONZERO or SCHULTZ_FILL_EVEN_ODD\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when an argument is NULL, a count is zero, a step is not one of the five, the first step is not a move, the rule is neither of the two, or the points do not add up, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_stroke_path (\fBschultz_draw_list\fP * list, const uint8_t * steps, uint32_t step_count, const \fBschultz_point\fP * points, uint32_t point_count, \fBschultz_stroke\fP stroke)"
+
+.PP
+Appends a stroked path, which may curve and may have holes\&. A subpath that was closed is stroked all the way round; one that was not stops at its last point, with the stroke's cap on each end\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIsteps\fP SCHULTZ_PATH_* values, in order\&. Must not be NULL, and must begin with SCHULTZ_PATH_MOVE\&. 
+.br
+\fIstep_count\fP How many steps\&. Must be greater than zero\&. 
+.br
+\fIpoints\fP The points the steps use\&. Must not be NULL\&. 
+.br
+\fIpoint_count\fP How many the steps together ask for\&. 
+.br
+\fIstroke\fP What the outline is drawn with\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT as above, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_image (\fBschultz_draw_list\fP * list, \fBschultz_handle\fP image, \fBschultz_rect\fP source, \fBschultz_rect\fP dest, uint8_t opacity)"
+
+.PP
+Appends an image blit\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIimage\fP Handle of the image to draw\&. Must not be SCHULTZ_HANDLE_NONE\&. Resolved by the backend, not here\&. 
+.br
+\fIsource\fP Region of the image to read, in image pixels\&. 
+.br
+\fIdest\fP Region to draw into, in pixels\&. Scaling is implied when the two differ in size\&. 
+.br
+\fIopacity\fP Blend opacity, 0 transparent to 255 opaque\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL or image is SCHULTZ_HANDLE_NONE, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_glyph_run (\fBschultz_draw_list\fP * list, \fBschultz_handle\fP font, const \fBschultz_glyph\fP * glyphs, uint32_t count, \fBschultz_paint\fP paint)"
+
+.PP
+Appends a run of positioned glyphs\&. The glyphs are copied into the arena, so the caller's array may be a stack local and need not outlive the call\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIfont\fP Handle of the font to draw with\&. Must not be SCHULTZ_HANDLE_NONE\&. Resolved by the backend, not here\&. 
+.br
+\fIglyphs\fP The positioned glyphs\&. Must not be NULL\&. These come from the shaping stage, already laid out\&. 
+.br
+\fIcount\fP Number of glyphs\&. Must be greater than zero\&. 
+.br
+\fIpaint\fP What to fill the letters with\&. A gradient is measured across the run's own bounds, so one gradient reads the same whatever the run says\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list or glyphs is NULL, count is zero, or font is SCHULTZ_HANDLE_NONE, or SCHULTZ_ERR_OUT_OF_MEMORY when the copy or the chunk could not be allocated\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_clip_begin (\fBschultz_draw_list\fP * list, \fBschultz_rect\fP rect)"
+
+.PP
+Starts a clip, narrowing the drawable region\&. Must be balanced by schultz_draw_clip_end\&. The backend intersects this with the clip already in effect\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIrect\fP The new clip region, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_clip_end (\fBschultz_draw_list\fP * list)"
+
+.PP
+Ends a clip, restoring the previous clip region\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_offset_begin (\fBschultz_draw_list\fP * list, float dx, float dy)"
+
+.PP
+Appends a translation that offsets subsequent drawing\&. Must be balanced by schultz_draw_offset_end\&. Offsets accumulate with any translation already in effect\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIdx\fP Horizontal offset in pixels\&. 
+.br
+\fIdy\fP Vertical offset in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_offset_end (\fBschultz_draw_list\fP * list)"
+
+.PP
+Ends an offset, restoring the previous one\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_group_begin (\fBschultz_draw_list\fP * list, float opacity, \fBschultz_shadow\fP shadow)"
+
+.PP
+Starts a group\&. Everything drawn until the matching schultz_draw_group_end is composed into one picture, and that picture is blended in as a whole\&.
+.PP
+This is what makes a subtree fade as one thing\&. Without it, fading a panel and its contents means fading each of them, and everywhere they overlap is darker than it should be, because the same pixel was blended twice\&.
+.PP
+A group also casts the shadow, for the same reason: the subtree makes one picture, and one picture casts one shadow\&. Without that, a card with a title and a button would cast three shadows that overlap\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to add to\&. Must not be NULL\&. 
+.br
+\fIopacity\fP 0 for invisible, 1 for solid\&. Values outside are clamped by whatever draws them\&. 
+.br
+\fIshadow\fP The shadow the group casts\&. schultz_shadow_none for none, which is also what a fully transparent colour means\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_group_end (\fBschultz_draw_list\fP * list)"
+
+.PP
+Finishes the group started by schultz_draw_group_begin\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to add to\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_device_pixels_begin (\fBschultz_draw_list\fP * list)"
+
+.PP
+Draws what follows in screen pixels rather than toolkit units\&. The toolkit usually draws everything larger on a screen that packs more pixels into the same space, so one unit covers several of them\&. Between this and its matching end, one unit is one pixel of the screen in front of the user, and a line one wide is one pixel wide\&.
+.PP
+Where the drawing sits is unaffected: the position built up by any enclosing transforms still means what it meant\&. Only the size of a unit inside changes\&.
+.PP
+On a screen with nothing to scale this does nothing, because a unit is already a pixel there\&.
+.PP
+Must be balanced by schultz_draw_device_pixels_end\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_glyph_outline (\fBschultz_draw_list\fP * list, \fBschultz_handle\fP font, const \fBschultz_glyph\fP * glyphs, uint32_t count, \fBschultz_stroke\fP stroke)"
+
+.PP
+Appends a run of glyphs drawn as outlines and stroked\&. The same glyphs schultz_draw_glyph_run takes, drawn the other way: from the font's outlines, with a stroke round each letter rather than a fill inside it\&. A glyph that is a picture rather than an outline is left out, because there is nothing to stroke\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIfont\fP Handle of the font to draw with\&. Must not be SCHULTZ_HANDLE_NONE\&. 
+.br
+\fIglyphs\fP The positioned glyphs\&. Must not be NULL\&. 
+.br
+\fIcount\fP Number of glyphs\&. Must be greater than zero\&. 
+.br
+\fIstroke\fP What the outlines are drawn with\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_rotation_begin (\fBschultz_draw_list\fP * list, float degrees, float cx, float cy)"
+
+.PP
+Appends a rotation, turning everything drawn after it\&. Must be balanced by schultz_draw_rotation_end\&. Rotations nest with each other and with offsets: an offset started inside a rotation moves along the turned axes, which is what makes the two compose the way a person expects\&.
+.PP
+The angle is in \fBdegrees\fP, clockwise, because y grows downward\&. The centre is a point in the coordinates in force here, so turning a drawing about its own middle is one call rather than an offset either side of it\&.
+.PP
+This turns what is drawn and nothing else\&. The node keeps its upright bounds, is laid out the same and is hit tested the same\&.
+.PP
+A clip started inside a rotation is the upright box around the turned rectangle rather than the turned rectangle itself, so it lets through a little more than it names\&. See schultz_draw_clip_begin\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIdegrees\fP How far to turn, clockwise\&. 
+.br
+\fIcx\fP The centre to turn about, along x\&. 
+.br
+\fIcy\fP The centre to turn about, along y\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_rotation_end (\fBschultz_draw_list\fP * list)"
+
+.PP
+Ends a rotation, restoring the previous one\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when list is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_device_pixels_end (\fBschultz_draw_list\fP * list)"
+
+.PP
+Restores the unit saved by the matching device_pixels_begin\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_list_replay_one (\fBschultz_draw_list\fP * list, const \fBschultz_draw_cmd\fP * cmd)"
+
+.PP
+Appends a command that already exists\&. Copies the command itself\&. Anything a command points at, such as a path's points or a run's glyphs, is not copied, so that memory has to outlive the list being appended to\&. This is what lets a retained list be replayed into a frame's list without shaping or copying anything again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIcmd\fP The command to copy in\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or SCHULTZ_ERR_OUT_OF_MEMORY when a chunk could not be taken\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_draw_list_play (const \fBschultz_draw_list\fP * list, const \fBschultz_painter\fP * painter, \fBschultz_rect\fP bounds)"
+
+.PP
+Plays a command list into a backend\&. Calls begin, then one handler per command in append order, then end\&. Stops at the first handler error and returns it, still calling end so the backend can unwind\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The commands to play\&. Must not be NULL\&. An empty list is valid and still brackets the frame with begin and end\&. 
+.br
+\fIpainter\fP The backend to play into\&. Must not be NULL, and its vtable must be non-NULL with every entry filled in\&. 
+.br
+\fIbounds\fP The frame bounds, passed through to begin\&. Typically the surface or dirty region being painted\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK when every handler succeeded, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL list or painter, a NULL vtable, an incomplete vtable, or an unrecognized command kind, or whatever error a handler returned\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

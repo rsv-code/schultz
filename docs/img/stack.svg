@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="430" viewBox="0 0 760 430"
+     font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="13">
+  <rect width="760" height="430" fill="#edf1f8"/>
+  <text x="24" y="30" font-size="15" font-weight="bold" fill="#25282d">How Schultz is put together</text>
+
+  <rect x="24" y="52" width="712" height="52" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="40" y="76" fill="#25282d" font-weight="bold">Your application</text>
+  <text x="40" y="94" fill="#64686f">C, or Java through Panama, or any language with a C FFI</text>
+
+  <rect x="24" y="118" width="712" height="46" rx="4" fill="#dee3ea" stroke="#2971ac"/>
+  <text x="40" y="140" fill="#2971ac" font-weight="bold">schultz_api.h</text>
+  <text x="150" y="140" fill="#25282d">the only header you include</text>
+  <text x="40" y="157" fill="#64686f">opaque handles, int32_t result codes, no callbacks you must implement</text>
+
+  <rect x="24" y="182" width="712" height="120" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="40" y="204" fill="#25282d" font-weight="bold">The toolkit: four subsystems over one tree</text>
+  <rect x="40" y="216" width="160" height="70" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="52" y="238" fill="#25282d" font-weight="bold">Tree</text>
+  <text x="52" y="256" fill="#64686f">nodes, state,</text>
+  <text x="52" y="272" fill="#64686f">what changed</text>
+  <rect x="212" y="216" width="160" height="70" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="224" y="238" fill="#25282d" font-weight="bold">Layout</text>
+  <text x="224" y="256" fill="#64686f">panes measure</text>
+  <text x="224" y="272" fill="#64686f">and arrange</text>
+  <rect x="384" y="216" width="160" height="70" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="396" y="238" fill="#25282d" font-weight="bold">Events</text>
+  <text x="396" y="256" fill="#64686f">hit testing,</text>
+  <text x="396" y="272" fill="#64686f">hover, focus</text>
+  <rect x="556" y="216" width="164" height="70" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="568" y="238" fill="#25282d" font-weight="bold">Style</text>
+  <text x="568" y="256" fill="#64686f">tokens resolved</text>
+  <text x="568" y="272" fill="#64686f">once per change</text>
+
+  <rect x="24" y="316" width="712" height="46" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="40" y="338" fill="#25282d" font-weight="bold">Text</text>
+  <text x="110" y="338" fill="#64686f">HarfBuzz shapes, FreeType rasterizes, libunibreak wraps, SheenBidi orders</text>
+  <text x="40" y="355" fill="#64686f">The toolkit measures its own text, so it never has to ask you how wide a string is.</text>
+
+  <rect x="24" y="376" width="348" height="40" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="40" y="401" fill="#25282d"><tspan font-weight="bold">ThorVG</tspan>  rasterizes into a pixel buffer</text>
+  <rect x="388" y="376" width="348" height="40" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="404" y="401" fill="#25282d"><tspan font-weight="bold">SDL3</tspan>  window, input, clipboard</text>
+</svg>

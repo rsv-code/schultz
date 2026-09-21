@@ -1,0 +1,410 @@
+.TH "schultz_text.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_text.h \- Shaping, measurement, and line breaking\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_arena\&.h'\fP
+.br
+\fC#include 'schultz_font\&.h'\fP
+.br
+\fC#include 'schultz_paint\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_text_run\fP"
+.br
+.RI "One shaped run: glyphs ready to draw, plus its extent\&. "
+.ti -1c
+.RI "struct \fBschultz_text_piece\fP"
+.br
+.RI "One stretch of a string set in one face\&. "
+.ti -1c
+.RI "struct \fBschultz_text_line\fP"
+.br
+.RI "One line produced by wrapping\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_DIR_AUTO\fP = 0, \fBSCHULTZ_DIR_LTR\fP, \fBSCHULTZ_DIR_RTL\fP }"
+.br
+.RI "Reading direction of a run of text\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_text_shape\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font, const char *utf8, int32_t length, int32_t direction, \fBschultz_arena\fP *arena, \fBschultz_text_run\fP *out_run)"
+.br
+.RI "Shapes a UTF-8 string into positioned glyphs\&. "
+.ti -1c
+.RI "int32_t \fBschultz_text_shape_pieces\fP (const \fBschultz_font_system\fP *system, const \fBschultz_text_piece\fP *pieces, uint32_t piece_count, \fBschultz_handle\fP font, const char *utf8, int32_t length, int32_t direction, \fBschultz_arena\fP *arena, \fBschultz_text_run\fP *out_run)"
+.br
+.RI "Shapes a string whose face changes partway through\&. "
+.ti -1c
+.RI "int32_t \fBschultz_text_measure\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font, const char *utf8, int32_t length, \fBschultz_arena\fP *arena, \fBschultz_size\fP *out_size)"
+.br
+.RI "Measures a string without keeping its glyphs\&. "
+.ti -1c
+.RI "int32_t \fBschultz_text_measure_pieces\fP (const \fBschultz_font_system\fP *system, const \fBschultz_text_piece\fP *pieces, uint32_t piece_count, \fBschultz_handle\fP font, const char *utf8, int32_t length, \fBschultz_arena\fP *arena, \fBschultz_size\fP *out_size)"
+.br
+.RI "Measures a string whose face changes partway through\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_text_next_cluster\fP (const char *utf8, uint32_t length, uint32_t at)"
+.br
+.RI "The next place the caret may sit, moving forward\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_text_prev_cluster\fP (const char *utf8, uint32_t length, uint32_t at)"
+.br
+.RI "The previous place the caret may sit\&. "
+.ti -1c
+.RI "int32_t \fBschultz_text_wrap\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font, const char *utf8, int32_t length, float available_width, \fBschultz_arena\fP *arena, const \fBschultz_text_line\fP **out_lines, uint32_t *out_count)"
+.br
+.RI "Breaks text into lines that fit a width\&. "
+.ti -1c
+.RI "int32_t \fBschultz_text_wrap_pieces\fP (const \fBschultz_font_system\fP *system, const \fBschultz_text_piece\fP *pieces, uint32_t piece_count, \fBschultz_handle\fP font, const char *utf8, int32_t length, float available_width, \fBschultz_arena\fP *arena, const \fBschultz_text_line\fP **out_lines, uint32_t *out_count)"
+.br
+.RI "Breaks text whose face changes partway through into lines\&. "
+.ti -1c
+.RI "int32_t \fBschultz_text_base_direction\fP (const char *utf8, int32_t length)"
+.br
+.RI "Reports the dominant reading direction of a string\&. "
+.ti -1c
+.RI "float \fBschultz_text_caret_x\fP (const \fBschultz_text_run\fP *run, uint32_t offset)"
+.br
+.RI "Where a caret sits, in pixels from the run's leading edge\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_text_caret_offset\fP (const \fBschultz_text_run\fP *run, float x, uint32_t length)"
+.br
+.RI "The byte offset a caret lands on for a position along a run\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Shaping, measurement, and line breaking\&. 
+
+Internal header\&.
+.PP
+Shaping turns a string plus a font into positioned glyph indices, handling kerning, ligatures, and scripts where a character's shape depends on its neighbours\&. HarfBuzz does that work; this module owns the buffers, the coordinate conversion, and the arena the results live in\&.
+.PP
+Measurement is the seam layout depends on\&. Because a pane asks for a preferred size given an available width, and text height depends on the width it is given, every measurement entry point takes an available width\&.
+.PP
+\fBNot part of the host facing interface\&.\fP Shaping and wrapping, which the text widgets do for a host\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_text\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Reading direction of a run of text\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_DIR_AUTO \fP\fP
+Infer from the text's own characters\&. 
+.TP
+\fB\fISCHULTZ_DIR_LTR \fP\fP
+Force left to right\&. 
+.TP
+\fB\fISCHULTZ_DIR_RTL \fP\fP
+Force right to left\&. 
+.PP
+Definition at line \fB38\fP of file \fBschultz_text\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_text_shape (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font, const char * utf8, int32_t length, int32_t direction, \fBschultz_arena\fP * arena, \fBschultz_text_run\fP * out_run)"
+
+.PP
+Shapes a UTF-8 string into positioned glyphs\&. The string is treated as a single run: no line breaking and no bidirectional reordering across direction changes\&. Use schultz_text_wrap for text that must fit a width\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP The font to shape with\&. 
+.br
+\fIutf8\fP The text, UTF-8 encoded\&. Must not be NULL\&. 
+.br
+\fIlength\fP Bytes to read, or -1 to read to the NUL terminator\&. 
+.br
+\fIdirection\fP One of SCHULTZ_DIR_AUTO, SCHULTZ_DIR_LTR, SCHULTZ_DIR_RTL\&. 
+.br
+\fIarena\fP Where the glyph array is allocated\&. Must not be NULL, and must outlive any use of the returned run\&. 
+.br
+\fIout_run\fP Receives the shaped run\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY when the arena could not supply space\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_text_shape_pieces (const \fBschultz_font_system\fP * system, const \fBschultz_text_piece\fP * pieces, uint32_t piece_count, \fBschultz_handle\fP font, const char * utf8, int32_t length, int32_t direction, \fBschultz_arena\fP * arena, \fBschultz_text_run\fP * out_run)"
+
+.PP
+Shapes a string whose face changes partway through\&. What schultz_text_shape does, for text that is not all one face: a bold phrase inside a sentence, a term at another size, a word set in the code face\&. Each piece is shaped in its own face and the results are laid down end to end on one line, so the run that comes back is one run and every caller of a run works on it unchanged\&.
+.PP
+Shaping stops at a piece boundary, which is what a change of face means: two faces have no kerning pair in common and no ligature that spans them\&. Within a piece nothing changes, so a sentence with one bold word in it kerns exactly as it did on either side of that word\&.
+.PP
+The run's height and ascent are the tallest of the faces on it, so a line carrying one large word is as tall as that word and the rest of it sits on the same baseline\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIpieces\fP Which face each stretch is set in\&. May be NULL, which means the whole string in \fCfont\fP\&. 
+.br
+\fIpiece_count\fP How many pieces\&. Zero means the same as NULL\&. 
+.br
+\fIfont\fP The face for any byte no piece covers\&. May be SCHULTZ_HANDLE_NONE only when the pieces cover everything\&. 
+.br
+\fIsystem\fP The font system holding the faces\&. Must not be NULL\&. 
+.br
+\fIutf8\fP The text, UTF-8 encoded\&. Must not be NULL\&. 
+.br
+\fIlength\fP Bytes to read, or -1 to read to the NUL terminator\&. 
+.br
+\fIdirection\fP One of SCHULTZ_DIR_AUTO, SCHULTZ_DIR_LTR, _RTL\&. 
+.br
+\fIarena\fP Where the glyph array is allocated\&. Must not be NULL\&. 
+.br
+\fIout_run\fP Receives the shaped run\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_INVALID_HANDLE when a face is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_text_measure (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font, const char * utf8, int32_t length, \fBschultz_arena\fP * arena, \fBschultz_size\fP * out_size)"
+
+.PP
+Measures a string without keeping its glyphs\&. Shapes into a scratch arena and reports only the extent, which is what a layout pass needs\&. Cheaper to call than schultz_text_shape when the glyphs are going to be thrown away\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP The font to measure with\&. 
+.br
+\fIutf8\fP The text, UTF-8 encoded\&. Must not be NULL\&. 
+.br
+\fIlength\fP Bytes to read, or -1 to read to the NUL terminator\&. 
+.br
+\fIarena\fP Scratch space\&. Must not be NULL\&. Nothing in it is retained\&. 
+.br
+\fIout_size\fP Receives the width and line height\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_text_measure_pieces (const \fBschultz_font_system\fP * system, const \fBschultz_text_piece\fP * pieces, uint32_t piece_count, \fBschultz_handle\fP font, const char * utf8, int32_t length, \fBschultz_arena\fP * arena, \fBschultz_size\fP * out_size)"
+
+.PP
+Measures a string whose face changes partway through\&. What schultz_text_measure does, for pieces\&. The width is the pieces laid end to end; the height is the tallest face among them, which is what the line has to be to hold all of it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIpieces\fP Which face each stretch is set in, or NULL for one face\&. 
+.br
+\fIpiece_count\fP How many pieces\&. Zero means the same as NULL\&. 
+.br
+\fIfont\fP The face for any byte no piece covers\&. 
+.br
+\fIsystem\fP The font system holding the faces\&. Must not be NULL\&. 
+.br
+\fIutf8\fP The text, UTF-8 encoded\&. Must not be NULL\&. 
+.br
+\fIlength\fP Bytes to read, or -1 to read to the NUL terminator\&. 
+.br
+\fIarena\fP Scratch space\&. Must not be NULL\&. Nothing is retained\&. 
+.br
+\fIout_size\fP Receives the width and line height\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_INVALID_HANDLE when a face is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_text_next_cluster (const char * utf8, uint32_t length, uint32_t at)"
+
+.PP
+The next place the caret may sit, moving forward\&. A caret steps over whole characters as a person sees them, which is not the same as one codepoint: an emoji with a skin tone is two, and a family is five joined together\&. Unicode calls one of these a grapheme cluster, and this is where the next one starts\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIutf8\fP The text\&. NULL yields \fClength\fP\&. 
+.br
+\fIlength\fP Bytes of text\&. 
+.br
+\fIat\fP A byte offset in the text\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The next boundary at or after \fCat\fP, or \fClength\fP at the end\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_text_prev_cluster (const char * utf8, uint32_t length, uint32_t at)"
+
+.PP
+The previous place the caret may sit\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIutf8\fP The text\&. NULL yields zero\&. 
+.br
+\fIlength\fP Bytes of text\&. 
+.br
+\fIat\fP A byte offset in the text\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The boundary before \fCat\fP, or zero at the start\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_text_wrap (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font, const char * utf8, int32_t length, float available_width, \fBschultz_arena\fP * arena, const \fBschultz_text_line\fP ** out_lines, uint32_t * out_count)"
+
+.PP
+Breaks text into lines that fit a width\&. Break opportunities come from libunibreak, which implements the Unicode line breaking algorithm, so wrapping respects the rules of the script rather than splitting on spaces\&.
+.PP
+A run with no break opportunity in it that is still wider than the line is broken where it stops fitting, at a character boundary\&. That is a last resort and never happens to ordinary prose, but a run left to overflow leaves the box it was given and cannot be read at all, which is worse than an awkward break\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP The font to measure with\&. 
+.br
+\fIutf8\fP The text, UTF-8 encoded\&. Must not be NULL\&. 
+.br
+\fIlength\fP Bytes to read, or -1 to read to the NUL terminator\&. 
+.br
+\fIavailable_width\fP Width to fit, in pixels\&. Pass a negative value for unbounded, which produces one line per hard break\&. 
+.br
+\fIarena\fP Where the line array is allocated\&. Must not be NULL\&. 
+.br
+\fIout_lines\fP Receives the line array\&. Must not be NULL\&. 
+.br
+\fIout_count\fP Receives the number of lines\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_text_wrap_pieces (const \fBschultz_font_system\fP * system, const \fBschultz_text_piece\fP * pieces, uint32_t piece_count, \fBschultz_handle\fP font, const char * utf8, int32_t length, float available_width, \fBschultz_arena\fP * arena, const \fBschultz_text_line\fP ** out_lines, uint32_t * out_count)"
+
+.PP
+Breaks text whose face changes partway through into lines\&. What schultz_text_wrap does, for pieces\&. Break opportunities come from the same place and do not depend on the faces: where a line may be broken is a property of the writing, not of how it is set\&. What the pieces change is how wide the text before each opportunity turns out to be, so a phrase turning bold can push the break earlier\&.
+.PP
+A piece boundary is not itself a break opportunity\&. A word half of which is bold is still one word and still breaks only where the word does\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIpieces\fP Which face each stretch is set in, or NULL\&. 
+.br
+\fIpiece_count\fP How many pieces\&. Zero means the same as NULL\&. 
+.br
+\fIfont\fP The face for any byte no piece covers\&. 
+.br
+\fIsystem\fP The font system holding the faces\&. Must not be NULL\&. 
+.br
+\fIutf8\fP The text, UTF-8 encoded\&. Must not be NULL\&. 
+.br
+\fIlength\fP Bytes to read, or -1 to read to the terminator\&. 
+.br
+\fIavailable_width\fP Width to fit, in pixels, or negative for unbounded\&. 
+.br
+\fIarena\fP Where the line array is allocated\&. Must not be NULL\&. 
+.br
+\fIout_lines\fP Receives the line array\&. Must not be NULL\&. 
+.br
+\fIout_count\fP Receives the number of lines\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_INVALID_HANDLE when a face is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_text_base_direction (const char * utf8, int32_t length)"
+
+.PP
+Reports the dominant reading direction of a string\&. Runs the Unicode bidirectional algorithm over the text and returns the paragraph level's direction\&. Text with no strongly directional characters reports left to right\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIutf8\fP The text, UTF-8 encoded\&. Must not be NULL\&. 
+.br
+\fIlength\fP Bytes to read, or -1 to read to the NUL terminator\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_DIR_LTR or SCHULTZ_DIR_RTL\&. A NULL or empty string reports SCHULTZ_DIR_LTR\&. 
+.RE
+.PP
+
+.SS "float schultz_text_caret_x (const \fBschultz_text_run\fP * run, uint32_t offset)"
+
+.PP
+Where a caret sits, in pixels from the run's leading edge\&. A caret is placed between characters, so an offset naming the start of a glyph puts the caret at that glyph's leading edge, and an offset past every glyph puts it at the end of the run\&. An offset inside a glyph's bytes, such as the middle of a combining sequence, is treated as that glyph's start\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIrun\fP A run shaped from the same string\&. Must not be NULL\&. 
+.br
+\fIoffset\fP A byte offset into the string the run was shaped from\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The x position of the caret\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_text_caret_offset (const \fBschultz_text_run\fP * run, float x, uint32_t length)"
+
+.PP
+The byte offset a caret lands on for a position along a run\&. The inverse of schultz_text_caret_x, rounded to the nearest boundary between characters rather than truncated, which is what clicking in the middle of a letter should do\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIrun\fP A run shaped from the string\&. Must not be NULL\&. 
+.br
+\fIx\fP A position from the run's leading edge, in pixels\&. 
+.br
+\fIlength\fP Byte length of the string the run was shaped from\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The byte offset, between 0 and length\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

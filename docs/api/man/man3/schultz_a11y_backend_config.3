@@ -1,0 +1,98 @@
+.TH "schultz_a11y_backend_config" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_a11y_backend_config \- What a backend needs to attach itself to the platform\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_a11y_backend\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBapp_name\fP"
+.br
+.ti -1c
+.RI "const char * \fBtoolkit_name\fP"
+.br
+.ti -1c
+.RI "const char * \fBtoolkit_version\fP"
+.br
+.ti -1c
+.RI "\fBschultz_a11y_backend_action_fn\fP \fBaction\fP"
+.br
+.ti -1c
+.RI "void * \fBaction_userdata\fP"
+.br
+.ti -1c
+.RI "\fBschultz_a11y_backend_build_fn\fP \fBbuild\fP"
+.br
+.ti -1c
+.RI "void * \fBbuild_userdata\fP"
+.br
+.ti -1c
+.RI "int32_t \fBfocused\fP"
+.br
+.ti -1c
+.RI "\fBschultz_rect\fP \fBwindow\fP"
+.br
+.ti -1c
+.RI "void * \fBnative_window\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+What a backend needs to attach itself to the platform\&. 
+.PP
+Definition at line \fB65\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const char* schultz_a11y_backend_config::app_name"
+The application's name, as a user would recognize it\&. Never NULL\&. 
+.PP
+Definition at line \fB67\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "const char* schultz_a11y_backend_config::toolkit_name"
+The toolkit's name, for platforms that publish it\&. 
+.PP
+Definition at line \fB69\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "const char* schultz_a11y_backend_config::toolkit_version"
+The toolkit's version, for platforms that publish it\&. 
+.PP
+Definition at line \fB71\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "\fBschultz_a11y_backend_action_fn\fP schultz_a11y_backend_config::action"
+Where to deliver action requests\&. 
+.PP
+Definition at line \fB73\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "void* schultz_a11y_backend_config::action_userdata"
+Passed to the action callback\&. 
+.PP
+Definition at line \fB75\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "\fBschultz_a11y_backend_build_fn\fP schultz_a11y_backend_config::build"
+How to ask for a whole tree\&. Used by pull based platforms only\&. 
+.PP
+Definition at line \fB77\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "void* schultz_a11y_backend_config::build_userdata"
+Passed to the build callback\&. 
+.PP
+Definition at line \fB79\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "int32_t schultz_a11y_backend_config::focused"
+Nonzero when the window has focus at creation\&. 
+.PP
+Definition at line \fB81\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "\fBschultz_rect\fP schultz_a11y_backend_config::window"
+Where the window is on screen, in pixels\&. 
+.PP
+Definition at line \fB83\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "void* schultz_a11y_backend_config::native_window"
+The platform's own window, as SDL_Window *, or NULL\&.
+.PP
+Every backend but the Linux one needs it: accessibility on Windows, macOS, iOS and Android attaches to a native window or view, and this is the only way to reach one from here\&. 
+.PP
+Definition at line \fB91\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,63 @@
+.TH "schultz_render_options" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_render_options \- What a render needs besides the tree itself\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_render\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_font_system\fP * \fBfonts\fP"
+.br
+.ti -1c
+.RI "\fBschultz_glyph_cache\fP * \fBglyphs\fP"
+.br
+.ti -1c
+.RI "\fBschultz_resource_table\fP * \fBresources\fP"
+.br
+.ti -1c
+.RI "\fBschultz_image_table\fP * \fBimages\fP"
+.br
+.ti -1c
+.RI "\fBschultz_color\fP \fBbackground\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+What a render needs besides the tree itself\&. 
+
+The tree knows its own fonts and images, but a render also needs the glyph cache and the gradient table, which live beside the renderer rather than in the tree\&. Zero initialize this and fill in what applies: a tree with no text needs no fonts, and one with no gradients needs no resources\&. 
+.PP
+Definition at line \fB65\fP of file \fBschultz_render\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_font_system\fP* schultz_render_options::fonts"
+Faces, for text\&. 
+.PP
+Definition at line \fB66\fP of file \fBschultz_render\&.h\fP\&.
+.SS "\fBschultz_glyph_cache\fP* schultz_render_options::glyphs"
+Rasterized glyphs, for text\&. 
+.PP
+Definition at line \fB67\fP of file \fBschultz_render\&.h\fP\&.
+.SS "\fBschultz_resource_table\fP* schultz_render_options::resources"
+Gradients and dash patterns\&. 
+.PP
+Definition at line \fB68\fP of file \fBschultz_render\&.h\fP\&.
+.SS "\fBschultz_image_table\fP* schultz_render_options::images"
+Decoded images\&. 
+.PP
+Definition at line \fB69\fP of file \fBschultz_render\&.h\fP\&.
+.SS "\fBschultz_color\fP schultz_render_options::background"
+What the buffer is cleared to first\&. A transparent colour leaves the buffer transparent where nothing was drawn, which is what an icon export wants; an opaque one is what a screenshot wants\&. 
+.PP
+Definition at line \fB75\fP of file \fBschultz_render\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,132 @@
+.TH "schultz_api.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_api.h \- The whole host facing interface, in one include\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_audio\&.h'\fP
+.br
+\fC#include 'schultz_camera\&.h'\fP
+.br
+\fC#include 'schultz_event\&.h'\fP
+.br
+\fC#include 'schultz_font\&.h'\fP
+.br
+\fC#include 'schultz_window\&.h'\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+\fC#include 'schultz_image\&.h'\fP
+.br
+\fC#include 'schultz_layout\&.h'\fP
+.br
+\fC#include 'schultz_node\&.h'\fP
+.br
+\fC#include 'schultz_render\&.h'\fP
+.br
+\fC#include 'schultz_selection\&.h'\fP
+.br
+\fC#include 'schultz_resource\&.h'\fP
+.br
+\fC#include 'schultz_style\&.h'\fP
+.br
+\fC#include 'schultz_video\&.h'\fP
+.br
+\fC#include 'schultz_voice\&.h'\fP
+.br
+\fC#include 'schultz_widget\&.h'\fP
+.br
+\fC#include 'schultz_widgets\&.h'\fP
+.br
+
+.SH "Detailed Description"
+.PP 
+The whole host facing interface, in one include\&. 
+
+A host binds to this and to nothing else\&. Everything reachable from here follows the ABI rules in \fBschultz\&.h\fP and is safe to generate bindings from\&. Everything not reachable from here is how the toolkit is built rather than what it offers, and is not meant to be bound to\&.
+.PP
+The split matters because Schultz has about twenty headers and only some of them are aimed at anyone outside: the arena, the handle table, the draw command list and the two rasterizer backends are internal machinery\&. A binding generator pointed at the whole directory would export all of it\&.
+.PP
+What is here:
+.PP
+.IP "\(bu" 2
+\fB\fBschultz\&.h\fP\fP handles, result codes, version
+.IP "\(bu" 2
+\fB\fBschultz_audio\&.h\fP\fP sound out and microphone in
+.IP "\(bu" 2
+\fB\fBschultz_geom\&.h\fP\fP points, rectangles, colours, paints and strokes
+.IP "\(bu" 2
+\fB\fBschultz_node\&.h\fP\fP the tree: nodes, bounds, state, accessibility
+.IP "\(bu" 2
+\fB\fBschultz_style\&.h\fP\fP tokens, values, patches, themes, resolved styles
+.IP "\(bu" 2
+\fB\fBschultz_layout\&.h\fP\fP the panes and per child layout properties
+.IP "\(bu" 2
+\fB\fBschultz_event\&.h\fP\fP routing, keys, and what a host is told
+.IP "\(bu" 2
+\fB\fBschultz_widget\&.h\fP\fP the widget interface, and what the tree is given
+.IP "\(bu" 2
+\fB\fBschultz_widgets\&.h\fP\fP every widget that ships
+.IP "\(bu" 2
+\fB\fBschultz_font\&.h\fP\fP loading faces and reading their metrics
+.IP "\(bu" 2
+\fB\fBschultz_image\&.h\fP\fP loading pictures and animations
+.IP "\(bu" 2
+\fB\fBschultz_resource\&.h\fP\fP gradients and dash patterns
+.IP "\(bu" 2
+\fB\fBschultz_render\&.h\fP\fP rendering a widget, or a window, into memory
+.IP "\(bu" 2
+\fB\fBschultz_video\&.h\fP\fP playing video into a node
+.IP "\(bu" 2
+\fB\fBschultz_camera\&.h\fP\fP the camera, and a node showing what it sees
+.IP "\(bu" 2
+\fB\fBschultz_voice\&.h\fP\fP cleaning up microphone sound before it is sent
+.IP "\(bu" 2
+\fB\fBschultz_window\&.h\fP\fP the frame driver: a window and its frame loop
+.PP
+.PP
+What is not, and why:
+.PP
+.IP "\(bu" 2
+\fB\fBschultz_arena\&.h\fP\fP, \fB\fBschultz_handle\&.h\fP\fP how the toolkit allocates and identifies things\&. A host holds handles; it does not make them\&.
+.IP "\(bu" 2
+\fB\fBschultz_paint\&.h\fP\fP the draw command list\&. A widget written in C emits into it; a host written above the boundary does not\&.
+.IP "\(bu" 2
+\fB\fBschultz_text\&.h\fP\fP, \fB\fBschultz_glyphs\&.h\fP\fP shaping and glyph rasterizing, which the widgets do on the host's behalf\&.
+.IP "\(bu" 2
+\fB\fBschultz_thorvg\&.h\fP\fP, \fB\fBschultz_sdl\&.h\fP\fP the rasterizer and the platform\&. A host reaches these through the frame driver rather than directly\&.
+.IP "\(bu" 2
+\fB\fBschultz_debug\&.h\fP\fP a development aid\&.
+.IP "\(bu" 2
+anything ending in **_internal\&.h**, which exists to keep a backend type out of a public header\&.
+.PP
+.PP
+\fBschultz_widget\&.h\fP does include the arena and the draw list, because the widget vtable is written against them\&. That is for widgets written in C inside the toolkit\&. A host does not implement that vtable; see below\&.
+.SS "Upcalls"
+An upcall is the toolkit calling the host, and across a foreign function interface it is the expensive direction: it needs a stub the host language has to keep alive, it runs on the toolkit's thread, and it cannot be batched\&. So there are five of them in the whole interface, every one is optional, and none happens per widget or per frame by necessity\&.
+.PP
+.IP "\(bu" 2
+\fBschultz_event_callback_fn\fP what a widget wants the host to know: a click, a changed value, a menu choice\&. A host that would rather not be called at all turns on schultz_events_set_queue and reads the same events with schultz_events_drain, one downcall per frame\&.
+.IP "\(bu" 2
+\fBschultz_clipboard_offer_fn\fP, \fBschultz_clipboard_take_fn\fP and \fBschultz_clipboard_holds_fn\fP cut, copy and paste, which the toolkit cannot reach on its own\&. A clipboard carries a set of formats and builds one only when something asks for it, which is how every platform underneath works\&. The frame driver installs the platform's set, so a host normally supplies none of them\&.
+.IP "\(bu" 2
+\fBschultz_scroll_bar_changed_fn\fP where a bar was dragged to\&. Needed only for a bar used on its own; a scroll view wires its own\&.
+.IP "\(bu" 2
+\fBschultz_window_update_fn\fP what to change before each frame, when the loop itself has been handed to schultz_window_run\&. A host that calls schultz_window_update once a frame passes nothing\&.
+.PP
+.PP
+Two cases that usually force an upcall do not here\&.
+.PP
+\fBText measurement\&.\fP The toolkit shapes and measures text itself, with HarfBuzz and FreeType, so it never has to ask the host how wide a string is\&. That is the single upcall most toolkits cannot avoid\&.
+.PP
+\fBCustom widget paint\&.\fP A host does not implement the widget vtable; it uses a canvas\&. Drawing recorded between schultz_canvas_begin and schultz_canvas_end is kept and replayed every frame, so appearance costs downcalls once rather than an upcall per frame, and a node token plus the event queue gives the same node its behaviour\&. A widget written in C is a different thing, and stays inside the toolkit\&. 
+.PP
+Definition in file \fBschultz_api\&.h\fP\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

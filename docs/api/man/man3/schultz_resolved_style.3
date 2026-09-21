@@ -1,0 +1,64 @@
+.TH "schultz_resolved_style" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_resolved_style \- A node's fully resolved style: every property, no gaps\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_style\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "union {"
+.br
+.ti -1c
+.RI "   \fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "   float \fBnumber\fP"
+.br
+.ti -1c
+.RI "   \fBschultz_handle\fP \fBfont\fP"
+.br
+.ti -1c
+.RI "   \fBschultz_handle\fP \fBdash\fP"
+.br
+.ti -1c
+.RI "} \fBvalues\fP [\fBSCHULTZ_PROP_COUNT\fP]"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A node's fully resolved style: every property, no gaps\&. 
+
+This is what drawing code reads, and the only thing it should read\&. Access it through schultz_resolved_color and friends rather than by indexing\&. 
+.PP
+Definition at line \fB325\fP of file \fBschultz_style\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_paint\fP schultz_resolved_style::paint"
+For colour properties\&. 
+.PP
+Definition at line \fB327\fP of file \fBschultz_style\&.h\fP\&.
+.SS "float schultz_resolved_style::number"
+For number properties\&. 
+.PP
+Definition at line \fB328\fP of file \fBschultz_style\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_resolved_style::font"
+For font properties\&. 
+.PP
+Definition at line \fB329\fP of file \fBschultz_style\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_resolved_style::dash"
+For dash properties\&. 
+.PP
+Definition at line \fB330\fP of file \fBschultz_style\&.h\fP\&.
+.SS "union  { \&.\&.\&. }  schultz_resolved_style::values[\fBSCHULTZ_PROP_COUNT\fP]"
+Indexed by property\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

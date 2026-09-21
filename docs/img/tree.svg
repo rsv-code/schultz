@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="360" viewBox="0 0 760 360"
+     font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="13">
+  <defs>
+    <marker id="t" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,1 L8,4.5 L0,8 z" fill="#64686f"/>
+    </marker>
+  </defs>
+  <rect width="760" height="360" fill="#edf1f8"/>
+  <text x="24" y="30" font-size="15" font-weight="bold" fill="#25282d">A widget is a node with two things attached</text>
+  <text x="24" y="50" fill="#64686f">There is no widget class. Everything on screen is a node; some nodes have more bolted on.</text>
+
+  <rect x="24" y="68" width="220" height="128" rx="4" fill="#dee3ea" stroke="#2971ac"/>
+  <text x="38" y="90" fill="#2971ac" font-weight="bold">Node</text>
+  <text x="38" y="110" fill="#25282d">a handle that names it</text>
+  <text x="38" y="128" fill="#25282d">bounds and children</text>
+  <text x="38" y="146" fill="#25282d">state: hovered, focused...</text>
+  <text x="38" y="164" fill="#25282d">a role, for screen readers</text>
+  <text x="38" y="182" fill="#25282d">a dirty flag</text>
+
+  <rect x="272" y="68" width="220" height="60" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="286" y="90" fill="#25282d" font-weight="bold">Pane</text>
+  <text x="286" y="110" fill="#64686f">how big, and where its</text>
+  <text x="286" y="124" fill="#64686f">children go</text>
+
+  <rect x="272" y="140" width="220" height="56" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="286" y="162" fill="#25282d" font-weight="bold">Widget</text>
+  <text x="286" y="182" fill="#64686f">what it draws, and what</text>
+  <text x="286" y="196" fill="#64686f">it does when touched</text>
+
+  <path d="M246,110 L270,110" stroke="#64686f" marker-end="url(#t)"/>
+  <path d="M246,158 L270,158" stroke="#64686f" marker-end="url(#t)"/>
+
+  <text x="520" y="90" fill="#25282d" font-weight="bold">A small tree</text>
+  <rect x="520" y="102" width="180" height="24" rx="3" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="530" y="119" fill="#25282d">root</text>
+  <rect x="540" y="134" width="160" height="24" rx="3" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="550" y="151" fill="#25282d">panel, a vbox pane</text>
+  <rect x="560" y="166" width="140" height="24" rx="3" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="570" y="183" fill="#25282d">label</text>
+  <rect x="560" y="198" width="140" height="24" rx="3" fill="#ffffff" stroke="#ced2d9"/>
+  <text x="570" y="215" fill="#25282d">button</text>
+  <path d="M528,126 L528,146 L538,146" stroke="#ced2d9" fill="none"/>
+  <path d="M548,158 L548,178 L558,178" stroke="#ced2d9" fill="none"/>
+  <path d="M548,158 L548,210 L558,210" stroke="#ced2d9" fill="none"/>
+
+  <rect x="24" y="216" width="468" height="128" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="40" y="238" fill="#25282d" font-weight="bold">What follows from this</text>
+  <text x="40" y="258" fill="#64686f">A container is just a node with a pane and no widget.</text>
+  <text x="40" y="276" fill="#64686f">A constructor is a shortcut, not a privilege: you can build the</text>
+  <text x="40" y="292" fill="#64686f">same thing by hand.</text>
+  <text x="40" y="312" fill="#64686f">Changing a node marks a region dirty. Nothing repaints until</text>
+  <text x="40" y="328" fill="#64686f">the next frame, and then only that region.</text>
+
+  <rect x="520" y="248" width="216" height="96" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="534" y="270" fill="#25282d" font-weight="bold">Handles, not pointers</text>
+  <text x="534" y="290" fill="#64686f">A node is named by a 64 bit</text>
+  <text x="534" y="306" fill="#64686f">handle. Use one after the node</text>
+  <text x="534" y="322" fill="#64686f">is destroyed and you get an</text>
+  <text x="534" y="338" fill="#64686f">error, not a crash.</text>
+</svg>

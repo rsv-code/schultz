@@ -1,0 +1,489 @@
+.TH "schultz_font.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_font.h \- Font loading and metrics\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stddef\&.h>\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+\fC#include 'schultz_style\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_font_metrics\fP"
+.br
+.RI "Vertical metrics of a font at its loaded size, in pixels\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_font_system\fP \fBschultz_font_system\fP"
+.br
+.RI "Opaque font system\&. Create with schultz_font_system_create\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_font_system_create\fP (\fBschultz_font_system\fP **out_system)"
+.br
+.RI "Creates a font system and starts FreeType\&. "
+.ti -1c
+.RI "void \fBschultz_font_system_destroy\fP (\fBschultz_font_system\fP *system)"
+.br
+.RI "Destroys a font system, unloading every font it still holds\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_load_file\fP (\fBschultz_font_system\fP *system, const char *path, float size_px, \fBschultz_handle\fP *out_font)"
+.br
+.RI "Loads a font file at one pixel size\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_load_memory\fP (\fBschultz_font_system\fP *system, const void *bytes, size_t length, float size_px, \fBschultz_handle\fP *out_font)"
+.br
+.RI "Loads a face from bytes already in memory\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_font_builtin\fP (const \fBschultz_font_system\fP *system, uint32_t token)"
+.br
+.RI "The face compiled into the library for one theme font slot\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_unload\fP (\fBschultz_font_system\fP *system, \fBschultz_handle\fP font)"
+.br
+.RI "Unloads a font and invalidates its handle\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_set_emoji\fP (\fBschultz_font_system\fP *system, \fBschultz_handle\fP font)"
+.br
+.RI "Sets the face that draws emoji\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_font_emoji\fP (const \fBschultz_font_system\fP *system)"
+.br
+.RI "Returns the face set by schultz_font_set_emoji\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_is_fixed_pitch\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font)"
+.br
+.RI "Whether every glyph in a face is the same width\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_is_bold\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font)"
+.br
+.RI "Whether a face is the bold member of its family\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_is_italic\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font)"
+.br
+.RI "Whether a face is the slanted member of its family\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_has_glyph\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font, uint32_t codepoint)"
+.br
+.RI "Reports whether a face can draw a character\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_has_color_glyph\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font, uint32_t codepoint)"
+.br
+.RI "Reports whether a face draws a character in colours of its own\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_get_metrics\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font, \fBschultz_font_metrics\fP *out_metrics)"
+.br
+.RI "Reads a font's vertical metrics\&. "
+.ti -1c
+.RI "float \fBschultz_font_size\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP font)"
+.br
+.RI "Returns the pixel size a font was loaded at\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_at_size\fP (\fBschultz_font_system\fP *system, \fBschultz_handle\fP font, float size_px, \fBschultz_handle\fP *out_font)"
+.br
+.RI "Returns the same face at another pixel size\&. "
+.ti -1c
+.RI "int32_t \fBschultz_font_at_style\fP (\fBschultz_font_system\fP *system, \fBschultz_handle\fP font, int32_t bold, int32_t italic, \fBschultz_handle\fP *out_font)"
+.br
+.RI "Returns another member of the same family, at the same size\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_font_count\fP (const \fBschultz_font_system\fP *system)"
+.br
+.RI "Counts loaded fonts\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Font loading and metrics\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+A font system owns the FreeType library, the loaded faces, and the handle table that names them\&. Fonts are identified by handle, never by pointer, so a font destroyed while a widget still refers to it produces an error instead of a crash\&.
+.PP
+A loaded font binds a face to one pixel size\&. Two sizes of the same file are two fonts, which keeps metrics and shaping unambiguous\&. 
+.PP
+Definition in file \fBschultz_font\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_font_system\fP \fBschultz_font_system\fP"
+
+.PP
+Opaque font system\&. Create with schultz_font_system_create\&. 
+.PP
+Definition at line \fB50\fP of file \fBschultz_font\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_font_system_create (\fBschultz_font_system\fP ** out_system)"
+
+.PP
+Creates a font system and starts FreeType\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_system\fP Receives the new system\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_system is NULL or FreeType refused to start, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_font_system_destroy (\fBschultz_font_system\fP * system)"
+
+.PP
+Destroys a font system, unloading every font it still holds\&. Every handle the system issued becomes stale\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system to destroy\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_load_file (\fBschultz_font_system\fP * system, const char * path, float size_px, \fBschultz_handle\fP * out_font)"
+
+.PP
+Loads a font file at one pixel size\&. The file is read into memory and kept, so the file itself need not remain available afterwards\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system to load into\&. Must not be NULL\&. 
+.br
+\fIpath\fP Path to a TrueType or OpenType file\&. Must not be NULL\&. 
+.br
+\fIsize_px\fP Pixel size to bind the face to\&. Must be greater than zero\&. 
+.br
+\fIout_font\fP Receives the font handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_UNREADABLE when the file is missing, unreadable, or holds no face FreeType can read, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_load_memory (\fBschultz_font_system\fP * system, const void * bytes, size_t length, float size_px, \fBschultz_handle\fP * out_font)"
+
+.PP
+Loads a face from bytes already in memory\&. For a face that never was a file on this machine: one in a resource bundle, an Android asset, a zip, or one that arrived over the network\&. The bytes are copied, so the caller may free or reuse its buffer as soon as this returns\&.
+.PP
+Everything else works the same as a face loaded from a file, including asking for it again at another size\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system to load into\&. Must not be NULL\&. 
+.br
+\fIbytes\fP The face, in any format FreeType reads\&. Must not be NULL\&. 
+.br
+\fIlength\fP How many bytes\&. Must not be zero\&. 
+.br
+\fIsize_px\fP Pixel size to bind the face to\&. Must be above zero\&. 
+.br
+\fIout_font\fP Receives the font handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, SCHULTZ_ERR_UNREADABLE for bytes FreeType would not read, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_font_builtin (const \fBschultz_font_system\fP * system, uint32_t token)"
+
+.PP
+The face compiled into the library for one theme font slot\&. Schultz ships three DejaVu faces and one emoji face inside itself, so a program that says nothing about fonts still draws text\&. They are loaded when the font system is created and live as long as it does\&.
+.PP
+A host rarely needs this\&. A theme falls back to these on its own for any font slot nothing was put in, which is the point of them; this is here for a host that wants to name one directly\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system to ask\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.br
+\fItoken\fP One of SCHULTZ_TOKEN_FONT_BODY, _TITLE, _MONO or _EMOJI\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The font, or SCHULTZ_HANDLE_NONE for a token that names no slot\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_unload (\fBschultz_font_system\fP * system, \fBschultz_handle\fP font)"
+
+.PP
+Unloads a font and invalidates its handle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP The font to unload\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded, which includes unloading twice\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_set_emoji (\fBschultz_font_system\fP * system, \fBschultz_handle\fP font)"
+
+.PP
+Sets the face that draws emoji\&. No text face carries emoji, so a string holding one takes two faces to draw\&. Shaping splits the string where the chosen face stops having glyphs and gives those parts to this one; the split is made a character at a time as a person sees them, so a flag or a family stays one picture\&.
+.PP
+The system starts with the face compiled into the library, so this only needs calling by a host that wants its own artwork\&. The face is asked for at whatever size the text around it is set in, the same way any face is, so one call here covers every size\&.
+.PP
+This is the only face consulted when the chosen one comes up short, which makes it the answer for emoji and not for a missing script\&. Text in a script the body font does not cover needs a body font that does\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system\&. Must not be NULL\&. 
+.br
+\fIfont\fP The face to draw them with, or SCHULTZ_HANDLE_NONE for none, which leaves an emoji to draw as whatever the chosen face shows for a character it does not have\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when system is NULL, or SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_font_emoji (const \fBschultz_font_system\fP * system)"
+
+.PP
+Returns the face set by schultz_font_set_emoji\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The face, or SCHULTZ_HANDLE_NONE when there is none\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_is_fixed_pitch (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font)"
+
+.PP
+Whether every glyph in a face is the same width\&. What makes a face a code face\&. The font says so in its own tables, so this is what the designer declared rather than a guess from measuring\&.
+.PP
+Asked when text has to be described to something outside the toolkit, such as a clipboard format that names a family rather than carrying the face\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system\&. NULL yields 0\&. 
+.br
+\fIfont\fP A handle from schultz_font_load_file or _load_memory\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the face is fixed pitch\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_is_bold (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font)"
+
+.PP
+Whether a face is the bold member of its family\&. The face says so in its own tables, so this is what the designer declared rather than a guess from measuring stem widths\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system\&. NULL yields 0\&. 
+.br
+\fIfont\fP A handle from schultz_font_load_file or _load_memory\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the face is bold\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_is_italic (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font)"
+
+.PP
+Whether a face is the slanted member of its family\&. True for an italic face and for an oblique one\&. The two are drawn differently, a true italic having letter shapes of its own rather than a sheared upright, but a face is one or the other and never both, so nothing that chooses a face has to tell them apart\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system\&. NULL yields 0\&. 
+.br
+\fIfont\fP A handle from schultz_font_load_file or _load_memory\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the face is italic or oblique\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_has_glyph (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font, uint32_t codepoint)"
+
+.PP
+Reports whether a face can draw a character\&. This asks the face's own character map, so it answers for the character rather than for how it would be shaped: a face may map every character of a sequence and still have no single picture for the sequence itself\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system holding the font\&. NULL yields zero\&. 
+.br
+\fIfont\fP The face to ask\&. 
+.br
+\fIcodepoint\fP The Unicode character\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the face has a glyph for it\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_has_color_glyph (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font, uint32_t codepoint)"
+
+.PP
+Reports whether a face draws a character in colours of its own\&. The stronger question, and the one that decides which face draws what\&. A text face covers a surprising number of emoji as plain outlines, so asking only whether it has the character hands a smiling face to whichever face happens to be asked first and draws it as line art\&. Asking which face has the colours settles it\&.
+.PP
+It is also narrower than asking whether the face has colour at all: an emoji face carries the digits and the joiners too, for the sequences they take part in, and those are one colour like any letter\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The font system holding the font\&. NULL yields zero\&. 
+.br
+\fIfont\fP The face to ask\&. 
+.br
+\fIcodepoint\fP The Unicode character\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the face draws it in colour\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_get_metrics (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font, \fBschultz_font_metrics\fP * out_metrics)"
+
+.PP
+Reads a font's vertical metrics\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP The font to query\&. 
+.br
+\fIout_metrics\fP Receives the metrics\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_metrics is NULL, or SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded\&. 
+.RE
+.PP
+
+.SS "float schultz_font_size (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP font)"
+
+.PP
+Returns the pixel size a font was loaded at\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP The font to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The pixel size, or 0\&.0 when the font is not loaded\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_at_size (\fBschultz_font_system\fP * system, \fBschultz_handle\fP font, float size_px, \fBschultz_handle\fP * out_font)"
+
+.PP
+Returns the same face at another pixel size\&. A face is bound to one pixel size, because that is what FreeType and HarfBuzz both want, so a font handle names a face and a size together\&. Asking for another size gives back a handle already loaded at it when there is one, and loads it once otherwise\&. Sizes are compared after rounding to whole pixels, which is what FreeType is given\&.
+.PP
+This is what lets \fCfont\&.size\fP in a style mean anything, and what lets a page be rendered at print resolution with its glyphs rasterized at that resolution rather than scaled up from screen size\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP A font already loaded\&. 
+.br
+\fIsize_px\fP The pixel size wanted\&. Must be greater than zero\&. 
+.br
+\fIout_font\fP Receives the handle for that size\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_font_at_style (\fBschultz_font_system\fP * system, \fBschultz_handle\fP font, int32_t bold, int32_t italic, \fBschultz_handle\fP * out_font)"
+
+.PP
+Returns another member of the same family, at the same size\&. The companion to schultz_font_at_size: that one keeps the face and changes the size, this one keeps the size and changes the face\&.
+.PP
+This is what makes a Bold button possible\&. A program cannot name the bold handle for whatever the caret is sitting in, because it does not know which face that is, and a selection may cover several\&. So it asks for bold and italic as a wish, and the family answers with a face\&.
+.PP
+Which family a face belongs to, and which member of it a face is, both come from the face's own tables\&. So faces group themselves as they are loaded and nothing has to be declared\&. The faces compiled into the library include the whole DejaVu Sans family, so bold and italic work with no setup\&.
+.PP
+Nothing is synthesized\&. When the family has no member with the styles asked for, the closest one it does have comes back, and a family with nothing closer answers with the face that was passed in\&. A face that names no family is always its own answer\&. So this call never fails for want of a face, and a caller can use what it returns without checking which it got\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system holding the font\&. Must not be NULL\&. 
+.br
+\fIfont\fP A font already loaded\&. 
+.br
+\fIbold\fP Nonzero for the bold member\&. 
+.br
+\fIitalic\fP Nonzero for the italic or oblique member\&. 
+.br
+\fIout_font\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_INVALID_HANDLE when the font is not loaded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_font_count (const \fBschultz_font_system\fP * system)"
+
+.PP
+Counts loaded fonts\&. A new system is not empty\&. It loads every face compiled into the library, so a host that has loaded nothing still sees them here\&. That is one per theme font slot, plus the faces that complete a family without filling a slot\&. See schultz_font_builtin and schultz_font_at_style\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of fonts currently loaded\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

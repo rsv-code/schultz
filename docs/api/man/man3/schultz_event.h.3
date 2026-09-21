@@ -1,0 +1,909 @@
+.TH "schultz_event.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_event.h \- Event routing: hit testing, hover, press, focus, and overlays\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_node\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_event\fP"
+.br
+.RI "One routed event\&. "
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBSCHULTZ_SPAN_NONE\fP   0xFFFFFFFFu"
+.br
+.RI "No span was pressed, which is what every event but a click on styled text reports\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef int32_t(* \fBschultz_event_callback_fn\fP) (void *host_context, const \fBschultz_event\fP *event)"
+.br
+.RI "The single entry point the host installs to receive every event\&. "
+.ti -1c
+.RI "typedef struct \fBschultz_events\fP \fBschultz_events\fP"
+.br
+.RI "Opaque routing state\&. Create with schultz_events_create\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_EVENT_MOUSE_ENTER\fP = 1, \fBSCHULTZ_EVENT_MOUSE_LEAVE\fP, \fBSCHULTZ_EVENT_MOUSE_MOVE\fP, \fBSCHULTZ_EVENT_MOUSE_DOWN\fP, \fBSCHULTZ_EVENT_MOUSE_UP\fP, \fBSCHULTZ_EVENT_CLICK\fP, \fBSCHULTZ_EVENT_DRAG\fP, \fBSCHULTZ_EVENT_SCROLL\fP, \fBSCHULTZ_EVENT_FOCUS_GAINED\fP, \fBSCHULTZ_EVENT_FOCUS_LOST\fP, \fBSCHULTZ_EVENT_KEY_DOWN\fP, \fBSCHULTZ_EVENT_KEY_UP\fP, \fBSCHULTZ_EVENT_TEXT_INPUT\fP, \fBSCHULTZ_EVENT_TEXT_EDITING\fP, \fBSCHULTZ_EVENT_DISMISS\fP, \fBSCHULTZ_EVENT_CONTEXT_MENU\fP, \fBSCHULTZ_EVENT_FILES_CHOSEN\fP, \fBSCHULTZ_EVENT_FILES_CANCELLED\fP, \fBSCHULTZ_EVENT_WINDOW_RESIZED\fP }"
+.br
+.RI "What happened\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_BUTTON_LEFT\fP = 1, \fBSCHULTZ_BUTTON_MIDDLE\fP, \fBSCHULTZ_BUTTON_RIGHT\fP }"
+.br
+.RI "Mouse buttons, as a bit set for held state and an index for individual events\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_EVENT_CONSUMED\fP = 1 }"
+.br
+.RI "What a handler returns to say it took the event\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_KEY_UNKNOWN\fP = 0, \fBSCHULTZ_KEY_SPACE\fP = 0x20, \fBSCHULTZ_KEY_RETURN\fP = 0x110000, \fBSCHULTZ_KEY_ESCAPE\fP, \fBSCHULTZ_KEY_TAB\fP, \fBSCHULTZ_KEY_BACKSPACE\fP, \fBSCHULTZ_KEY_DELETE\fP, \fBSCHULTZ_KEY_LEFT\fP, \fBSCHULTZ_KEY_RIGHT\fP, \fBSCHULTZ_KEY_UP\fP, \fBSCHULTZ_KEY_DOWN\fP, \fBSCHULTZ_KEY_HOME\fP, \fBSCHULTZ_KEY_END\fP, \fBSCHULTZ_KEY_PAGE_UP\fP, \fBSCHULTZ_KEY_PAGE_DOWN\fP }"
+.br
+.RI "Keys, independent of the platform\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_MOD_SHIFT\fP = 1u << 0, \fBSCHULTZ_MOD_CTRL\fP = 1u << 1, \fBSCHULTZ_MOD_ALT\fP = 1u << 2, \fBSCHULTZ_MOD_SUPER\fP = 1u << 3 }"
+.br
+.RI "Keyboard modifiers, as a bit set\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_POINTER_MOUSE\fP = 0, \fBSCHULTZ_POINTER_TOUCH\fP }"
+.br
+.RI "What is driving the pointer\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_ACCELERATORS_MAX\fP = 32 }"
+.br
+.RI "The largest number of keyboard shortcuts one router may hold\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_events_create\fP (\fBschultz_tree\fP *tree, \fBschultz_events\fP **out_events)"
+.br
+.RI "Creates routing state over a tree\&. "
+.ti -1c
+.RI "void \fBschultz_events_destroy\fP (\fBschultz_events\fP *events)"
+.br
+.RI "Destroys routing state\&. The tree is untouched\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_set_callback\fP (\fBschultz_events\fP *events, \fBschultz_event_callback_fn\fP callback, void *host_context)"
+.br
+.RI "Installs the host's callback function\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_hit_test\fP (\fBschultz_events\fP *events, \fBschultz_point\fP point, \fBschultz_handle\fP *out_node)"
+.br
+.RI "Finds the deepest node under a point\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_mouse_move\fP (\fBschultz_events\fP *events, \fBschultz_point\fP point, uint32_t modifiers)"
+.br
+.RI "Routes a pointer motion\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_mouse_button\fP (\fBschultz_events\fP *events, \fBschultz_point\fP point, uint32_t button, int32_t down, uint32_t modifiers)"
+.br
+.RI "Routes a mouse button press or release\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_scroll\fP (\fBschultz_events\fP *events, \fBschultz_point\fP point, float scroll_x, float scroll_y)"
+.br
+.RI "Routes a scroll to the node under the pointer\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_key\fP (\fBschultz_events\fP *events, uint32_t key, uint32_t modifiers, int32_t down)"
+.br
+.RI "Routes a key press or release to the focused node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_text_input\fP (\fBschultz_events\fP *events, const char *utf8)"
+.br
+.RI "Routes committed text to the focused node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_text_editing\fP (\fBschultz_events\fP *events, const char *utf8, int32_t cursor)"
+.br
+.RI "Routes an in progress IME composition to the focused node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_set_focus\fP (\fBschultz_events\fP *events, \fBschultz_handle\fP node)"
+.br
+.RI "Moves keyboard focus to a node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_set_time\fP (\fBschultz_events\fP *events, uint64_t now)"
+.br
+.RI "Tells the router what time it is, in milliseconds\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_post\fP (\fBschultz_events\fP *events, const \fBschultz_event\fP *tree_event)"
+.br
+.RI "Hands an event to the host without routing it through the tree\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_set_queue\fP (\fBschultz_events\fP *events, int32_t on)"
+.br
+.RI "Starts recording events into a queue the host reads in one go\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_drain\fP (\fBschultz_events\fP *events, const \fBschultz_event\fP **out_events, uint32_t *out_count)"
+.br
+.RI "Hands over everything recorded since the last drain\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_events_pending\fP (const \fBschultz_events\fP *events)"
+.br
+.RI "Counts what the queue is holding without taking it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_add_accelerator\fP (\fBschultz_events\fP *events, uint32_t key, uint32_t modifiers, \fBschultz_handle\fP node)"
+.br
+.RI "Registers a keyboard shortcut that activates a node\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_events_focus\fP (const \fBschultz_events\fP *events)"
+.br
+.RI "Returns the node holding keyboard focus\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_focus_move\fP (\fBschultz_events\fP *events, int32_t forward)"
+.br
+.RI "Moves focus to the next or previous focusable node\&. "
+.ti -1c
+.RI "\fBschultz_tree\fP * \fBschultz_events_tree\fP (const \fBschultz_events\fP *events)"
+.br
+.RI "Returns the tree this router is bound to\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_events_hovered\fP (const \fBschultz_events\fP *events)"
+.br
+.RI "Returns the node the pointer is currently over\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_set_pointer_source\fP (\fBschultz_events\fP *events, uint32_t source)"
+.br
+.RI "Says what is driving the pointer from here on\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_set_delete_by_codepoint\fP (\fBschultz_events\fP *events, int32_t on)"
+.br
+.RI "Says that a delete key removes one codepoint rather than a whole character\&. "
+.ti -1c
+.RI "int32_t \fBschultz_events_perform\fP (\fBschultz_events\fP *events, \fBschultz_handle\fP node, uint32_t action)"
+.br
+.RI "Carries out one of a node's declared actions\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_events_captured\fP (const \fBschultz_events\fP *events)"
+.br
+.RI "Returns the node holding the pointer capture\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Event routing: hit testing, hover, press, focus, and overlays\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+Raw input arrives from the platform layer and is turned into toolkit events aimed at a specific node\&. The routing state that makes that possible, which node is hovered, which is pressed, which holds focus, lives here rather than on the tree, because it is a property of the session rather than of the structure\&.
+.PP
+\fBThe toolkit never owns a callback\&.\fP It stores one function the host installs at startup, plus an opaque token per node\&. When an event fires, the toolkit calls that function with the token and the host decides what it means\&. That is what lets a Java host and a C host with a garbage collector both drive the same toolkit without it tracing anything\&. 
+.PP
+Definition in file \fBschultz_event\&.h\fP\&.
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define SCHULTZ_SPAN_NONE   0xFFFFFFFFu"
+
+.PP
+No span was pressed, which is what every event but a click on styled text reports\&. 
+.PP
+Definition at line \fB82\fP of file \fBschultz_event\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef int32_t(* schultz_event_callback_fn) (void *host_context, const \fBschultz_event\fP *event)"
+
+.PP
+The single entry point the host installs to receive every event\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIhost_context\fP Opaque pointer given at installation\&. 
+.br
+\fIevent\fP The event\&. Valid only for this call\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK to let routing continue, or SCHULTZ_EVENT_CONSUMED to take the event\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB232\fP of file \fBschultz_event\&.h\fP\&.
+.SS "typedef struct \fBschultz_events\fP \fBschultz_events\fP"
+
+.PP
+Opaque routing state\&. Create with schultz_events_create\&. 
+.PP
+Definition at line \fB236\fP of file \fBschultz_event\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+What happened\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_EVENT_MOUSE_ENTER \fP\fP
+Pointer entered this node\&. 
+.TP
+\fB\fISCHULTZ_EVENT_MOUSE_LEAVE \fP\fP
+Pointer left this node\&. 
+.TP
+\fB\fISCHULTZ_EVENT_MOUSE_MOVE \fP\fP
+Pointer moved over this node\&. 
+.TP
+\fB\fISCHULTZ_EVENT_MOUSE_DOWN \fP\fP
+A button went down on this node\&. 
+.TP
+\fB\fISCHULTZ_EVENT_MOUSE_UP \fP\fP
+A button came up\&. 
+.TP
+\fB\fISCHULTZ_EVENT_CLICK \fP\fP
+Press and release on the same node\&. 
+.TP
+\fB\fISCHULTZ_EVENT_DRAG \fP\fP
+Pointer moved while captured\&. 
+.TP
+\fB\fISCHULTZ_EVENT_SCROLL \fP\fP
+Wheel or trackpad scroll\&. 
+.TP
+\fB\fISCHULTZ_EVENT_FOCUS_GAINED \fP\fP
+This node took keyboard focus\&. 
+.TP
+\fB\fISCHULTZ_EVENT_FOCUS_LOST \fP\fP
+This node lost keyboard focus\&. 
+.TP
+\fB\fISCHULTZ_EVENT_KEY_DOWN \fP\fP
+A key went down, to the focused node\&. 
+.TP
+\fB\fISCHULTZ_EVENT_KEY_UP \fP\fP
+A key came up\&. 
+.TP
+\fB\fISCHULTZ_EVENT_TEXT_INPUT \fP\fP
+Committed text, to the focused node\&. 
+.TP
+\fB\fISCHULTZ_EVENT_TEXT_EDITING \fP\fP
+In progress IME composition\&. 
+.TP
+\fB\fISCHULTZ_EVENT_DISMISS \fP\fP
+An overlay should close itself\&. 
+.TP
+\fB\fISCHULTZ_EVENT_CONTEXT_MENU \fP\fP
+The secondary button asked for a menu\&. 
+.TP
+\fB\fISCHULTZ_EVENT_FILES_CHOSEN \fP\fP
+A file dialog came back with paths\&. 
+.TP
+\fB\fISCHULTZ_EVENT_FILES_CANCELLED \fP\fP
+A file dialog was dismissed\&. 
+.TP
+\fB\fISCHULTZ_EVENT_WINDOW_RESIZED \fP\fP
+The window changed size\&. \fCposition\fP carries the new width and height in pixels\&. The tree's viewport and root bounds have already been set to match; what a host still owns is whatever it sized by hand\&. 
+.PP
+Definition at line \fB51\fP of file \fBschultz_event\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Mouse buttons, as a bit set for held state and an index for individual events\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_BUTTON_LEFT \fP\fP
+Primary button\&. 
+.TP
+\fB\fISCHULTZ_BUTTON_MIDDLE \fP\fP
+Wheel button\&. 
+.TP
+\fB\fISCHULTZ_BUTTON_RIGHT \fP\fP
+Secondary button, which opens menus\&. 
+.PP
+Definition at line \fB86\fP of file \fBschultz_event\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+What a handler returns to say it took the event\&. Zero means 'not mine, keep going' and every failure is negative, so a positive value is free for this\&. A widget returns it to stop an event reaching the host, and a host returns it to stop further routing\&. 
+.PP
+Definition at line \fB99\fP of file \fBschultz_event\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Keys, independent of the platform\&. A key that produces a character is named by the Unicode codepoint it types with no modifiers held, so \fCA\fP is 0x61 and space is 0x20\&. This is what SDL, GLFW and the browsers all do, and it means a host testing for a shortcut letter can write the character rather than look up a constant\&.
+.PP
+Keys that produce no character are named above the Unicode range, which ends at 0x10FFFF, so the two sets can never collide\&. Return, escape, tab, backspace and delete belong here: they have old ASCII control codes, but those values are an accident of teletype history and say nothing useful\&.
+.PP
+The platform layer translates\&. Nothing above it sees a platform key code\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_KEY_UNKNOWN \fP\fP
+Not one of the keys named here\&. 
+.TP
+\fB\fISCHULTZ_KEY_SPACE \fP\fP
+The space bar\&. 
+.TP
+\fB\fISCHULTZ_KEY_RETURN \fP\fP
+Enter or return\&. 
+.TP
+\fB\fISCHULTZ_KEY_ESCAPE \fP\fP
+Escape\&. 
+.TP
+\fB\fISCHULTZ_KEY_TAB \fP\fP
+Tab\&. 
+.TP
+\fB\fISCHULTZ_KEY_BACKSPACE \fP\fP
+Delete backwards\&. 
+.TP
+\fB\fISCHULTZ_KEY_DELETE \fP\fP
+Delete forwards\&. 
+.TP
+\fB\fISCHULTZ_KEY_LEFT \fP\fP
+Left arrow\&. 
+.TP
+\fB\fISCHULTZ_KEY_RIGHT \fP\fP
+Right arrow\&. 
+.TP
+\fB\fISCHULTZ_KEY_UP \fP\fP
+Up arrow\&. 
+.TP
+\fB\fISCHULTZ_KEY_DOWN \fP\fP
+Down arrow\&. 
+.TP
+\fB\fISCHULTZ_KEY_HOME \fP\fP
+Home\&. 
+.TP
+\fB\fISCHULTZ_KEY_END \fP\fP
+End\&. 
+.TP
+\fB\fISCHULTZ_KEY_PAGE_UP \fP\fP
+Page up\&. 
+.TP
+\fB\fISCHULTZ_KEY_PAGE_DOWN \fP\fP
+Page down\&. 
+.PP
+Definition at line \fB118\fP of file \fBschultz_event\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Keyboard modifiers, as a bit set\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_MOD_SHIFT \fP\fP
+Either shift key\&. 
+.TP
+\fB\fISCHULTZ_MOD_CTRL \fP\fP
+Either control key\&. 
+.TP
+\fB\fISCHULTZ_MOD_ALT \fP\fP
+Either alt or option key\&. 
+.TP
+\fB\fISCHULTZ_MOD_SUPER \fP\fP
+Command, Windows, or super\&. 
+.PP
+Definition at line \fB138\fP of file \fBschultz_event\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+What is driving the pointer\&. A touch screen produces the same press, drag and release a mouse does, so without this a widget cannot tell a finger from a cursor\&. It matters where the right gesture differs: text is selected by dragging with a mouse, and by holding still and then dragging with a finger\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_POINTER_MOUSE \fP\fP
+A mouse, trackpad or pen\&. 
+.TP
+\fB\fISCHULTZ_POINTER_TOUCH \fP\fP
+A finger on a touch screen\&. 
+.PP
+Definition at line \fB153\fP of file \fBschultz_event\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+The largest number of keyboard shortcuts one router may hold\&. 
+.PP
+Definition at line \fB501\fP of file \fBschultz_event\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_events_create (\fBschultz_tree\fP * tree, \fBschultz_events\fP ** out_events)"
+
+.PP
+Creates routing state over a tree\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to route into\&. Must not be NULL and must outlive the routing state\&. 
+.br
+\fIout_events\fP Receives the new state\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when either pointer is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_events_destroy (\fBschultz_events\fP * events)"
+
+.PP
+Destroys routing state\&. The tree is untouched\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The state to destroy\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_set_callback (\fBschultz_events\fP * events, \fBschultz_event_callback_fn\fP callback, void * host_context)"
+
+.PP
+Installs the host's callback function\&. Call once at startup\&. Until it is installed, events are routed and state is updated but nothing is delivered\&.
+.PP
+\fBAcross a language boundary, use the queue instead\&.\fP This one takes a function pointer, so a bound language pays an upcall for every mouse movement\&. schultz_events_set_queue and schultz_events_drain deliver the same events as one downcall a frame\&. Nothing is lost by choosing the queue: it records everything a callback would have been told\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIcallback\fP The host's entry point, or NULL to stop delivery\&. 
+.br
+\fIhost_context\fP Passed back to callback unchanged\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when events is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_hit_test (\fBschultz_events\fP * events, \fBschultz_point\fP point, \fBschultz_handle\fP * out_node)"
+
+.PP
+Finds the deepest node under a point\&. Overlays are searched first, topmost down, then the content tree\&. Within a subtree the last child is tried first, because later children paint on top\&. Nodes that are not visible are skipped entirely, along with their subtrees\&.
+.PP
+A disabled node is still returned: it blocks what is behind it rather than letting clicks fall through, which is what a user expects from a greyed out control\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIpoint\fP The position in window coordinates\&. 
+.br
+\fIout_node\fP Receives the node, or SCHULTZ_HANDLE_NONE when the point hits nothing\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_mouse_move (\fBschultz_events\fP * events, \fBschultz_point\fP point, uint32_t modifiers)"
+
+.PP
+Routes a pointer motion\&. Updates the hovered node, emitting leave and enter as it changes, and sets or clears SCHULTZ_STATE_HOVERED, which marks the affected nodes dirty\&. While a button is held, motion goes to the captured node as a drag instead\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIpoint\fP The new position in window coordinates\&. 
+.br
+\fImodifiers\fP Bit set of SCHULTZ_MOD_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_mouse_button (\fBschultz_events\fP * events, \fBschultz_point\fP point, uint32_t button, int32_t down, uint32_t modifiers)"
+
+.PP
+Routes a mouse button press or release\&. A press captures the node under the pointer, so the matching release goes to it wherever the pointer has travelled\&. A release over the same node also produces a click\&. A press outside a capturing overlay dismisses that overlay and is consumed rather than reaching what is underneath\&.
+.PP
+A press also decides where focus is\&. On a focusable node it moves there; on anything else, empty space or a label or a plain container, focus goes away\&. That is what closes an on-screen keyboard, which follows focus and is managed nowhere else, and it is what a desktop does too: click the empty canvas and the caret leaves the field\&. The secondary button is the exception, because it asks for a context menu rather than pressing what is under it\&.
+.PP
+A finger has to have stayed roughly still as well, or the release is not a click\&. Content that scrolls with a finger carries the row it started on along underneath it, so that row is still what the release lands on, and without this every scroll would also press whatever it began on\&. A mouse is unaffected: pressing a large button, moving the cursor inside it and letting go is a click, and a cursor does not scroll by dragging\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIpoint\fP The position in window coordinates\&. 
+.br
+\fIbutton\fP One of the SCHULTZ_BUTTON_* values\&. 
+.br
+\fIdown\fP Nonzero for a press, zero for a release\&. 
+.br
+\fImodifiers\fP Bit set of SCHULTZ_MOD_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_scroll (\fBschultz_events\fP * events, \fBschultz_point\fP point, float scroll_x, float scroll_y)"
+
+.PP
+Routes a scroll to the node under the pointer\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIpoint\fP The position in window coordinates\&. 
+.br
+\fIscroll_x\fP Horizontal amount, positive is right\&. 
+.br
+\fIscroll_y\fP Vertical amount, positive is down\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_key (\fBschultz_events\fP * events, uint32_t key, uint32_t modifiers, int32_t down)"
+
+.PP
+Routes a key press or release to the focused node\&. Does nothing when nothing has focus\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIkey\fP One of the SCHULTZ_KEY_* values\&. 
+.br
+\fImodifiers\fP Bit set of SCHULTZ_MOD_* values\&. 
+.br
+\fIdown\fP Nonzero for a press, zero for a release\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_text_input (\fBschultz_events\fP * events, const char * utf8)"
+
+.PP
+Routes committed text to the focused node\&. This is what an IME produces when a composition is accepted, and what a plain keystroke produces directly\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIutf8\fP The text, NUL terminated\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_text_editing (\fBschultz_events\fP * events, const char * utf8, int32_t cursor)"
+
+.PP
+Routes an in progress IME composition to the focused node\&. The text is provisional and will be replaced, either by a further editing event or by a committed text input event\&. A text field is expected to show it inline, usually underlined\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIutf8\fP The composition so far, NUL terminated\&. Must not be NULL\&. 
+.br
+\fIcursor\fP Cursor position within the composition, in bytes\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_set_focus (\fBschultz_events\fP * events, \fBschultz_handle\fP node)"
+
+.PP
+Moves keyboard focus to a node\&. Emits focus lost on the previous holder and focus gained on the new one, and maintains SCHULTZ_STATE_FOCUSED, which marks both dirty\&. Passing SCHULTZ_HANDLE_NONE clears focus\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to focus, or SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_INVALID_HANDLE when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_set_time (\fBschultz_events\fP * events, uint64_t now)"
+
+.PP
+Tells the router what time it is, in milliseconds\&. Nothing in the toolkit knows the time, and telling one press from two needs it\&. A host calls this before handing over each event, with that event's own timestamp when the platform provides one\&.
+.PP
+Without it every press counts as a single click, which is what a host that does not care about double clicks wants anyway\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fInow\fP Milliseconds from any fixed point, so long as it only rises\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_post (\fBschultz_events\fP * events, const \fBschultz_event\fP * tree_event)"
+
+.PP
+Hands an event to the host without routing it through the tree\&. Everything the router raises belongs to a node and rises through the tree on its way out\&. Some things do not: a file dialog comes back long after the click that opened it, and belongs to no node at all\&. Those are posted here instead, and reach the host exactly as any other event does, through the queue and through the callback\&.
+.PP
+No widget sees it, because there is no target to give it to\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree_event\fP The event to hand over\&. Must not be NULL\&. 
+.br
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or whatever the host's callback returned\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_set_queue (\fBschultz_events\fP * events, int32_t on)"
+
+.PP
+Starts recording events into a queue the host reads in one go\&. A callback is the right shape for a host written in C and the wrong shape for one across a language boundary, where it becomes an upcall for every mouse movement\&. A queue turns that into one downcall a frame: hand the platform's events to the router as usual, then drain once and walk the array\&.
+.PP
+The queue records what a host would have been told and never consumes anything, so a widget still sees every event first and the host's callback, if one is installed, still runs\&. It grows as needed and is reused, so a host that drains every frame stops allocating after the first few\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIon\fP Nonzero to record, zero to stop and release the queue\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_drain (\fBschultz_events\fP * events, const \fBschultz_event\fP ** out_events, uint32_t * out_count)"
+
+.PP
+Hands over everything recorded since the last drain\&. No copying: the array is the queue's own storage\&. It stays valid until the next event is routed, which in a frame loop means until the next frame, so a host drains and walks the array before touching the router again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIout_events\fP Receives the array, or NULL when nothing was recorded\&. Must not be NULL\&. 
+.br
+\fIout_count\fP Receives how many events it holds\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_events_pending (const \fBschultz_events\fP * events)"
+
+.PP
+Counts what the queue is holding without taking it\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many events are waiting\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_add_accelerator (\fBschultz_events\fP * events, uint32_t key, uint32_t modifiers, \fBschultz_handle\fP node)"
+
+.PP
+Registers a keyboard shortcut that activates a node\&. A shortcut fires wherever focus happens to be, so long as whatever holds focus did not want the key itself: a text field typing control with V is not also a paste command aimed at a menu\&. The node is then clicked exactly as if it had been pressed, so a menu item and a button behave the same way whether they were reached by hand or by shortcut\&.
+.PP
+Registering the same key and modifiers again replaces what was there\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIkey\fP One of the SCHULTZ_KEY_* values, or a character's codepoint\&. 
+.br
+\fImodifiers\fP The modifiers that must be held, as SCHULTZ_MOD_* values\&. 
+.br
+\fInode\fP The node to activate, or SCHULTZ_HANDLE_NONE to remove the shortcut\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_EXHAUSTED when there is no room for another\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_events_focus (const \fBschultz_events\fP * events)"
+
+.PP
+Returns the node holding keyboard focus\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The focused node, or SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_focus_move (\fBschultz_events\fP * events, int32_t forward)"
+
+.PP
+Moves focus to the next or previous focusable node\&. Focus order is tree order: a depth first walk, parents before children, earlier siblings first\&. A node is focusable when it is effectively visible, enabled, and declares SCHULTZ_ACTION_FOCUS, which reuses the accessibility schema rather than inventing a second notion of focusability\&.
+.PP
+The walk wraps around, so tabbing from the last focusable node reaches the first\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIforward\fP Nonzero to move forward, zero to move backward\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_EXHAUSTED when nothing in the tree is focusable\&. 
+.RE
+.PP
+
+.SS "\fBschultz_tree\fP * schultz_events_tree (const \fBschultz_events\fP * events)"
+
+.PP
+Returns the tree this router is bound to\&. Lets the platform layer ask about the focused node without being handed the tree separately\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The tree, which the router does not own\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_events_hovered (const \fBschultz_events\fP * events)"
+
+.PP
+Returns the node the pointer is currently over\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The hovered node, or SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_set_pointer_source (\fBschultz_events\fP * events, uint32_t source)"
+
+.PP
+Says what is driving the pointer from here on\&. The platform layer sets this as it translates each event, before handing it to the router, and every event the router sends afterwards carries it\&. It stays as set until it is changed, because a run of events from one finger all come from the same source\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fIsource\fP SCHULTZ_POINTER_MOUSE or SCHULTZ_POINTER_TOUCH\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_set_delete_by_codepoint (\fBschultz_events\fP * events, int32_t on)"
+
+.PP
+Says that a delete key removes one codepoint rather than a whole character\&. For a platform that has no keys to report and works out what changed instead, sending one backspace for every codepoint it removed\&. See \fCone_codepoint\fP on \fBschultz_event\fP for what goes wrong without this\&.
+.PP
+A host that reports real key presses never calls this\&. One that translates them from a platform text field sets it while that is where the keys are coming from, and clears it if a real keyboard is attached\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The event system\&. Must not be NULL\&. 
+.br
+\fIon\fP Nonzero to mark delete keys from here on\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_events_perform (\fBschultz_events\fP * events, \fBschultz_handle\fP node, uint32_t action)"
+
+.PP
+Carries out one of a node's declared actions\&. The way something other than a hand asks a widget to act\&. An assistive technology telling a screen reader user's button to press arrives here, and is turned into the same event a real press produces, so that what a screen reader can do and what a mouse can do cannot drift apart\&.
+.PP
+The action is refused unless the node declares it in its accessibility schema, which is what stops a caller reaching past what a widget offers\&.
+.PP
+Increment and decrement are delivered as a right or left arrow key, because that is the input a range widget already understands\&. A widget that answers neither will not move\&.
+.PP
+SCHULTZ_ACTION_SET_VALUE is not handled here: a value needs a payload, and this call carries none\&. SCHULTZ_ACTION_SCROLL is not either, because bringing a node into view belongs to the scroll view that holds it; see schultz_scroll_view_reveal\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to act on\&. Must name a live node\&. 
+.br
+\fIaction\fP One of the SCHULTZ_ACTION_* values, exactly one\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when the action is not one this handles or the node does not declare it, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_events_captured (const \fBschultz_events\fP * events)"
+
+.PP
+Returns the node holding the pointer capture\&. Set on press and cleared on release\&. While it is set, motion is delivered to it as a drag no matter where the pointer goes\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIevents\fP The routing state\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The captured node, or SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

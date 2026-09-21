@@ -1,0 +1,707 @@
+.TH "schultz_geom.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_geom.h \- Geometry and color primitives\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_point\fP"
+.br
+.RI "A position in pixels\&. "
+.ti -1c
+.RI "struct \fBschultz_rect\fP"
+.br
+.RI "An axis aligned rectangle in pixels\&. "
+.ti -1c
+.RI "struct \fBschultz_size\fP"
+.br
+.RI "A two dimensional extent in pixels\&. "
+.ti -1c
+.RI "struct \fBschultz_color\fP"
+.br
+.RI "A non premultiplied RGBA color, 8 bits per channel\&. "
+.ti -1c
+.RI "struct \fBschultz_paint\fP"
+.br
+.RI "A fill or a stroke: a colour, or a gradient named by handle\&. "
+.ti -1c
+.RI "struct \fBschultz_stroke\fP"
+.br
+.RI "Everything about a stroke but the shape it follows\&. "
+.ti -1c
+.RI "struct \fBschultz_shadow\fP"
+.br
+.RI "A shadow cast by a node and everything under it\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_PAINT_SOLID\fP = 0, \fBSCHULTZ_PAINT_GRADIENT\fP }"
+.br
+.RI "What a fill or a stroke is made of\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_CAP_BUTT\fP = 0, \fBSCHULTZ_CAP_ROUND\fP, \fBSCHULTZ_CAP_SQUARE\fP }"
+.br
+.RI "How the ends of a stroked line are finished\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_JOIN_MITER\fP = 0, \fBSCHULTZ_JOIN_ROUND\fP, \fBSCHULTZ_JOIN_BEVEL\fP }"
+.br
+.RI "How two stroked segments meet at a corner\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_PATH_CLOSE\fP = 0, \fBSCHULTZ_PATH_MOVE\fP, \fBSCHULTZ_PATH_LINE\fP, \fBSCHULTZ_PATH_CURVE\fP, \fBSCHULTZ_PATH_QUAD\fP }"
+.br
+.RI "One step of a path: what to do next\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_ARC_OPEN\fP = 0, \fBSCHULTZ_ARC_PIE\fP, \fBSCHULTZ_ARC_CHORD\fP }"
+.br
+.RI "How an arc is finished off at its two ends\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_ARC_STEPS_MAX\fP = 8, \fBSCHULTZ_ARC_POINTS_MAX\fP = 16 }"
+.br
+.RI "How much room an arc's path can ever need\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_FILL_NONZERO\fP = 0, \fBSCHULTZ_FILL_EVEN_ODD\fP }"
+.br
+.RI "Which parts of a self crossing shape count as inside it\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_point\fP \fBschultz_point_make\fP (float x, float y)"
+.br
+.RI "Builds a point\&. "
+.ti -1c
+.RI "\fBschultz_size\fP \fBschultz_size_make\fP (float width, float height)"
+.br
+.RI "Builds a size\&. "
+.ti -1c
+.RI "\fBschultz_rect\fP \fBschultz_rect_make\fP (float x, float y, float width, float height)"
+.br
+.RI "Builds a rectangle\&. "
+.ti -1c
+.RI "\fBschultz_color\fP \fBschultz_color_rgba\fP (uint8_t r, uint8_t g, uint8_t b, uint8_t a)"
+.br
+.RI "Builds a color from four channel values\&. "
+.ti -1c
+.RI "int32_t \fBschultz_arc_path\fP (\fBschultz_rect\fP box, float start_degrees, float sweep_degrees, uint32_t ends, uint8_t *out_steps, uint32_t *out_step_count, \fBschultz_point\fP *out_points, uint32_t *out_point_count)"
+.br
+.RI "Builds the path of an arc, a pie wedge or a chord\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_path_step_points\fP (uint32_t step)"
+.br
+.RI "How many points one path step uses\&. "
+.ti -1c
+.RI "\fBschultz_shadow\fP \fBschultz_shadow_none\fP (void)"
+.br
+.RI "A shadow that does not appear\&. "
+.ti -1c
+.RI "\fBschultz_paint\fP \fBschultz_paint_solid\fP (\fBschultz_color\fP color)"
+.br
+.RI "Makes a paint that is one flat colour\&. "
+.ti -1c
+.RI "\fBschultz_paint\fP \fBschultz_paint_gradient\fP (\fBschultz_handle\fP gradient)"
+.br
+.RI "Makes a paint that is a registered gradient\&. "
+.ti -1c
+.RI "\fBschultz_stroke\fP \fBschultz_stroke_solid\fP (\fBschultz_color\fP color, float width)"
+.br
+.RI "Makes an ordinary stroke: one colour, no dashes, butt and miter\&. "
+.ti -1c
+.RI "\fBschultz_stroke\fP \fBschultz_stroke_make\fP (\fBschultz_paint\fP paint, float width)"
+.br
+.RI "Makes a stroke from a paint, so it can be a gradient\&. "
+.ti -1c
+.RI "int32_t \fBschultz_paint_is_invisible\fP (\fBschultz_paint\fP paint)"
+.br
+.RI "Reports whether a paint would draw nothing at all\&. "
+.ti -1c
+.RI "int32_t \fBschultz_rect_is_empty\fP (\fBschultz_rect\fP rect)"
+.br
+.RI "Reports whether a rectangle encloses any area\&. "
+.ti -1c
+.RI "int32_t \fBschultz_rect_equals\fP (\fBschultz_rect\fP a, \fBschultz_rect\fP b)"
+.br
+.RI "Compares two rectangles field by field\&. "
+.ti -1c
+.RI "int32_t \fBschultz_rect_contains_point\fP (\fBschultz_rect\fP rect, \fBschultz_point\fP point)"
+.br
+.RI "Tests whether a point lies inside a rectangle\&. "
+.ti -1c
+.RI "\fBschultz_rect\fP \fBschultz_rect_expand\fP (\fBschultz_rect\fP rect, float amount)"
+.br
+.RI "Grows a rectangle by the same amount on every side\&. "
+.ti -1c
+.RI "float \fBschultz_paint_slack\fP (void)"
+.br
+.RI "How far past a dirty rectangle repainting actually reaches\&. "
+.ti -1c
+.RI "\fBschultz_rect\fP \fBschultz_rect_intersect\fP (\fBschultz_rect\fP a, \fBschultz_rect\fP b)"
+.br
+.RI "Computes the overlap of two rectangles\&. "
+.ti -1c
+.RI "\fBschultz_rect\fP \fBschultz_rect_pixel_bounds\fP (\fBschultz_rect\fP rect, float slack)"
+.br
+.RI "Expands a rectangle outward to whole pixel boundaries\&. "
+.ti -1c
+.RI "float \fBschultz_rect_right\fP (\fBschultz_rect\fP rect)"
+.br
+.RI "Returns the x coordinate just past the right edge\&. "
+.ti -1c
+.RI "float \fBschultz_rect_bottom\fP (\fBschultz_rect\fP rect)"
+.br
+.RI "Returns the y coordinate just past the bottom edge\&. "
+.ti -1c
+.RI "int32_t \fBschultz_color_equals\fP (\fBschultz_color\fP a, \fBschultz_color\fP b)"
+.br
+.RI "Compares two colors channel by channel\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Geometry and color primitives\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+These types cross the host boundary by value, which is allowed for exactly this shape of struct: small, and holding nothing but fixed width scalars\&. A paint names its gradient by handle rather than by pointer for the same reason\&. The rule, and why it was relaxed from forbidding by value at all, is stated once in \fBschultz\&.h\fP\&.
+.PP
+Coordinates are floats in pixels\&. Display scale is applied at render time, so the same layout serves desktop high DPI and mobile densities\&. 
+.PP
+Definition in file \fBschultz_geom\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+What a fill or a stroke is made of\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_PAINT_SOLID \fP\fP
+One colour everywhere\&. 
+.TP
+\fB\fISCHULTZ_PAINT_GRADIENT \fP\fP
+A registered gradient, by handle\&. 
+.PP
+Definition at line \fB117\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+How the ends of a stroked line are finished\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_CAP_BUTT \fP\fP
+Stops flat at the end point\&. 
+.TP
+\fB\fISCHULTZ_CAP_ROUND \fP\fP
+A half circle past the end point\&. 
+.TP
+\fB\fISCHULTZ_CAP_SQUARE \fP\fP
+A half square past the end point\&. 
+.PP
+Definition at line \fB139\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+How two stroked segments meet at a corner\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_JOIN_MITER \fP\fP
+Extended to a point\&. 
+.TP
+\fB\fISCHULTZ_JOIN_ROUND \fP\fP
+Rounded off\&. 
+.TP
+\fB\fISCHULTZ_JOIN_BEVEL \fP\fP
+Cut flat across\&. 
+.PP
+Definition at line \fB146\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+One step of a path: what to do next\&. A path is two arrays read together: these steps, and the points they use\&. Each step takes a fixed number of points off the front of the point array, so the two arrays are different lengths and both counts have to be given\&.
+.PP
+SCHULTZ_PATH_CLOSE no points SCHULTZ_PATH_MOVE one, where the new subpath starts SCHULTZ_PATH_LINE one, where the line ends SCHULTZ_PATH_CURVE three: two controls, then where the curve ends SCHULTZ_PATH_QUAD two: one control, then where the curve ends
+.PP
+A path begins with a move\&. A second move starts a second subpath, which is how a shape gets a hole in it\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_PATH_CLOSE \fP\fP
+Join back to where this subpath started\&. 
+.TP
+\fB\fISCHULTZ_PATH_MOVE \fP\fP
+Lift the pen and put it down somewhere else\&. 
+.TP
+\fB\fISCHULTZ_PATH_LINE \fP\fP
+A straight segment from where the pen is\&. 
+.TP
+\fB\fISCHULTZ_PATH_CURVE \fP\fP
+A cubic curve, the kind fonts and vector formats are drawn with\&. 
+.TP
+\fB\fISCHULTZ_PATH_QUAD \fP\fP
+A quadratic curve, which has one control point rather than two\&. It is raised to a cubic when it is recorded, exactly and with no loss, so this value never reaches a backend and never comes back out of a command list\&. 
+.PP
+Definition at line \fB168\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+How an arc is finished off at its two ends\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_ARC_OPEN \fP\fP
+Left open: the curve and nothing else\&. This is the one to stroke\&. 
+.TP
+\fB\fISCHULTZ_ARC_PIE \fP\fP
+Closed through the centre, so it comes out a wedge of a pie\&. 
+.TP
+\fB\fISCHULTZ_ARC_CHORD \fP\fP
+Closed straight across, so it comes out the piece a chord cuts off\&. 
+.PP
+Definition at line \fB187\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+How much room an arc's path can ever need\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_ARC_STEPS_MAX \fP\fP
+A move, four curves, two lines and a close\&. 
+.TP
+\fB\fISCHULTZ_ARC_POINTS_MAX \fP\fP
+One for the move, three for each curve, one for the line to a centre\&. 
+.PP
+Definition at line \fB197\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Which parts of a self crossing shape count as inside it\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_FILL_NONZERO \fP\fP
+Count the crossings, adding for one direction and subtracting for the other\&. Anything that does not come back to zero is inside\&. A star drawn in one continuous stroke comes out solid\&. 
+.TP
+\fB\fISCHULTZ_FILL_EVEN_ODD \fP\fP
+Count the crossings and take the odd ones as inside\&. The same star comes out with a hole in the middle, which is the other thing a person might have meant\&. 
+.PP
+Definition at line \fB248\fP of file \fBschultz_geom\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "\fBschultz_point\fP schultz_point_make (float x, float y)"
+
+.PP
+Builds a point\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIx\fP Horizontal position in pixels\&. 
+.br
+\fIy\fP Vertical position in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A point with the given coordinates\&. 
+.RE
+.PP
+
+.SS "\fBschultz_size\fP schultz_size_make (float width, float height)"
+
+.PP
+Builds a size\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwidth\fP Horizontal extent in pixels\&. 
+.br
+\fIheight\fP Vertical extent in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A size with the given extents\&. Negative values are stored as given and are treated as empty by schultz_rect_is_empty\&. 
+.RE
+.PP
+
+.SS "\fBschultz_rect\fP schultz_rect_make (float x, float y, float width, float height)"
+
+.PP
+Builds a rectangle\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIx\fP Left edge in pixels\&. 
+.br
+\fIy\fP Top edge in pixels\&. 
+.br
+\fIwidth\fP Extent to the right of x\&. 
+.br
+\fIheight\fP Extent below y\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A rectangle with the given origin and extents\&. 
+.RE
+.PP
+
+.SS "\fBschultz_color\fP schultz_color_rgba (uint8_t r, uint8_t g, uint8_t b, uint8_t a)"
+
+.PP
+Builds a color from four channel values\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIr\fP Red channel, 0 to 255\&. 
+.br
+\fIg\fP Green channel, 0 to 255\&. 
+.br
+\fIb\fP Blue channel, 0 to 255\&. 
+.br
+\fIa\fP Alpha channel, 0 transparent to 255 opaque\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A color with the given channels\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_arc_path (\fBschultz_rect\fP box, float start_degrees, float sweep_degrees, uint32_t ends, uint8_t * out_steps, uint32_t * out_step_count, \fBschultz_point\fP * out_points, uint32_t * out_point_count)"
+
+.PP
+Builds the path of an arc, a pie wedge or a chord\&. No rasterizer this toolkit uses has an arc of its own, so one is built out of cubic curves, split so that no curve turns more than a quarter\&. That is the usual approximation and it is accurate to well under a pixel at any size a screen has\&.
+.PP
+Angles are in \fBdegrees\fP, measured from three o'clock and running clockwise, which is the direction y grows in\&. A sweep of 360 or more is clamped to a whole turn; a sweep of zero produces nothing\&.
+.PP
+The two arrays are the caller's, and must hold at least SCHULTZ_ARC_STEPS_MAX and SCHULTZ_ARC_POINTS_MAX\&. Both are small enough to live on the stack\&. What comes back goes straight to schultz_draw_fill_path or schultz_draw_stroke_path\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbox\fP The rectangle the whole ellipse is inscribed in, not just the part the arc covers\&. 
+.br
+\fIstart_degrees\fP Where the arc begins\&. 
+.br
+\fIsweep_degrees\fP How far it turns\&. Negative turns anticlockwise\&. 
+.br
+\fIends\fP SCHULTZ_ARC_OPEN, _PIE or _CHORD\&. 
+.br
+\fIout_steps\fP Receives the steps\&. Must not be NULL\&. 
+.br
+\fIout_step_count\fP Receives how many steps\&. Must not be NULL\&. 
+.br
+\fIout_points\fP Receives the points\&. Must not be NULL\&. 
+.br
+\fIout_point_count\fP Receives how many points\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when a pointer is NULL, the box is empty, or \fCends\fP is none of the three\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_path_step_points (uint32_t step)"
+
+.PP
+How many points one path step uses\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIstep\fP One of the SCHULTZ_PATH_* values\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+0, 1, 2 or 3\&. An unknown step reports 0\&. 
+.RE
+.PP
+
+.SS "\fBschultz_shadow\fP schultz_shadow_none (void)"
+
+.PP
+A shadow that does not appear\&. What a node has until something says otherwise\&.
+.PP
+\fBReturns\fP
+.RS 4
+A shadow whose colour is fully transparent\&. 
+.RE
+.PP
+
+.SS "\fBschultz_paint\fP schultz_paint_solid (\fBschultz_color\fP color)"
+
+.PP
+Makes a paint that is one flat colour\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcolor\fP The colour\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The paint\&. 
+.RE
+.PP
+
+.SS "\fBschultz_paint\fP schultz_paint_gradient (\fBschultz_handle\fP gradient)"
+
+.PP
+Makes a paint that is a registered gradient\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIgradient\fP A handle from schultz_gradient_linear or _radial\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The paint\&. 
+.RE
+.PP
+
+.SS "\fBschultz_stroke\fP schultz_stroke_solid (\fBschultz_color\fP color, float width)"
+
+.PP
+Makes an ordinary stroke: one colour, no dashes, butt and miter\&. The dash offset starts at zero and the miter limit at four\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcolor\fP The colour\&. 
+.br
+\fIwidth\fP How thick, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The stroke\&. 
+.RE
+.PP
+
+.SS "\fBschultz_stroke\fP schultz_stroke_make (\fBschultz_paint\fP paint, float width)"
+
+.PP
+Makes a stroke from a paint, so it can be a gradient\&. Every field this does not name takes the same default schultz_stroke_solid gives it: no dash, butt cap, mitre join, zero offset, limit of four\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIpaint\fP What to stroke with\&. 
+.br
+\fIwidth\fP How thick, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The stroke\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_paint_is_invisible (\fBschultz_paint\fP paint)"
+
+.PP
+Reports whether a paint would draw nothing at all\&. A fully transparent colour draws nothing; a gradient always draws something, since its stops decide its own transparency\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIpaint\fP The paint to test\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when nothing would be drawn, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_rect_is_empty (\fBschultz_rect\fP rect)"
+
+.PP
+Reports whether a rectangle encloses any area\&. A rectangle is empty when either extent is not greater than zero, which includes negative extents\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIrect\fP The rectangle to test, by value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the rectangle is empty, 0 when it encloses area\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_rect_equals (\fBschultz_rect\fP a, \fBschultz_rect\fP b)"
+
+.PP
+Compares two rectangles field by field\&. This is an exact float comparison, not a tolerance comparison\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIa\fP First rectangle, by value\&. 
+.br
+\fIb\fP Second rectangle, by value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when all four fields are equal, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_rect_contains_point (\fBschultz_rect\fP rect, \fBschultz_point\fP point)"
+
+.PP
+Tests whether a point lies inside a rectangle\&. The left and top edges are inside and the right and bottom edges are outside, so two adjacent rectangles never both claim a point on their shared edge\&. An empty rectangle contains nothing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIrect\fP The rectangle to test against, by value\&. 
+.br
+\fIpoint\fP The point to test, by value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the point is inside, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "\fBschultz_rect\fP schultz_rect_expand (\fBschultz_rect\fP rect, float amount)"
+
+.PP
+Grows a rectangle by the same amount on every side\&. A negative amount shrinks it, and shrinking past nothing gives an empty rectangle at the centre rather than a negative size\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIrect\fP The rectangle to grow\&. 
+.br
+\fIamount\fP How far to move each edge outward, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The grown rectangle\&. 
+.RE
+.PP
+
+.SS "float schultz_paint_slack (void)"
+
+.PP
+How far past a dirty rectangle repainting actually reaches\&. Antialiased coverage extends past a shape's geometry, so every consumer of a dirty rectangle rounds it out to whole pixels with this much slack\&. It is named once so the region that gets repainted and the region that decides what to repaint cannot drift apart\&.
+.PP
+A function rather than a constant, because a public header carries no macros: a host reading this across a foreign function interface should not have to reproduce a number that only C can see\&.
+.PP
+\fBReturns\fP
+.RS 4
+The slack, in pixels\&. 
+.RE
+.PP
+
+.SS "\fBschultz_rect\fP schultz_rect_intersect (\fBschultz_rect\fP a, \fBschultz_rect\fP b)"
+
+.PP
+Computes the overlap of two rectangles\&. Rectangles that merely touch along an edge do not overlap\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIa\fP First rectangle, by value\&. 
+.br
+\fIb\fP Second rectangle, by value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The overlapping region, or a zero sized rectangle at the origin when the two do not overlap\&. Test the result with schultz_rect_is_empty rather than comparing against a rectangle\&. 
+.RE
+.PP
+
+.SS "\fBschultz_rect\fP schultz_rect_pixel_bounds (\fBschultz_rect\fP rect, float slack)"
+
+.PP
+Expands a rectangle outward to whole pixel boundaries\&. Anything that hands a rectangle to an integer pixel API must round outward, never truncate\&. Truncating loses a fraction of a pixel on the far edge, and for a region that moves by a fractional amount each frame that loss accumulates and periodically leaves a column of the previous frame behind\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIrect\fP The rectangle to align, in pixels\&. 
+.br
+\fIslack\fP Extra margin in pixels, applied on every side before alignment\&. Pass at least 1 for anything antialiased, because coverage bleeds outside the geometric bounds\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The smallest whole pixel rectangle that contains the input expanded by slack\&. An empty input yields an empty result\&. 
+.RE
+.PP
+
+.SS "float schultz_rect_right (\fBschultz_rect\fP rect)"
+
+.PP
+Returns the x coordinate just past the right edge\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIrect\fP The rectangle, by value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+rect\&.x + rect\&.width\&. 
+.RE
+.PP
+
+.SS "float schultz_rect_bottom (\fBschultz_rect\fP rect)"
+
+.PP
+Returns the y coordinate just past the bottom edge\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIrect\fP The rectangle, by value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+rect\&.y + rect\&.height\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_color_equals (\fBschultz_color\fP a, \fBschultz_color\fP b)"
+
+.PP
+Compares two colors channel by channel\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIa\fP First color, by value\&. 
+.br
+\fIb\fP Second color, by value\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when all four channels are equal, 0 otherwise\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

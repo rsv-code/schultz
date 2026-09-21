@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="330" viewBox="0 0 760 330"
+     font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="13">
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,1 L8,4.5 L0,8 z" fill="#64686f"/>
+    </marker>
+  </defs>
+  <rect width="760" height="330" fill="#edf1f8"/>
+  <text x="24" y="30" font-size="15" font-weight="bold" fill="#25282d">One frame, in order</text>
+  <text x="24" y="50" fill="#64686f">schultz_frame_run does all of this. You get it for one call.</text>
+
+  <g>
+    <rect x="24" y="70" width="150" height="44" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+    <text x="36" y="88" fill="#25282d" font-weight="bold">1. Advance</text>
+    <text x="36" y="105" fill="#64686f">move animations on</text>
+
+    <rect x="200" y="70" width="150" height="44" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+    <text x="212" y="88" fill="#25282d" font-weight="bold">2. Resolve styles</text>
+    <text x="212" y="105" fill="#64686f">tokens to values</text>
+
+    <rect x="376" y="70" width="150" height="44" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+    <text x="388" y="88" fill="#25282d" font-weight="bold">3. Lay out</text>
+    <text x="388" y="105" fill="#64686f">measure, arrange</text>
+
+    <rect x="552" y="70" width="184" height="44" rx="4" fill="#dee3ea" stroke="#2971ac"/>
+    <text x="564" y="88" fill="#2971ac" font-weight="bold">4. Read dirty region</text>
+    <text x="564" y="105" fill="#64686f">what actually changed</text>
+
+    <path d="M174,92 L198,92" stroke="#64686f" marker-end="url(#a)"/>
+    <path d="M350,92 L374,92" stroke="#64686f" marker-end="url(#a)"/>
+    <path d="M526,92 L550,92" stroke="#64686f" marker-end="url(#a)"/>
+  </g>
+
+  <path d="M644,116 L644,140" stroke="#64686f" marker-end="url(#a)"/>
+
+  <g>
+    <rect x="552" y="146" width="184" height="44" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+    <text x="564" y="164" fill="#25282d" font-weight="bold">5. Paint</text>
+    <text x="564" y="181" fill="#64686f">only inside that region</text>
+
+    <rect x="376" y="146" width="150" height="44" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+    <text x="388" y="164" fill="#25282d" font-weight="bold">6. Rasterize</text>
+    <text x="388" y="181" fill="#64686f">ThorVG, to pixels</text>
+
+    <rect x="200" y="146" width="150" height="44" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+    <text x="212" y="164" fill="#25282d" font-weight="bold">7. Present</text>
+    <text x="212" y="181" fill="#64686f">upload and show</text>
+
+    <rect x="24" y="146" width="150" height="44" rx="4" fill="#ffffff" stroke="#ced2d9"/>
+    <text x="36" y="164" fill="#25282d" font-weight="bold">8. Read input</text>
+    <text x="36" y="181" fill="#64686f">route to nodes</text>
+
+    <path d="M550,168 L528,168" stroke="#64686f" marker-end="url(#a)"/>
+    <path d="M374,168 L352,168" stroke="#64686f" marker-end="url(#a)"/>
+    <path d="M198,168 L176,168" stroke="#64686f" marker-end="url(#a)"/>
+  </g>
+
+  <path d="M99,192 L99,222 L12,222 L12,60 L99,60 L99,66" stroke="#64686f" fill="none"
+        stroke-dasharray="4 3" marker-end="url(#a)"/>
+  <text x="132" y="228" fill="#64686f">input changes the tree, which marks a new dirty region for the next frame</text>
+
+  <rect x="24" y="252" width="712" height="58" rx="4" fill="#f8fdff" stroke="#ced2d9"/>
+  <text x="40" y="274" fill="#25282d" font-weight="bold">Why the dirty region matters</text>
+  <text x="40" y="294" fill="#64686f">A frame paints only what changed. Nothing is cleared first, so an opaque parent has to</text>
+  <text x="40" y="308" fill="#64686f">repaint the area before anything translucent on top of it does.</text>
+</svg>

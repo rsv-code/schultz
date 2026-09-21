@@ -1,0 +1,82 @@
+.TH "schultz_layout_internal.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_layout_internal.h \- The size a node may take, as the layout engine reads it\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_layout\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_size_hints\fP"
+.br
+.RI "Minimum, preferred and maximum size along both axes\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_size_hints_default\fP (\fBschultz_size_hints\fP *out_hints)"
+.br
+.RI "Fills in permissive defaults: no minimum, computed preferred size, no maximum\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_size_hints\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_size_hints\fP *out_hints)"
+.br
+.RI "Reads every size a node may take, in one go\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The size a node may take, as the layout engine reads it\&. 
+
+Internal to the layout engine and the node store\&. A host names each of these one at a time, through schultz_node_set_min_size and the two calls beside it; measuring wants all six together, and that is what this is for\&.
+.PP
+It is not part of the interface on purpose\&. A call that took all six at once could not set one without being handed the other five, so every caller read them back first, and a caller that did not silently replaced settings it had never heard of\&. 
+.PP
+Definition in file \fBschultz_layout_internal\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_size_hints_default (\fBschultz_size_hints\fP * out_hints)"
+
+.PP
+Fills in permissive defaults: no minimum, computed preferred size, no maximum\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_hints\fP Receives the defaults\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when out_hints is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_size_hints (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_size_hints\fP * out_hints)"
+
+.PP
+Reads every size a node may take, in one go\&. What measuring needs, and the reason this header exists\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.br
+\fIout_hints\fP Receives the sizes\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_hints is NULL, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

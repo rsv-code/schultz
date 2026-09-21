@@ -1,0 +1,400 @@
+.TH "schultz_voice.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_voice.h \- Cleaning up microphone sound before it is sent\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdint\&.h>\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_voice_tuning\fP"
+.br
+.RI "How hard each of the four pushes\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_voice\fP \fBschultz_voice\fP"
+.br
+.RI "One microphone's worth of cleaning up\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_voice_create\fP (uint32_t frames, uint32_t rate, \fBschultz_voice\fP **out_voice)"
+.br
+.RI "Creates one\&. "
+.ti -1c
+.RI "void \fBschultz_voice_destroy\fP (\fBschultz_voice\fP *voice)"
+.br
+.RI "Closes one\&. Safe on NULL\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_clean\fP (\fBschultz_voice\fP *voice, float *mic, const float *played, uint64_t frames)"
+.br
+.RI "Cleans one frame of microphone sound, in place\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_speaking\fP (const \fBschultz_voice\fP *voice)"
+.br
+.RI "Reports whether somebody was speaking in the last frame cleaned\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_set_echo_removal\fP (\fBschultz_voice\fP *voice, int32_t on)"
+.br
+.RI "Turns echo cancellation on or off\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_echo_removal\fP (const \fBschultz_voice\fP *voice)"
+.br
+.RI "Reports whether echo cancellation is on\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_set_noise_removal\fP (\fBschultz_voice\fP *voice, int32_t on)"
+.br
+.RI "Turns noise suppression on or off\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_noise_removal\fP (const \fBschultz_voice\fP *voice)"
+.br
+.RI "Reports whether noise suppression is on\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_set_gain\fP (\fBschultz_voice\fP *voice, int32_t on)"
+.br
+.RI "Turns automatic gain on or off\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_gain\fP (const \fBschultz_voice\fP *voice)"
+.br
+.RI "Reports whether automatic gain is on\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_set_detection\fP (\fBschultz_voice\fP *voice, int32_t on)"
+.br
+.RI "Turns voice detection on or off\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_detection\fP (const \fBschultz_voice\fP *voice)"
+.br
+.RI "Reports whether voice detection is on\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_tuning_default\fP (\fBschultz_voice_tuning\fP *out_tuning)"
+.br
+.RI "Fills in the defaults\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_set_tuning\fP (\fBschultz_voice\fP *voice, const \fBschultz_voice_tuning\fP *tuning)"
+.br
+.RI "Sets how hard each of the four pushes\&. "
+.ti -1c
+.RI "int32_t \fBschultz_voice_get_tuning\fP (const \fBschultz_voice\fP *voice, \fBschultz_voice_tuning\fP *out_tuning)"
+.br
+.RI "Reads back how hard each of the four pushes\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Cleaning up microphone sound before it is sent\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+A microphone hears more than the person in front of it\&. It hears the room, the fan, and -- the one that ruins a call -- whatever the speakers are playing, which on a call is the other person's voice coming back at them a fraction of a second late\&. None of that is the encoder's problem: Opus will faithfully encode a room full of echo\&. It has to be taken out first\&.
+.PP
+This is that step, and it is four things:
+.PP
+.IP "\(bu" 2
+\fBEcho cancellation\&.\fP What went to the speaker is subtracted from what the microphone heard\&. This is the one that matters most and the one that needs the most from the caller: it has to be given both halves\&.
+.IP "\(bu" 2
+\fBNoise suppression\&.\fP Steady background sound -- a fan, traffic, a hum -- is learned and removed\&.
+.IP "\(bu" 2
+\fBAutomatic gain\&.\fP A quiet talker is brought up and a loud one is brought down, so the far end does not reach for the volume\&.
+.IP "\(bu" 2
+\fBVoice detection\&.\fP Whether anybody is speaking right now, which is what lets a caller stop sending during a silence\&.
+.PP
+.PP
+The first three are on by default, because a host that did not want them would not have created one of these\&.
+.PP
+\fBVoice detection is off by default, and that is upstream's advice\&.\fP speexdsp prints a warning when it is turned on: 'The VAD has been replaced
+by a hack pending a complete rewrite'\&. It works well enough to tell a tone from silence and there is a test here that shows it, but it is not what the other three are and it should not be switched on without knowing that\&. With it off, schultz_voice_speaking always answers yes, which is the safe answer for a caller that sends whatever it is told is speech\&.
+.PP
+\fBIt works a frame at a time\&.\fP The frame size is fixed when the voice is created and every call has to use it, because the echo canceller keeps a running picture of the room that only makes sense at one size\&. Twenty milliseconds is the usual choice, which is 960 sample frames at 48000 and exactly what one Opus packet holds\&.
+.PP
+\fBMono\&.\fP Echo cancellation on a stereo microphone is a different and much harder problem, and a call has one voice in it\&.
+.PP
+\fBNone of this happens unless you ask for it\&.\fP The microphone itself is schultz_audio_recorder_* over in \fBschultz_audio\&.h\fP, and it has never heard of any of this: it hands over exactly what it captured\&. Cleaning up is a separate step a host puts in between, which is why there is no way to turn it off -- not doing it is the default\&.
+.PP
+Each of the four has a switch, and the strengths behind them are in \fBschultz_voice_tuning\fP\&. The defaults are speexdsp's own and are what most callers should leave alone\&. 
+.PP
+Definition in file \fBschultz_voice\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_voice\fP \fBschultz_voice\fP"
+
+.PP
+One microphone's worth of cleaning up\&. 
+.PP
+Definition at line \fB78\fP of file \fBschultz_voice\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_voice_create (uint32_t frames, uint32_t rate, \fBschultz_voice\fP ** out_voice)"
+
+.PP
+Creates one\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIframes\fP How many sample frames each call will carry\&. 960 at 48000 is twenty milliseconds and is what a call uses\&. Must not be zero\&. 
+.br
+\fIrate\fP Samples a second\&. Must not be zero\&. 
+.br
+\fIout_voice\fP Receives it\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY or SCHULTZ_ERR_UNAVAILABLE\&. 
+.RE
+.PP
+
+.SS "void schultz_voice_destroy (\fBschultz_voice\fP * voice)"
+
+.PP
+Closes one\&. Safe on NULL\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The one to close\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_clean (\fBschultz_voice\fP * voice, float * mic, const float * played, uint64_t frames)"
+
+.PP
+Cleans one frame of microphone sound, in place\&. Float samples, mono, at the rate and length given when it was created\&.
+.PP
+\fCplayed\fP is what went to the speaker at the same moment, and is what makes echo cancellation possible: without it there is nothing to subtract, and passing NULL turns that part off for this frame while the rest still runs\&. A caller that has it should hand over the samples it actually wrote to the sound system, delayed by nothing -- lining the two up is this call's job, not the caller's\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. Must not be NULL\&. 
+.br
+\fImic\fP What the microphone heard, replaced by what to send\&. Must not be NULL\&. 
+.br
+\fIplayed\fP What went to the speaker, or NULL for none\&. 
+.br
+\fIframes\fP How many sample frames\&. Must be what it was created with\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_speaking (const \fBschultz_voice\fP * voice)"
+
+.PP
+Reports whether somebody was speaking in the last frame cleaned\&. What a caller uses to stop sending during a silence, which saves most of the bandwidth on most calls\&. Always true unless schultz_voice_set_detection has turned detection on\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero while somebody is speaking\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_set_echo_removal (\fBschultz_voice\fP * voice, int32_t on)"
+
+.PP
+Turns echo cancellation on or off\&. On by default\&. With it off, whatever is passed as \fCplayed\fP to schultz_voice_clean is ignored and the microphone is cleaned up without subtracting anything\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. Must not be NULL\&. 
+.br
+\fIon\fP Nonzero for on\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_echo_removal (const \fBschultz_voice\fP * voice)"
+
+.PP
+Reports whether echo cancellation is on\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is on\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_set_noise_removal (\fBschultz_voice\fP * voice, int32_t on)"
+
+.PP
+Turns noise suppression on or off\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. Must not be NULL\&. 
+.br
+\fIon\fP Nonzero for on\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_noise_removal (const \fBschultz_voice\fP * voice)"
+
+.PP
+Reports whether noise suppression is on\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is on\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_set_gain (\fBschultz_voice\fP * voice, int32_t on)"
+
+.PP
+Turns automatic gain on or off\&. This is the switch, not the level\&. How loud it aims for and how much it is allowed to add are \fCgain_target\fP and \fCgain_ceiling_db\fP in \fBschultz_voice_tuning\fP\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. Must not be NULL\&. 
+.br
+\fIon\fP Nonzero for on\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_gain (const \fBschultz_voice\fP * voice)"
+
+.PP
+Reports whether automatic gain is on\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is on\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_set_detection (\fBschultz_voice\fP * voice, int32_t on)"
+
+.PP
+Turns voice detection on or off\&. Off by default\&. See the note at the top of this file: speexdsp itself says its detection is a placeholder, and it prints a warning when it is turned on\&. With it off, schultz_voice_speaking always answers yes\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. Must not be NULL\&. 
+.br
+\fIon\fP Nonzero for on\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_detection (const \fBschultz_voice\fP * voice)"
+
+.PP
+Reports whether voice detection is on\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is on\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_tuning_default (\fBschultz_voice_tuning\fP * out_tuning)"
+
+.PP
+Fills in the defaults\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_tuning\fP Receives them\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when out_tuning is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_set_tuning (\fBschultz_voice\fP * voice, const \fBschultz_voice_tuning\fP * tuning)"
+
+.PP
+Sets how hard each of the four pushes\&. Values outside what each one can mean are brought into range rather than refused, and the range is what the field's own documentation says\&. What comes back from schultz_voice_get_tuning is the corrected value, not what was passed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. Must not be NULL\&. 
+.br
+\fItuning\fP What to use\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_voice_get_tuning (const \fBschultz_voice\fP * voice, \fBschultz_voice_tuning\fP * out_tuning)"
+
+.PP
+Reads back how hard each of the four pushes\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIvoice\fP The voice\&. Must not be NULL\&. 
+.br
+\fIout_tuning\fP Receives it\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

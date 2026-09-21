@@ -1,0 +1,52 @@
+.TH "schultz_image_internal.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_image_internal.h \- The one thing the renderer needs from an image that nothing else should see\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <thorvg_capi\&.h>\fP
+.br
+\fC#include 'schultz_image\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "Tvg_Paint \fBschultz_image_picture\fP (const \fBschultz_image_table\fP *table, \fBschultz_handle\fP image)"
+.br
+.RI "Returns a drawable copy of a loaded image\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The one thing the renderer needs from an image that nothing else should see\&. 
+
+A decoded image is a ThorVG picture\&. Saying so in the public header would put a backend type in the toolkit's own interface, so it is said here instead, and only the ThorVG backend includes this\&. 
+.PP
+Definition in file \fBschultz_image_internal\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "Tvg_Paint schultz_image_picture (const \fBschultz_image_table\fP * table, \fBschultz_handle\fP image)"
+
+.PP
+Returns a drawable copy of a loaded image\&. A copy, because a canvas takes ownership of what is added to it and drops everything each frame, while the table holds its picture for the life of the table\&. The copy shares the decoded pixels rather than decoding again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table holding it\&. NULL yields NULL\&. 
+.br
+\fIimage\fP A handle from one of the load calls\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A picture the caller hands to a canvas, or NULL when there is no such image\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

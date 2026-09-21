@@ -1,0 +1,60 @@
+.TH "schultz_debug.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_debug.h \- Visual debugging aids\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_node\&.h'\fP
+.br
+\fC#include 'schultz_paint\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_debug_tint_dirty\fP (\fBschultz_draw_list\fP *list, const \fBschultz_tree\fP *tree, \fBschultz_color\fP color)"
+.br
+.RI "Appends a tinted overlay marking the tree's dirty region\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Visual debugging aids\&. 
+
+Internal header\&.
+.PP
+Invalidation bugs are invisible by construction: too little marking leaves stale pixels that look plausible, and too much marking looks perfectly correct while quietly repainting the whole window every frame\&. Neither shows up in a screenshot\&. Tinting the region that is actually being repainted makes both failures obvious at a glance, which is why the roadmap asks for this before the third widget exists rather than after the first bug report\&.
+.PP
+\fBNot part of the host facing interface\&.\fP A development aid\&. A host binds to \fBschultz_api\&.h\fP; this header is the toolkit's own and may change without notice\&. 
+.PP
+Definition in file \fBschultz_debug\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_debug_tint_dirty (\fBschultz_draw_list\fP * list, const \fBschultz_tree\fP * tree, \fBschultz_color\fP color)"
+
+.PP
+Appends a tinted overlay marking the tree's dirty region\&. Draws a translucent fill plus a solid outline over the area that will be repainted this frame\&. Call it last, after the scene, so the tint sits on top of what it describes\&.
+.PP
+Nothing is appended when the tree is clean\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The draw list to append to\&. Must not be NULL\&. 
+.br
+\fItree\fP The tree whose dirty region should be shown\&. Must not be NULL\&. 
+.br
+\fIcolor\fP The tint\&. Its alpha is used for the fill; the outline is drawn at full opacity so a very thin region is still visible\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when either pointer is NULL, or an append error\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

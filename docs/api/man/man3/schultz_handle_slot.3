@@ -1,0 +1,54 @@
+.TH "schultz_handle_slot" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_handle_slot \- One entry in a handle table\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_handle\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "void * \fBobject\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBgeneration\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBnext_free\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBlive\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One entry in a handle table\&. 
+.PP
+Definition at line \fB50\fP of file \fBschultz_handle\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "void* schultz_handle_slot::object"
+User pointer, valid only while live is nonzero\&. 
+.PP
+Definition at line \fB51\fP of file \fBschultz_handle\&.h\fP\&.
+.SS "uint32_t schultz_handle_slot::generation"
+Bumped on release; never zero\&. 
+.PP
+Definition at line \fB52\fP of file \fBschultz_handle\&.h\fP\&.
+.SS "uint32_t schultz_handle_slot::next_free"
+Next free slot index, or UINT32_MAX\&. 
+.PP
+Definition at line \fB53\fP of file \fBschultz_handle\&.h\fP\&.
+.SS "uint32_t schultz_handle_slot::live"
+Nonzero while the slot holds an object\&. 
+.PP
+Definition at line \fB54\fP of file \fBschultz_handle\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,75 @@
+.TH "schultz_font_builtin.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_font_builtin.h \- The faces compiled into the library\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stddef\&.h>\fP
+.br
+\fC#include <stdint\&.h>\fP
+.br
+\fC#include 'schultz_style\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBschultz_font_builtin_count\fP (void)"
+.br
+.RI "How many faces are compiled into the library\&. "
+.ti -1c
+.RI "const unsigned char * \fBschultz_font_builtin_face\fP (uint32_t index, size_t *out_size, uint32_t *out_token)"
+.br
+.RI "One compiled in face, by position\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The faces compiled into the library\&. 
+
+Internal\&. The bytes themselves are generated from assets/fonts by scripts/embed_fonts\&.sh; this is how the font system reaches them\&.
+.PP
+The faces are DejaVu, unmodified, and they keep their own license\&. See THIRD_PARTY_NOTICES\&.md\&. 
+.PP
+Definition in file \fBschultz_font_builtin\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "uint32_t schultz_font_builtin_count (void)"
+
+.PP
+How many faces are compiled into the library\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The number of faces, which is at least one\&. 
+.RE
+.PP
+
+.SS "const unsigned char * schultz_font_builtin_face (uint32_t index, size_t * out_size, uint32_t * out_token)"
+
+.PP
+One compiled in face, by position\&. The bytes are static and read only, so they outlive any font made from them and are never copied or freed\&.
+.PP
+Some of these faces fill a theme font slot and some do not\&. The two oblique Sans faces are here to complete the Sans family, so that asking for the italic member of a family has an answer without the host loading a file; they fill no slot, and report SCHULTZ_TOKEN_FONT_COUNT\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIindex\fP Which face, from zero up to schultz_font_builtin_count\&. 
+.br
+\fIout_size\fP Receives the length in bytes\&. Must not be NULL\&. 
+.br
+\fIout_token\fP Receives the theme font slot this face fills, or SCHULTZ_TOKEN_FONT_COUNT for one that fills none\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The face bytes, or NULL for an index past the end\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

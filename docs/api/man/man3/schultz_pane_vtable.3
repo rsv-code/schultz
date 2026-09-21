@@ -1,0 +1,46 @@
+.TH "schultz_pane_vtable" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_pane_vtable \- The interface a pane implements\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_layout\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "int32_t(* \fBmeasure\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float avail_w, float avail_h, \fBschultz_size\fP *out_size)"
+.br
+.ti -1c
+.RI "int32_t(* \fBarrange\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_rect\fP rect)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+The interface a pane implements\&. 
+
+Both entries are required\&. A node with no pane is a leaf: it measures to its preferred size hints and arranges nothing\&. 
+.PP
+Definition at line \fB189\fP of file \fBschultz_layout\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "int32_t(* schultz_pane_vtable::measure) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float avail_w, float avail_h, \fBschultz_size\fP *out_size)"
+Reports the size this node wants, given the space available\&.
+.PP
+Either available size may be unbounded; see schultz_layout_is_unbounded\&. The returned size is clamped against the node's size hints by the caller, so an implementation need not do it\&. 
+.PP
+Definition at line \fB197\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "int32_t(* schultz_pane_vtable::arrange) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_rect\fP rect)"
+Assigns final rectangles to children and recurses\&.
+.PP
+The rectangle given is in the node's own parent relative space, and the rectangles written into children are relative to this node\&. 
+.PP
+Definition at line \fB205\fP of file \fBschultz_layout\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

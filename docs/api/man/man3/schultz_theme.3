@@ -1,0 +1,70 @@
+.TH "schultz_theme" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_theme \- A theme: a sparse override table over the compiled in token values\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_style\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_color\fP \fBcolors\fP [\fBSCHULTZ_TOKEN_COLOR_COUNT\fP]"
+.br
+.ti -1c
+.RI "uint32_t \fBcolor_set\fP"
+.br
+.ti -1c
+.RI "float \fBnumbers\fP [\fBSCHULTZ_TOKEN_NUMBER_COUNT\fP]"
+.br
+.ti -1c
+.RI "uint32_t \fBnumber_set\fP"
+.br
+.ti -1c
+.RI "\fBschultz_handle\fP \fBfonts\fP [\fBSCHULTZ_TOKEN_FONT_COUNT\fP]"
+.br
+.ti -1c
+.RI "uint32_t \fBfont_set\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A theme: a sparse override table over the compiled in token values\&. 
+
+Plain data with no allocation, so it can live on the stack and be copied\&. An all zero theme is valid and resolves entirely to the built in defaults\&. 
+.PP
+Definition at line \fB310\fP of file \fBschultz_style\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_color\fP schultz_theme::colors[\fBSCHULTZ_TOKEN_COLOR_COUNT\fP]"
+Overrides\&. 
+.PP
+Definition at line \fB311\fP of file \fBschultz_style\&.h\fP\&.
+.SS "uint32_t schultz_theme::color_set"
+Which are set\&. 
+.PP
+Definition at line \fB312\fP of file \fBschultz_style\&.h\fP\&.
+.SS "float schultz_theme::numbers[\fBSCHULTZ_TOKEN_NUMBER_COUNT\fP]"
+Overrides\&. 
+.PP
+Definition at line \fB313\fP of file \fBschultz_style\&.h\fP\&.
+.SS "uint32_t schultz_theme::number_set"
+Which are set\&. 
+.PP
+Definition at line \fB314\fP of file \fBschultz_style\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_theme::fonts[\fBSCHULTZ_TOKEN_FONT_COUNT\fP]"
+Overrides\&. 
+.PP
+Definition at line \fB315\fP of file \fBschultz_style\&.h\fP\&.
+.SS "uint32_t schultz_theme::font_set"
+Which are set\&. 
+.PP
+Definition at line \fB316\fP of file \fBschultz_style\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

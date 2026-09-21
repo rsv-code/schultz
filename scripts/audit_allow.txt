@@ -1,0 +1,27 @@
+# Functions that are declared with no caller on purpose.
+#
+# One name per line, each with a reason. Anything here is public API a host
+# will call even though nothing inside the project does yet. Remove a name as
+# soon as something starts calling it, so the list stays honest.
+#
+# A host that positions something itself and wants to know where a phone's
+# camera notch is. Nothing here needs it, because the frame already keeps the
+# tree's safe area up to date and the root arranges its children inside it.
+schultz_window_safe_area
+
+# The screen's own scale, for a host that wants to name a real pixel while
+# the rest of the interface is scaled. Nothing here needs it: the demo uses
+# the toolkit's units throughout, which is the point of them.
+schultz_window_pixel_scale
+
+# How far a popover or a tooltip sits from what it belongs to. Four is right
+# for the themes that ship, so nothing here changes it; a host with a denser
+# or airier look will.
+schultz_popup_set_gap
+
+# Changing which ways up the screen may be used, and how far the picture is
+# turned, after the window is open. The demo says both in its options and
+# never changes its mind; a kiosk that turns when a page changes, or a panel
+# whose mounting is a setting rather than a build, will.
+schultz_window_set_orientation
+schultz_window_set_turn

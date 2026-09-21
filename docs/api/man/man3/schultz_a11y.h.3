@@ -1,0 +1,217 @@
+.TH "schultz_a11y.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_a11y.h \- The bridge from the widget tree to a screen reader\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_event\&.h'\fP
+.br
+\fC#include 'schultz_node\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_a11y_options\fP"
+.br
+.RI "What to tell the platform about the application\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_a11y\fP \fBschultz_a11y\fP"
+.br
+.RI "Opaque bridge state\&. Create with schultz_a11y_create\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_a11y_create\fP (\fBschultz_tree\fP *tree, \fBschultz_events\fP *events, const \fBschultz_a11y_options\fP *options, \fBschultz_a11y\fP **out_a11y)"
+.br
+.RI "Starts the bridge and publishes the tree for the first time\&. "
+.ti -1c
+.RI "void \fBschultz_a11y_destroy\fP (\fBschultz_a11y\fP *a11y)"
+.br
+.RI "Stops the bridge and leaves the platform\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_update\fP (\fBschultz_a11y\fP *a11y)"
+.br
+.RI "Publishes the tree, when anything a reader could notice changed\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_pump\fP (\fBschultz_a11y\fP *a11y)"
+.br
+.RI "Answers whatever the platform has waiting, without blocking\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_a11y_drain\fP (\fBschultz_a11y\fP *a11y)"
+.br
+.RI "Carries out what an assistive technology asked for\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_set_window\fP (\fBschultz_a11y\fP *a11y, \fBschultz_rect\fP window)"
+.br
+.RI "Tells the platform where the window is, after it moved or resized\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_set_focused\fP (\fBschultz_a11y\fP *a11y, int32_t focused)"
+.br
+.RI "Tells the platform whether the window has focus\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The bridge from the widget tree to a screen reader\&. 
+
+\fBNot part of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP; accessibility is switched on through \fBschultz_window_options\fP and needs no calls of its own\&. This header is the toolkit's own\&.
+.PP
+A toolkit draws pixels\&. A screen reader cannot see pixels, so something has to say in words what is on screen: this is a button, it says 'Save', it has focus now\&. Every platform has its own API for that and no two agree, so Schultz describes its tree once, here, and AccessTunnel presents that description to whichever platform it is running on\&.
+.PP
+Nothing above this file sees an AccessTunnel type\&. The node schema lives on Schultz's own nodes, as role, name, value, state and actions, and is translated here\&.
+.SS "What a caller has to do"
+Three things, once a frame, and the frame driver already does all three:
+.PP
+.IP "\(bu" 2
+schultz_a11y_update pushes the tree when something changed\&.
+.IP "\(bu" 2
+schultz_a11y_pump answers whatever the platform is asking\&.
+.IP "\(bu" 2
+schultz_a11y_drain turns what it asked for into real input\&.
+.PP
+.PP
+Forgetting the first is the failure that matters, and it is silent: the application works, and a screen reader describes a window that stopped being true several clicks ago\&.
+.SS "Threading"
+A platform accessibility API calls in on threads the toolkit did not create\&. Requests are queued here under a lock and drained on the thread that runs the frame, so no widget is ever touched from a thread it does not expect, and the live tree is never walked from a foreign one\&. 
+.PP
+Definition in file \fBschultz_a11y\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_a11y\fP \fBschultz_a11y\fP"
+
+.PP
+Opaque bridge state\&. Create with schultz_a11y_create\&. 
+.PP
+Definition at line \fB55\fP of file \fBschultz_a11y\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_a11y_create (\fBschultz_tree\fP * tree, \fBschultz_events\fP * events, const \fBschultz_a11y_options\fP * options, \fBschultz_a11y\fP ** out_a11y)"
+
+.PP
+Starts the bridge and publishes the tree for the first time\&. Succeeds whether or not an assistive technology is running: on Linux there may be no accessibility bus, and the right behaviour then is to sit quietly rather than to fail an application's startup\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to describe\&. Must not be NULL\&. 
+.br
+\fIevents\fP The router, used to deliver what is asked for and to read which node has focus\&. Must not be NULL\&. 
+.br
+\fIoptions\fP Application details, or NULL for defaults\&. 
+.br
+\fIout_a11y\fP Receives the bridge\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_a11y_destroy (\fBschultz_a11y\fP * a11y)"
+
+.PP
+Stops the bridge and leaves the platform\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIa11y\fP The bridge\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_update (\fBschultz_a11y\fP * a11y)"
+
+.PP
+Publishes the tree, when anything a reader could notice changed\&. Cheap to call every frame: it does nothing when the tree is clean and the focus has not moved\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIa11y\fP The bridge\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_pump (\fBschultz_a11y\fP * a11y)"
+
+.PP
+Answers whatever the platform has waiting, without blocking\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIa11y\fP The bridge\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_a11y_drain (\fBschultz_a11y\fP * a11y)"
+
+.PP
+Carries out what an assistive technology asked for\&. Runs on the calling thread, which is the frame's, and turns each queued request into the same event a hand would have produced\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIa11y\fP The bridge\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many requests were carried out\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_set_window (\fBschultz_a11y\fP * a11y, \fBschultz_rect\fP window)"
+
+.PP
+Tells the platform where the window is, after it moved or resized\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIa11y\fP The bridge\&. NULL is accepted and does nothing\&. 
+.br
+\fIwindow\fP The window's rectangle on screen, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_set_focused (\fBschultz_a11y\fP * a11y, int32_t focused)"
+
+.PP
+Tells the platform whether the window has focus\&. A screen reader needs this to know whether what it is reading is what the user is looking at\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIa11y\fP The bridge\&. NULL is accepted and does nothing\&. 
+.br
+\fIfocused\fP Nonzero when the window has focus\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

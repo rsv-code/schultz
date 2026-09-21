@@ -1,0 +1,126 @@
+.TH "schultz_clipboard_windows.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_clipboard_windows.h \- The clipboard, spoken to Windows directly\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_widget\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_windows_clipboard_offer\fP (void *context, const char *const *formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void *make_context)"
+.br
+.RI "Puts a set of formats on the Windows clipboard\&. "
+.ti -1c
+.RI "const void * \fBschultz_windows_clipboard_take\fP (void *context, const char *format, uint64_t *out_length)"
+.br
+.RI "Takes one format off the Windows clipboard\&. "
+.ti -1c
+.RI "int32_t \fBschultz_windows_clipboard_holds\fP (void *context, const char *format)"
+.br
+.RI "Says whether the Windows clipboard holds a format\&. "
+.ti -1c
+.RI "void * \fBschultz_windows_clipboard_owner\fP (void *window)"
+.br
+.RI "The window handle to own the clipboard with\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The clipboard, spoken to Windows directly\&. 
+
+Installed in place of the SDL one on Windows, because Windows carries rich text in a registered format SDL has no code for\&. See the source for the whole of the reason\&.
+.PP
+Not part of the host facing interface, the same as the accessibility backends are not: the window installs these and nothing else calls them\&. 
+.PP
+Definition in file \fBschultz_clipboard_windows\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_windows_clipboard_offer (void * context, const char *const * formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void * make_context)"
+
+.PP
+Puts a set of formats on the Windows clipboard\&. Matches schultz_clipboard_offer_fn\&. The context is the window handle from schultz_windows_clipboard_owner, or NULL to let the calling task own the clipboard instead\&.
+.PP
+Formats are written richest first, which is the order Windows asks for: markup, then words, then a picture\&. That is the opposite of the order they arrive in, where plain text leads\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP A window handle, or NULL\&. 
+.br
+\fIformats\fP The media types on offer\&. 
+.br
+\fIcount\fP How many\&. 
+.br
+\fImake\fP Produces the bytes of whichever is asked for\&. 
+.br
+\fImake_context\fP Passed to make, unchanged\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_UNAVAILABLE when the clipboard would not open\&. 
+.RE
+.PP
+
+.SS "const void * schultz_windows_clipboard_take (void * context, const char * format, uint64_t * out_length)"
+
+.PP
+Takes one format off the Windows clipboard\&. Matches schultz_clipboard_take_fn\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP A window handle, or NULL\&. 
+.br
+\fIformat\fP The media type wanted\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bytes, or NULL when the clipboard holds none in that format\&. Owned here and valid until the next call\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_windows_clipboard_holds (void * context, const char * format)"
+
+.PP
+Says whether the Windows clipboard holds a format\&. Matches schultz_clipboard_holds_fn\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP Ignored\&. 
+.br
+\fIformat\fP The media type to ask about\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is there\&. 
+.RE
+.PP
+
+.SS "void * schultz_windows_clipboard_owner (void * window)"
+
+.PP
+The window handle to own the clipboard with\&. Windows would rather a window owned the clipboard than the bare task, and the handle lives inside SDL's window\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The SDL_Window, as a void pointer\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The handle, or NULL\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,40 @@
+.TH "schultz_painter" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_painter \- A backend: its function table plus its own state\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_paint\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const \fBschultz_painter_vtable\fP * \fBvtable\fP"
+.br
+.ti -1c
+.RI "void * \fBcontext\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A backend: its function table plus its own state\&. 
+.PP
+Definition at line \fB748\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const \fBschultz_painter_vtable\fP* schultz_painter::vtable"
+Handlers\&. Must be complete\&. 
+.PP
+Definition at line \fB749\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "void* schultz_painter::context"
+Passed to every handler\&. 
+.PP
+Definition at line \fB750\fP of file \fBschultz_paint\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

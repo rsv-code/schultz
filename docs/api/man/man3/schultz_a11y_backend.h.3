@@ -1,0 +1,221 @@
+.TH "schultz_a11y_backend.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_a11y_backend.h \- The one part of accessibility that differs by platform\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'access_tunnel\&.h'\fP
+.br
+\fC#include 'access_tunnel_tree_update\&.h'\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_a11y_backend_config\fP"
+.br
+.RI "What a backend needs to attach itself to the platform\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_a11y_backend\fP \fBschultz_a11y_backend\fP"
+.br
+.RI "Opaque platform state\&. Created by schultz_a11y_backend_create\&. "
+.ti -1c
+.RI "typedef void(* \fBschultz_a11y_backend_action_fn\fP) (const access_tunnel_action_request *request, void *userdata)"
+.br
+.RI "Where a backend delivers what an assistive technology asked for\&. "
+.ti -1c
+.RI "typedef bool(* \fBschultz_a11y_backend_build_fn\fP) (access_tunnel_tree_update *out_update, void *userdata)"
+.br
+.RI "Asks the bridge to build a complete tree, right now\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_a11y_backend_create\fP (const \fBschultz_a11y_backend_config\fP *config, const access_tunnel_tree_update *initial, \fBschultz_a11y_backend\fP **out_backend)"
+.br
+.RI "Attaches to the platform and publishes the first tree\&. "
+.ti -1c
+.RI "void \fBschultz_a11y_backend_destroy\fP (\fBschultz_a11y_backend\fP *backend)"
+.br
+.RI "Detaches from the platform\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_backend_update\fP (\fBschultz_a11y_backend\fP *backend, const access_tunnel_tree_update *update)"
+.br
+.RI "Hands the platform a new tree\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_backend_pump\fP (\fBschultz_a11y_backend\fP *backend)"
+.br
+.RI "Gives the platform a moment to talk, on platforms that need one\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_backend_set_window\fP (\fBschultz_a11y_backend\fP *backend, \fBschultz_rect\fP window)"
+.br
+.RI "Tells the platform where the window is\&. "
+.ti -1c
+.RI "int32_t \fBschultz_a11y_backend_set_focused\fP (\fBschultz_a11y_backend\fP *backend, int32_t focused)"
+.br
+.RI "Tells the platform whether the window has focus\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The one part of accessibility that differs by platform\&. 
+
+Describing a tree is the same everywhere: schultz_a11y\&.c walks the widgets and builds an access_tunnel_tree_update, and that code compiles anywhere\&. Handing the update to the platform is not the same everywhere\&. Linux publishes over D-Bus and has to be pumped; Windows answers a window message; macOS and iOS answer methods on a view; Android answers through Java\&. Those five have different lifetimes, different attachment points and different ideas of what focus means\&.
+.PP
+So the platform half is behind these six functions\&. Exactly one file implements them per build, chosen in the Makefile from the target name, and a do nothing implementation covers a target that is not wired up yet\&.
+.PP
+\fBNot part of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP\&. 
+.PP
+Definition in file \fBschultz_a11y_backend\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_a11y_backend\fP \fBschultz_a11y_backend\fP"
+
+.PP
+Opaque platform state\&. Created by schultz_a11y_backend_create\&. 
+.PP
+Definition at line \fB38\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "typedef void(* schultz_a11y_backend_action_fn) (const access_tunnel_action_request *request, void *userdata)"
+
+.PP
+Where a backend delivers what an assistive technology asked for\&. Every adapter in AccessTunnel uses this shape, so the bridge's own handler installs into any of them without translation\&. Called on whatever thread the platform chose, which is why the bridge queues rather than acts\&. 
+.PP
+Definition at line \fB47\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SS "typedef bool(* schultz_a11y_backend_build_fn) (access_tunnel_tree_update *out_update, void *userdata)"
+
+.PP
+Asks the bridge to build a complete tree, right now\&. iOS is pull rather than push: an adapter sits asleep until VoiceOver starts, and then asks for the whole tree at once\&. No other platform needs this, and the ones that do not simply never call it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_update\fP Receives a complete update the caller must free\&. 
+.br
+\fIuserdata\fP The pointer given at creation\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+true when an update was produced\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB61\fP of file \fBschultz_a11y_backend\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_a11y_backend_create (const \fBschultz_a11y_backend_config\fP * config, const access_tunnel_tree_update * initial, \fBschultz_a11y_backend\fP ** out_backend)"
+
+.PP
+Attaches to the platform and publishes the first tree\&. Must succeed whether or not an assistive technology is running\&. There may be no accessibility bus, no screen reader and nothing listening, and the right behaviour then is to sit quietly rather than to fail startup\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIconfig\fP How to attach\&. Must not be NULL\&. 
+.br
+\fIinitial\fP The first complete tree\&. Must not be NULL\&. Borrowed: the caller frees it afterwards\&. 
+.br
+\fIout_backend\fP Receives the backend\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_a11y_backend_destroy (\fBschultz_a11y_backend\fP * backend)"
+
+.PP
+Detaches from the platform\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_backend_update (\fBschultz_a11y_backend\fP * backend, const access_tunnel_tree_update * update)"
+
+.PP
+Hands the platform a new tree\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend\&. NULL is accepted and does nothing\&. 
+.br
+\fIupdate\fP The update\&. Borrowed\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_backend_pump (\fBschultz_a11y_backend\fP * backend)"
+
+.PP
+Gives the platform a moment to talk, on platforms that need one\&. Linux accessibility is a D-Bus connection the application owns, so somebody has to read it; the frame driver calls this every frame\&. Nothing else works that way, and everywhere else this does nothing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_backend_set_window (\fBschultz_a11y_backend\fP * backend, \fBschultz_rect\fP window)"
+
+.PP
+Tells the platform where the window is\&. Only platforms that publish a window in their own right need this\&. Where accessibility hangs off a view, the view already knows where it is, and this does nothing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend\&. NULL is accepted and does nothing\&. 
+.br
+\fIwindow\fP The window rectangle in screen pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_a11y_backend_set_focused (\fBschultz_a11y_backend\fP * backend, int32_t focused)"
+
+.PP
+Tells the platform whether the window has focus\&. This is the outbound half of focus: whether the application is the one the user is typing into\&. It is not where a screen reader's cursor is, which travels the other way and arrives as an action request\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIbackend\fP The backend\&. NULL is accepted and does nothing\&. 
+.br
+\fIfocused\fP Nonzero when the window has focus\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

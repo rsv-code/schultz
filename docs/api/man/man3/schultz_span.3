@@ -1,0 +1,129 @@
+.TH "schultz_span" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_span \- One stretch of text with a look of its own\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_widget\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBstart\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBend\fP"
+.br
+.ti -1c
+.RI "\fBschultz_handle\fP \fBfont\fP"
+.br
+.ti -1c
+.RI "float \fBsize\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBbold\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBitalic\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBunderline\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBstrikethrough\fP"
+.br
+.ti -1c
+.RI "\fBschultz_color\fP \fBcolor\fP"
+.br
+.ti -1c
+.RI "\fBschultz_color\fP \fBbackground\fP"
+.br
+.ti -1c
+.RI "const char * \fBlink\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBclickable\fP"
+.br
+.ti -1c
+.RI "uint64_t \fBtag\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One stretch of text with a look of its own\&. 
+
+A label is one face in one colour\&. A span says that some run of bytes in it is not: that a phrase is bold, that a term is set in the code face, that a word carries a background or a line through it\&.
+.PP
+Spans describe the text rather than act on it, so the order they are given in does not matter and a byte covered by no span is drawn the way the widget's style says\&. A field left at zero means the same thing: take the widget's\&. That is what makes the common case short, because a span marking one word bold sets \fCstart\fP, \fCend\fP and \fCbold\fP and nothing else\&.
+.PP
+Bold and italic are wishes rather than faces\&. A program cannot name the bold handle for whatever a phrase happens to be set in, so it asks, and the family answers; see schultz_font_at_style\&. Setting \fCfont\fP names a face outright, and bold and italic are then resolved within that face's family\&. 
+.PP
+Definition at line \fB72\fP of file \fBschultz_widget\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_span::start"
+First byte\&. 
+.PP
+Definition at line \fB73\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint32_t schultz_span::end"
+One past the last byte\&. 
+.PP
+Definition at line \fB74\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_span::font"
+A face, or NONE for the widget's\&. 
+.PP
+Definition at line \fB75\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "float schultz_span::size"
+Pixel size, or zero for the widget's\&. 
+.PP
+Definition at line \fB76\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint32_t schultz_span::bold"
+Nonzero for the family's bold member\&. 
+.PP
+Definition at line \fB77\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint32_t schultz_span::italic"
+Nonzero for its slanted member\&. 
+.PP
+Definition at line \fB78\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint32_t schultz_span::underline"
+Nonzero for a line under the text\&. 
+.PP
+Definition at line \fB79\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint32_t schultz_span::strikethrough"
+Nonzero for a line through it\&. 
+.PP
+Definition at line \fB80\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "\fBschultz_color\fP schultz_span::color"
+Text colour\&. An alpha of zero means the widget's own\&. 
+.PP
+Definition at line \fB82\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "\fBschultz_color\fP schultz_span::background"
+Colour painted behind the text\&. An alpha of zero means none\&. 
+.PP
+Definition at line \fB84\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "const char* schultz_span::link"
+Where this stretch points, or NULL for text that points nowhere\&. The string is copied when the span is set, so the caller may free it\&. 
+.PP
+Definition at line \fB89\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint32_t schultz_span::clickable"
+Nonzero when pressing this stretch is reported to the host\&.
+.PP
+Separate from \fClink\fP on purpose\&. A document being shown rather than used wants its links to look like links and to copy as links without being live, and a stretch that is not a link at all may still want to be pressed: a keyword in a code editor, a name in a message, a footnote marker\&.
+.PP
+A press arrives as an ordinary SCHULTZ_EVENT_CLICK on the widget's node, with \fCspan\fP and \fCspan_tag\fP naming this stretch\&. The toolkit acts on none of it; what a press means is the host's business\&. 
+.PP
+Definition at line \fB103\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "uint64_t schultz_span::tag"
+Whatever the host wants handed back when this stretch is pressed\&.
+.PP
+Untouched by the toolkit\&. It is how a program says which of its own things this stretch is, without keeping a table beside the span list that has to be repaired every time the text is edited\&. 
+.PP
+Definition at line \fB111\fP of file \fBschultz_widget\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

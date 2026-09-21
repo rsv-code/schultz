@@ -1,0 +1,98 @@
+.TH "schultz_font" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_font \- One loaded face bound to one pixel size\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_font_internal\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "FT_Face \fBface\fP"
+.br
+.ti -1c
+.RI "hb_font_t * \fBhb_font\fP"
+.br
+.ti -1c
+.RI "const unsigned char * \fBdata\fP"
+.br
+.ti -1c
+.RI "size_t \fBsize\fP"
+.br
+.ti -1c
+.RI "float \fBsize_px\fP"
+.br
+.ti -1c
+.RI "char * \fBpath\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBowns_data\fP"
+.br
+.ti -1c
+.RI "char \fBfamily\fP [64]"
+.br
+.ti -1c
+.RI "uint32_t \fBbold\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBitalic\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One loaded face bound to one pixel size\&. 
+.PP
+Definition at line \fB35\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "FT_Face schultz_font::face"
+FreeType face, owns rasterization\&. 
+.PP
+Definition at line \fB36\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "hb_font_t* schultz_font::hb_font"
+HarfBuzz view of the same face\&. 
+.PP
+Definition at line \fB37\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "const unsigned char* schultz_font::data"
+The face bytes\&. FreeType points into these for the life of the face, so they have to outlive it whoever owns them\&. 
+.PP
+Definition at line \fB42\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "size_t schultz_font::size"
+Length of data in bytes\&. 
+.PP
+Definition at line \fB43\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "float schultz_font::size_px"
+Pixel size the face is bound to\&. 
+.PP
+Definition at line \fB44\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "char* schultz_font::path"
+Where it was loaded from, owned here, or NULL for a face handed over as bytes\&. This is what lets the same face be loaded again at another size; a face with no path is loaded again from its bytes instead\&. 
+.PP
+Definition at line \fB50\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "uint32_t schultz_font::owns_data"
+Nonzero when data was allocated for this font and must be freed with it\&. Zero for the faces compiled into the library, whose bytes are static and shared by every size they are loaded at\&. 
+.PP
+Definition at line \fB56\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "char schultz_font::family[64]"
+The family this face belongs to, copied from the face when it loads\&. A Bold button sets bold on a span rather than naming a handle, and the family is how the bold member of that span's face is found\&.
+.PP
+Empty for a face that names no family\&. Such a face joins no family and is only ever itself, which is the right answer: guessing that two unnamed faces are related would substitute the wrong glyphs\&. 
+.PP
+Definition at line \fB66\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "uint32_t schultz_font::bold"
+Nonzero when this face is the bold member\&. 
+.PP
+Definition at line \fB67\fP of file \fBschultz_font_internal\&.h\fP\&.
+.SS "uint32_t schultz_font::italic"
+Nonzero when this face is the slanted one\&. 
+.PP
+Definition at line \fB68\fP of file \fBschultz_font_internal\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

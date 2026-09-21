@@ -1,0 +1,66 @@
+.TH "schultz_font_internal.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_font_internal.h \- Font representation shared between the font and text modules\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stddef\&.h>\fP
+.br
+\fC#include <ft2build\&.h>\fP
+.br
+\fC#include <hb\&.h>\fP
+.br
+\fC#include 'schultz_font\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_font\fP"
+.br
+.RI "One loaded face bound to one pixel size\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_font_resolve\fP (const \fBschultz_font_system\fP *system, \fBschultz_handle\fP handle, \fBschultz_font\fP **out_font)"
+.br
+.RI "Resolves a font handle to its representation\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Font representation shared between the font and text modules\&. 
+
+Internal to the text pipeline\&. Nothing outside schultz_font\&.c and schultz_text\&.c should include this; everything else names a font by handle\&. 
+.PP
+Definition in file \fBschultz_font_internal\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_font_resolve (const \fBschultz_font_system\fP * system, \fBschultz_handle\fP handle, \fBschultz_font\fP ** out_font)"
+
+.PP
+Resolves a font handle to its representation\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsystem\fP The system holding the font\&. Must not be NULL\&. 
+.br
+\fIhandle\fP The font handle to resolve\&. 
+.br
+\fIout_font\fP Receives the font\&. Must not be NULL\&. The pointer is valid until the font is unloaded\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when a pointer is NULL, or SCHULTZ_ERR_INVALID_HANDLE when the handle names no loaded font\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

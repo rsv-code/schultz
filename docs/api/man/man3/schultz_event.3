@@ -1,0 +1,148 @@
+.TH "schultz_event" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_event \- One routed event\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_event\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint32_t \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBschultz_handle\fP \fBtarget\fP"
+.br
+.ti -1c
+.RI "uint64_t \fBtoken\fP"
+.br
+.ti -1c
+.RI "\fBschultz_point\fP \fBposition\fP"
+.br
+.ti -1c
+.RI "\fBschultz_point\fP \fBlocal\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBbutton\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBmodifiers\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBkey\fP"
+.br
+.ti -1c
+.RI "const char * \fBtext\fP"
+.br
+.ti -1c
+.RI "float \fBscroll_x\fP"
+.br
+.ti -1c
+.RI "float \fBscroll_y\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBclick_count\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBsource\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBone_codepoint\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBspan\fP"
+.br
+.ti -1c
+.RI "uint64_t \fBspan_tag\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One routed event\&. 
+
+The struct is passed to the host callback by pointer and is valid only for the duration of that call\&. Anything the host needs afterwards must be copied, \fCtext\fP included\&. 
+.PP
+Definition at line \fB165\fP of file \fBschultz_event\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "uint32_t schultz_event::type"
+One of the SCHULTZ_EVENT_* values\&. 
+.PP
+Definition at line \fB166\fP of file \fBschultz_event\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_event::target"
+The node this event is aimed at\&. 
+.PP
+Definition at line \fB167\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint64_t schultz_event::token"
+The host token registered on the target\&. 
+.PP
+Definition at line \fB168\fP of file \fBschultz_event\&.h\fP\&.
+.SS "\fBschultz_point\fP schultz_event::position"
+Pointer position in window coordinates\&. 
+.PP
+Definition at line \fB169\fP of file \fBschultz_event\&.h\fP\&.
+.SS "\fBschultz_point\fP schultz_event::local"
+Pointer position relative to the target\&. 
+.PP
+Definition at line \fB170\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint32_t schultz_event::button"
+Which button, for press and release\&. 
+.PP
+Definition at line \fB171\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint32_t schultz_event::modifiers"
+Bit set of SCHULTZ_MOD_* values\&. 
+.PP
+Definition at line \fB172\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint32_t schultz_event::key"
+One of SCHULTZ_KEY_*, for key events\&. 
+.PP
+Definition at line \fB173\fP of file \fBschultz_event\&.h\fP\&.
+.SS "const char* schultz_event::text"
+NUL terminated UTF-8, or NULL\&. 
+.PP
+Definition at line \fB174\fP of file \fBschultz_event\&.h\fP\&.
+.SS "float schultz_event::scroll_x"
+Horizontal scroll, positive is right\&. 
+.PP
+Definition at line \fB175\fP of file \fBschultz_event\&.h\fP\&.
+.SS "float schultz_event::scroll_y"
+Vertical scroll, positive is down\&. 
+.PP
+Definition at line \fB176\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint32_t schultz_event::click_count"
+How many times in a row this node was pressed: 1 for a single click, 2 for a double, 3 for a triple, and on upward\&. Counted only for the button events, and only when the host supplies a clock with schultz_events_set_time\&. Zero everywhere else\&. 
+.PP
+Definition at line \fB183\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint32_t schultz_event::source"
+What moved the pointer: SCHULTZ_POINTER_MOUSE or SCHULTZ_POINTER_TOUCH\&. A finger and a mouse produce the same events, and a widget that wants to treat them differently has nothing else to tell them apart by\&. 
+.PP
+Definition at line \fB189\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint32_t schultz_event::one_codepoint"
+Set on a backspace or delete that removes one codepoint rather than one character as a person sees them\&.
+.PP
+A phone does not send key presses\&. It keeps a text field of its own, watches it change, and spells the change out afterwards as one backspace for every codepoint that went\&. One tap on its delete key over an emoji written as a base and a modifier therefore arrives here as two\&. Taking a whole character for each of those would take the emoji and whatever stood before it\&.
+.PP
+So a key marked this way removes exactly one codepoint, and the run of them the platform sends removes exactly what the platform removed\&. A key from a real keyboard is not marked, and takes the whole character, which is what every editor does\&. 
+.PP
+Definition at line \fB206\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint32_t schultz_event::span"
+Which styled stretch of the target's text was pressed, counting from zero, or SCHULTZ_SPAN_NONE when the press landed on none\&.
+.PP
+Set on SCHULTZ_EVENT_CLICK, and only for a widget whose text carries spans that were marked clickable\&. Everywhere else it is SCHULTZ_SPAN_NONE\&.
+.PP
+It names the span as the list stood when the press happened\&. A host that rebuilds its spans before it reads the event should go by \fCspan_tag\fP instead, which is its own and means whatever it decided\&. 
+.PP
+Definition at line \fB219\fP of file \fBschultz_event\&.h\fP\&.
+.SS "uint64_t schultz_event::span_tag"
+The \fCtag\fP of that span, or zero when there was none\&. 
+.PP
+Definition at line \fB221\fP of file \fBschultz_event\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

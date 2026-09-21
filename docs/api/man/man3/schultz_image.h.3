@@ -1,0 +1,370 @@
+.TH "schultz_image.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_image.h \- Decoded images, registered once and drawn by handle\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_geom\&.h'\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_image_table\fP \fBschultz_image_table\fP"
+.br
+.RI "The table of decoded images\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_IMAGE_PNG\fP = 0, \fBSCHULTZ_IMAGE_BMP\fP }"
+.br
+.RI "The file formats pixels can be written out as\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_image_table_create\fP (\fBschultz_image_table\fP **out_table)"
+.br
+.RI "Creates an empty table\&. "
+.ti -1c
+.RI "void \fBschultz_image_table_destroy\fP (\fBschultz_image_table\fP *table)"
+.br
+.RI "Releases a table and every image in it\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_load_file\fP (\fBschultz_image_table\fP *table, const char *path, \fBschultz_handle\fP *out_image)"
+.br
+.RI "Loads an image from a file, deciding the format from its contents\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_load_data\fP (\fBschultz_image_table\fP *table, const void *bytes, uint32_t size, const char *kind, \fBschultz_handle\fP *out_image)"
+.br
+.RI "Loads an image already in memory\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_set_pixels\fP (\fBschultz_image_table\fP *table, const uint32_t *pixels, uint32_t width, uint32_t height, uint32_t stride, \fBschultz_handle\fP *out_image)"
+.br
+.RI "Takes raw pixels, already decoded by the application\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_encode\fP (const uint32_t *pixels, uint32_t width, uint32_t height, uint32_t stride, uint32_t format, const void **out_bytes, uint64_t *out_length)"
+.br
+.RI "Writes pixels out as a file format, in memory\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_load_animation\fP (\fBschultz_image_table\fP *table, const char *path, \fBschultz_handle\fP *out_image)"
+.br
+.RI "Loads a Lottie animation from a file\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_frames\fP (const \fBschultz_image_table\fP *table, \fBschultz_handle\fP image, float *out_frames, float *out_duration)"
+.br
+.RI "Reads how long an animation runs\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_set_frame\fP (\fBschultz_image_table\fP *table, \fBschultz_handle\fP image, float frame)"
+.br
+.RI "Moves an animation to a frame\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_size\fP (const \fBschultz_image_table\fP *table, \fBschultz_handle\fP image, \fBschultz_size\fP *out_size)"
+.br
+.RI "Reads an image's natural size\&. "
+.ti -1c
+.RI "int32_t \fBschultz_image_unload\fP (\fBschultz_image_table\fP *table, \fBschultz_handle\fP image)"
+.br
+.RI "Forgets one image and releases what it decoded to\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_image_count\fP (const \fBschultz_image_table\fP *table)"
+.br
+.RI "Counts the images a table holds\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Decoded images, registered once and drawn by handle\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&. The table sits beside the font system for the same reason: the renderer has to read it, and a renderer that knows about the widget tree would be a renderer coupled to it\&. An application loads an image once, gets a handle, and hands that handle to a widget or to a draw command\&.
+.PP
+Decoding is not Schultz's own work\&. ThorVG is built with its PNG, JPEG, WebP and SVG loaders, so all four load through one call and an SVG scales to whatever size it is drawn at rather than being resampled\&.
+.PP
+There is no GIF and no video\&. ThorVG can write a GIF and cannot read one, and every practical video decoder is either copyleft or tied to one platform\&. Both follow the same path instead: the application decodes a frame however it likes and hands over raw pixels with schultz_image_set_pixels\&. 
+.PP
+Definition in file \fBschultz_image\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_image_table\fP \fBschultz_image_table\fP"
+
+.PP
+The table of decoded images\&. 
+.PP
+Definition at line \fB54\fP of file \fBschultz_image\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+The file formats pixels can be written out as\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_IMAGE_PNG \fP\fP
+PNG\&. Lossless, keeps alpha, and the one format every desktop clipboard takes\&. This is the one to use unless something needs otherwise\&. 
+.TP
+\fB\fISCHULTZ_IMAGE_BMP \fP\fP
+BMP, twenty four bits a pixel and no alpha at all\&.
+.PP
+Only worth producing for an older application that takes nothing else\&. Alpha is left out rather than written, because a BMP's alpha is the thing readers disagree about and a wrong one looks worse than none\&. 
+.PP
+Definition at line \fB134\fP of file \fBschultz_image\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_image_table_create (\fBschultz_image_table\fP ** out_table)"
+
+.PP
+Creates an empty table\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_table\fP Receives the table\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "void schultz_image_table_destroy (\fBschultz_image_table\fP * table)"
+
+.PP
+Releases a table and every image in it\&. Handles into it are stale afterwards and fail their generation check rather than being followed\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to release\&. NULL is ignored\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_load_file (\fBschultz_image_table\fP * table, const char * path, \fBschultz_handle\fP * out_image)"
+
+.PP
+Loads an image from a file, deciding the format from its contents\&. PNG, JPEG, WebP and SVG all load through here\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to load into\&. Must not be NULL\&. 
+.br
+\fIpath\fP Path to the file\&. Must not be NULL\&. 
+.br
+\fIout_image\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, SCHULTZ_ERR_UNREADABLE when the file is missing, unreadable, or holds nothing this build can decode, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_load_data (\fBschultz_image_table\fP * table, const void * bytes, uint32_t size, const char * kind, \fBschultz_handle\fP * out_image)"
+
+.PP
+Loads an image already in memory\&. The bytes are copied, so the caller's buffer need not outlive the call\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to load into\&. Must not be NULL\&. 
+.br
+\fIbytes\fP The encoded image\&. Must not be NULL\&. 
+.br
+\fIsize\fP How many bytes\&. Must be greater than zero\&. 
+.br
+\fIkind\fP A hint at the format, such as 'png' or 'svg', or NULL to let the decoder work it out from the bytes\&. 
+.br
+\fIout_image\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_UNREADABLE when the bytes could not be decoded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_set_pixels (\fBschultz_image_table\fP * table, const uint32_t * pixels, uint32_t width, uint32_t height, uint32_t stride, \fBschultz_handle\fP * out_image)"
+
+.PP
+Takes raw pixels, already decoded by the application\&. This is the path for everything Schultz does not decode: a video frame, an animated GIF the application unpacked itself, a picture generated in code\&. Pixels are premultiplied ARGB8888, the same layout the window buffer uses, and are copied\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to load into\&. Must not be NULL\&. 
+.br
+\fIpixels\fP The pixels, row major\&. Must not be NULL\&. 
+.br
+\fIwidth\fP Width in pixels\&. Must be greater than zero\&. 
+.br
+\fIheight\fP Height in pixels\&. Must be greater than zero\&. 
+.br
+\fIstride\fP Pixels per row, which may exceed the width\&. Zero means the rows are packed\&. 
+.br
+\fIout_image\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_encode (const uint32_t * pixels, uint32_t width, uint32_t height, uint32_t stride, uint32_t format, const void ** out_bytes, uint64_t * out_length)"
+
+.PP
+Writes pixels out as a file format, in memory\&. The other direction from loading\&. What comes back is the bytes of a whole file, ready to be put on a clipboard, sent somewhere or written to disk\&.
+.PP
+Pixels go in premultiplied, the way everything else in the toolkit holds them, and come out straight, because that is what a file format means by an alpha channel\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIpixels\fP The pixels, row major, premultiplied ARGB8888\&. Must not be NULL\&. 
+.br
+\fIwidth\fP Width in pixels\&. Must be greater than zero\&. 
+.br
+\fIheight\fP Height in pixels\&. Must be greater than zero\&. 
+.br
+\fIstride\fP Pixels per row, which may exceed the width\&. Zero means the rows are packed\&. 
+.br
+\fIformat\fP SCHULTZ_IMAGE_PNG or SCHULTZ_IMAGE_BMP\&. 
+.br
+\fIout_bytes\fP Receives the file's bytes\&. Must not be NULL\&. Owned by the toolkit and valid until the next call to this function, so a caller wanting two formats at once copies the first\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_load_animation (\fBschultz_image_table\fP * table, const char * path, \fBschultz_handle\fP * out_image)"
+
+.PP
+Loads a Lottie animation from a file\&. Lottie is the animation format the toolkit reads, and it is a good one: vector, small, and with the frame handling already compiled in\&. There is no GIF and no video; both take the raw pixel path instead\&.
+.PP
+The animation loads showing its first frame and stays there\&. Something has to move it, which is what schultz_lottie_create does with the tree's clock, or an application can step it by hand with schultz_image_set_frame\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to load into\&. Must not be NULL\&. 
+.br
+\fIpath\fP Path to the Lottie JSON\&. Must not be NULL\&. 
+.br
+\fIout_image\fP Receives the handle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, SCHULTZ_ERR_UNREADABLE when it could not be read or decoded, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_frames (const \fBschultz_image_table\fP * table, \fBschultz_handle\fP image, float * out_frames, float * out_duration)"
+
+.PP
+Reads how long an animation runs\&. A still picture reports zero for both, which is how one is told apart from an animation\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table holding it\&. Must not be NULL\&. 
+.br
+\fIimage\fP A handle from one of the load calls\&. 
+.br
+\fIout_frames\fP Receives the frame count, or NULL if not wanted\&. 
+.br
+\fIout_duration\fP Receives the length in seconds, or NULL if not wanted\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_set_frame (\fBschultz_image_table\fP * table, \fBschultz_handle\fP image, float frame)"
+
+.PP
+Moves an animation to a frame\&. Frames are counted from zero and clamped to what there is\&. Fractions are allowed and are what makes playback smooth rather than stepped\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table holding it\&. Must not be NULL\&. 
+.br
+\fIimage\fP A handle from schultz_image_load_animation\&. 
+.br
+\fIframe\fP Which frame to show\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when the image is a still picture, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_size (const \fBschultz_image_table\fP * table, \fBschultz_handle\fP image, \fBschultz_size\fP * out_size)"
+
+.PP
+Reads an image's natural size\&. This is what an Icon measures to when it is not given a size of its own\&. A vector image reports the size its author drew it at, and scales cleanly from there\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table holding it\&. Must not be NULL\&. 
+.br
+\fIimage\fP A handle from one of the load calls\&. 
+.br
+\fIout_size\fP Receives the size in pixels\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_image_unload (\fBschultz_image_table\fP * table, \fBschultz_handle\fP image)"
+
+.PP
+Forgets one image and releases what it decoded to\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table holding it\&. Must not be NULL\&. 
+.br
+\fIimage\fP A handle from one of the load calls\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_image_count (const \fBschultz_image_table\fP * table)"
+
+.PP
+Counts the images a table holds\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItable\fP The table to query\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many images are loaded\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,590 @@
+.TH "schultz_layout.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_layout.h \- The layout protocol and the built in panes\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_geom\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_grid_track\fP"
+.br
+.RI "One row or column definition\&. "
+.ti -1c
+.RI "struct \fBschultz_layout_params\fP"
+.br
+.RI "Per child layout properties, interpreted by the parent pane\&. "
+.ti -1c
+.RI "struct \fBschultz_pane_vtable\fP"
+.br
+.RI "The interface a pane implements\&. "
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBSCHULTZ_SIZE_UNSET\fP   (\-1\&.0f)"
+.br
+.RI "Nothing said here: the toolkit decides\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_tree\fP \fBschultz_tree\fP"
+.br
+.RI "Forward declaration of the widget tree\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_GROW_NEVER\fP = 0, \fBSCHULTZ_GROW_MAYBE\fP, \fBSCHULTZ_GROW_ALWAYS\fP }"
+.br
+.RI "How eagerly a child takes leftover space along the main axis\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_ALIGN_STRETCH\fP = 0, \fBSCHULTZ_ALIGN_START\fP, \fBSCHULTZ_ALIGN_CENTER\fP, \fBSCHULTZ_ALIGN_END\fP }"
+.br
+.RI "Cross axis placement of a child within the space it is given\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_SLOT_CENTER\fP = 0, \fBSCHULTZ_SLOT_TOP\fP, \fBSCHULTZ_SLOT_BOTTOM\fP, \fBSCHULTZ_SLOT_LEFT\fP, \fBSCHULTZ_SLOT_RIGHT\fP }"
+.br
+.RI "Which slot of a BorderPane a child occupies\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_TRACK_CONTENT\fP = 0, \fBSCHULTZ_TRACK_FIXED\fP, \fBSCHULTZ_TRACK_WEIGHTED\fP }"
+.br
+.RI "How one grid row or column is sized\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_GRID_MAX_TRACKS\fP = 32 }"
+.br
+.RI "The largest number of rows or columns a GridPane may have\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_PLACE_BELOW\fP = 0, \fBSCHULTZ_PLACE_ABOVE\fP, \fBSCHULTZ_PLACE_RIGHT\fP, \fBSCHULTZ_PLACE_LEFT\fP, \fBSCHULTZ_PLACE_OVER\fP }"
+.br
+.RI "Where an overlay sits relative to whatever it belongs to\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_layout_is_unbounded\fP (float available)"
+.br
+.RI "Reports whether an available size means 'no limit'\&. "
+.ti -1c
+.RI "int32_t \fBschultz_layout_params_default\fP (\fBschultz_layout_params\fP *out_params)"
+.br
+.RI "Fills in the defaults for per child layout properties\&. "
+.ti -1c
+.RI "int32_t \fBschultz_layout_measure\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float avail_w, float avail_h, \fBschultz_size\fP *out_size)"
+.br
+.RI "Measures a node, honouring its pane and its size hints\&. "
+.ti -1c
+.RI "int32_t \fBschultz_layout_arrange\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_rect\fP rect)"
+.br
+.RI "Assigns a node its final rectangle and lays out its subtree\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_layout_run\fP (\fBschultz_tree\fP *tree)"
+.br
+.RI "Lays out whatever in the tree needs it, and nothing that does not\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_anchored\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_rect\fP anchor, uint32_t placement, float gap, int32_t centred, int32_t flips)"
+.br
+.RI "Keeps a node beside something, and inside the window\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_node_anchor_placement\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Which side an anchored node actually ended up on\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_clear_anchored\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Stops keeping a node beside something\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_places_itself\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t places_itself)"
+.br
+.RI "Says that something other than a pane decides where a node goes\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_places_itself\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node is placed by something other than a pane\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_pane_grid\fP (void)"
+.br
+.RI "Rows and columns, with cells that align across the whole grid\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_pane_vbox\fP (void)"
+.br
+.RI "A column: children stacked top to bottom\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_pane_hbox\fP (void)"
+.br
+.RI "A row: children placed left to right\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_pane_stack\fP (void)"
+.br
+.RI "Children share one rectangle, aligned within it\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_pane_absolute\fP (void)"
+.br
+.RI "Children at explicit coordinates\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_pane_flow\fP (void)"
+.br
+.RI "Children run across in rows, starting a new row when one is full\&. "
+.ti -1c
+.RI "const \fBschultz_pane_vtable\fP * \fBschultz_pane_border\fP (void)"
+.br
+.RI "Five slots: top, bottom, left, right and centre\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The layout protocol and the built in panes\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+Two operations make up the whole required interface:
+.PP
+measure(node, avail_w, avail_h) -> size arrange(node, rect)
+.PP
+The parent decides constraints and position; the child decides its own size\&. Neither does the other's job, which is what keeps layout a single recursive walk with no solver and no relaxation loop\&.
+.PP
+Because a parent asks for a preferred size \fBgiven an available width\fP, and a paragraph's height depends on the width it is given, wrapping text falls out of the ordering with no special case\&. That is the reason the signature takes an available size at all\&.
+.PP
+Dispatch is a per node vtable, so an application can add its own pane types without modifying Schultz\&. 
+.PP
+Definition in file \fBschultz_layout\&.h\fP\&.
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define SCHULTZ_SIZE_UNSET   (\-1\&.0f)"
+
+.PP
+Nothing said here: the toolkit decides\&. What to pass schultz_node_set_min_size, schultz_node_set_pref_size and schultz_node_set_max_size for an axis you have no opinion about\&. It reads as the sensible thing in each: compute a preferred size from the content, impose no minimum, impose no maximum\&.
+.PP
+One value rather than three, because three would have to be remembered apart\&. Zero is a real size everywhere and never means 'work it out': a node told it is zero high is zero high, and asking for a width and passing zero for the height is how a label came out invisible once already\&. 
+.PP
+Definition at line \fB181\fP of file \fBschultz_layout\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_tree\fP \fBschultz_tree\fP"
+
+.PP
+Forward declaration of the widget tree\&. Layout does not need the tree's definition, and the tree needs these types, so declaring it here breaks what would otherwise be an include cycle\&. 
+.PP
+Definition at line \fB61\fP of file \fBschultz_layout\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+How eagerly a child takes leftover space along the main axis\&. Three coarse levels rather than proportional weights, following the JavaFX model\&. Leftover space is shared equally among the children at the highest priority present; children below that priority get none\&. This covers the large majority of real cases, and when genuine two to one splitting is needed a FlexPane can be added as another pane type\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_GROW_NEVER \fP\fP
+Stays at its preferred size\&. 
+.TP
+\fB\fISCHULTZ_GROW_MAYBE \fP\fP
+Grows only if no ALWAYS child is present\&. 
+.TP
+\fB\fISCHULTZ_GROW_ALWAYS \fP\fP
+Shares the leftover space\&. 
+.PP
+Definition at line \fB86\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Cross axis placement of a child within the space it is given\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_ALIGN_STRETCH \fP\fP
+Fill the cross axis\&. 
+.TP
+\fB\fISCHULTZ_ALIGN_START \fP\fP
+Top, or left\&. 
+.TP
+\fB\fISCHULTZ_ALIGN_CENTER \fP\fP
+Centred\&. 
+.TP
+\fB\fISCHULTZ_ALIGN_END \fP\fP
+Bottom, or right\&. 
+.PP
+Definition at line \fB93\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Which slot of a BorderPane a child occupies\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_SLOT_CENTER \fP\fP
+Takes whatever the edges leave\&. 
+.TP
+\fB\fISCHULTZ_SLOT_TOP \fP\fP
+Full width, its preferred height\&. 
+.TP
+\fB\fISCHULTZ_SLOT_BOTTOM \fP\fP
+Full width, its preferred height\&. 
+.TP
+\fB\fISCHULTZ_SLOT_LEFT \fP\fP
+Its preferred width, remaining height\&. 
+.TP
+\fB\fISCHULTZ_SLOT_RIGHT \fP\fP
+Its preferred width, remaining height\&. 
+.PP
+Definition at line \fB101\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+How one grid row or column is sized\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_TRACK_CONTENT \fP\fP
+As large as the largest cell in it\&. The default\&. 
+.TP
+\fB\fISCHULTZ_TRACK_FIXED \fP\fP
+Exactly the given number of pixels\&. 
+.TP
+\fB\fISCHULTZ_TRACK_WEIGHTED \fP\fP
+Shares the leftover space in proportion to the given weight\&. 
+.PP
+Definition at line \fB110\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+The largest number of rows or columns a GridPane may have\&. 
+.PP
+Definition at line \fB120\fP of file \fBschultz_layout\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Where an overlay sits relative to whatever it belongs to\&. An overlay that would hang off the window is nudged back inside rather than flipped to the other side: moving a little is less surprising than jumping\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_PLACE_BELOW \fP\fP
+Under it, left edges lined up\&. 
+.TP
+\fB\fISCHULTZ_PLACE_ABOVE \fP\fP
+Over it\&. 
+.TP
+\fB\fISCHULTZ_PLACE_RIGHT \fP\fP
+Beside it, to the right\&. 
+.TP
+\fB\fISCHULTZ_PLACE_LEFT \fP\fP
+Beside it, to the left\&. 
+.TP
+\fB\fISCHULTZ_PLACE_OVER \fP\fP
+On top of it, corners lined up\&. 
+.PP
+Definition at line \fB277\fP of file \fBschultz_layout\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_layout_is_unbounded (float available)"
+
+.PP
+Reports whether an available size means 'no limit'\&. Any negative available size is unbounded\&. This is not an edge case: a context menu wants to be as wide as its widest item with no cap from a parent, a vertical scroll view gives its content unbounded height, and most mobile screens scroll\&. \fBEvery pane must have a defined answer for it\fP, and each built in pane documents its own\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIavailable\fP An available width or height, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the size is unbounded, 0 when it is a real limit\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_layout_params_default (\fBschultz_layout_params\fP * out_params)"
+
+.PP
+Fills in the defaults for per child layout properties\&. Grow never, stretch across the cross axis, grid cell 0,0 spanning one track, the centre slot, and the origin\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_params\fP Receives the defaults\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when out_params is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_layout_measure (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float avail_w, float avail_h, \fBschultz_size\fP * out_size)"
+
+.PP
+Measures a node, honouring its pane and its size hints\&. Dispatches to the node's pane when it has one, then clamps the result against the node's minimum and maximum\&. A node with no pane reports its preferred size hints, or zero where they are not set\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to measure\&. 
+.br
+\fIavail_w\fP Available width, or negative for unbounded\&. 
+.br
+\fIavail_h\fP Available height, or negative for unbounded\&. 
+.br
+\fIout_size\fP Receives the measured size\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or SCHULTZ_ERR_INVALID_HANDLE when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_layout_arrange (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_rect\fP rect)"
+
+.PP
+Assigns a node its final rectangle and lays out its subtree\&. Sets the node's bounds, which marks the affected regions dirty, then hands over to its pane to place the children\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to place\&. 
+.br
+\fIrect\fP The final rectangle, in the parent's coordinate space\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL tree, or SCHULTZ_ERR_INVALID_HANDLE when the node is not live\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_layout_run (\fBschultz_tree\fP * tree)"
+
+.PP
+Lays out whatever in the tree needs it, and nothing that does not\&. A host running a frame loop calls this once a frame, after resolving styles and before painting\&. It walks down from the root looking for nodes marked as needing layout, arranges each at the bounds it already has, and stops there: arranging a node lays out everything beneath it, so a change deep in the tree costs the subtree it happened in rather than the window\&.
+.PP
+A node with no pane places nothing, so the walk carries on past it into whatever is below\&. That is what makes a page of absolutely positioned children work: it has no pane, and the panes inside it are found and run\&.
+.PP
+Nothing is left marked afterwards\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to lay out\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many nodes were arranged, which is zero when nothing had changed and the whole call cost one flag test\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_anchored (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_rect\fP anchor, uint32_t placement, float gap, int32_t centred, int32_t flips)"
+
+.PP
+Keeps a node beside something, and inside the window\&. What a menu and a popover want: sit under the button that opened me, and if that would hang me off an edge, nudge me back in\&. Layout does it every pass rather than once when the node is shown, so the node stays where it belongs when the window changes size\&. On a phone that matters, because a rotation is a resize and it does not dismiss anything\&.
+.PP
+The node keeps its own size, measured from its contents\&. Only where it sits is decided here\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to place\&. Must name a live node\&. 
+.br
+\fIanchor\fP What to sit beside, in the same space as the node's own bounds\&. 
+.br
+\fIplacement\fP One of SCHULTZ_PLACE_*\&. 
+.br
+\fIgap\fP Clearance between the node and its anchor, in the placement's own direction\&. Zero sits flush against it\&. 
+.br
+\fIcentred\fP Nonzero centres the node on the anchor across the axis the placement did not decide: above and below centre it across the anchor's width, left and right across its height\&. Zero lines their leading edges up, which is what a menu under a button wants\&. 
+.br
+\fIflips\fP Nonzero sends the node to the opposite side when the side asked for does not fit and the other one does, rather than nudging it back inside\&. A tooltip and a popover want this: nudged, they come to rest on top of the thing they are explaining\&. A menu does not, because a submenu that jumps above the row that opened it is disorienting\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_node_anchor_placement (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Which side an anchored node actually ended up on\&. The placement it was given, unless it was allowed to flip and did, in which case the opposite one\&. What a node needs to know to draw anything that points back at its anchor\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields SCHULTZ_PLACE_BELOW\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+One of SCHULTZ_PLACE_*\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_clear_anchored (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Stops keeping a node beside something\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to release\&. Must name a live node\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_places_itself (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t places_itself)"
+
+.PP
+Says that something other than a pane decides where a node goes\&. A pane places its children\&. A few nodes are placed by something else and have to be left out of that, or the pane above them drags them into the row or column with everything else and they stop being where they belong\&. A toast is the case in the toolkit: it sits against the edge of the window and stacks with the other toasts, wherever it happens to hang in the tree\&.
+.PP
+Set this on any node an application places itself\&. Without it, such a node only works while no pane sits above it, which is a rule nothing enforces and nobody can guess: a host that gives its root a pane finds its own hand placed nodes quietly swept into the flow\&.
+.PP
+An overlay does not need this\&. A dialog, a menu and a popover are already left alone, because the overlay list says the same thing about them\&.
+.PP
+A node like this is still measured when something asks it for a size, and it is drawn and hit tested as usual\&. Only placing it is somebody else's job\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to mark\&. Must name a live node\&. 
+.br
+\fIplaces_itself\fP Nonzero to keep panes off it, zero to let a pane place it again, which is how a node starts\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_places_itself (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node is placed by something other than a pane\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when no pane places it, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_pane_grid (void)"
+
+.PP
+Rows and columns, with cells that align across the whole grid\&. This is the pane the composable model needs\&. Nested rows do not align their columns with each other, and no amount of nesting fixes that, so anything genuinely tabular needs real tracks\&.
+.PP
+Track sizes come from schultz_node_set_grid_tracks\&. A content track is as large as the largest cell in it, a fixed track is exactly its value, and a weighted track shares whatever is left over in proportion to its weight\&. A child spanning several tracks that does not fit grows them evenly\&.
+.PP
+\fBUnbounded\fP available space means weighted tracks have nothing to share, so they collapse to their content size and the grid reports its natural size\&. Rows and columns beyond SCHULTZ_GRID_MAX_TRACKS are ignored\&.
+.PP
+\fBReturns\fP
+.RS 4
+The GridPane vtable\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_pane_vbox (void)"
+
+.PP
+A column: children stacked top to bottom\&. Measure sums the children's heights plus the gaps and takes the widest child\&. \fBUnbounded height\fP is passed straight to the children, so a column inside a scroll view reports its full natural height\&. \fBUnbounded width\fP is likewise passed down, and the column reports its widest child\&.
+.PP
+\fBReturns\fP
+.RS 4
+The VBox vtable\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_pane_hbox (void)"
+
+.PP
+A row: children placed left to right\&. The mirror of VBox\&. Measure sums widths plus gaps and takes the tallest child\&. \fBUnbounded width\fP is passed to the children and the row reports the sum of their natural widths\&.
+.PP
+\fBReturns\fP
+.RS 4
+The HBox vtable\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_pane_stack (void)"
+
+.PP
+Children share one rectangle, aligned within it\&. Measure returns the largest child size on each axis\&. \fBUnbounded\fP on either axis is passed to the children, and the result is the maximum of what they report\&. Overlays, badges and centred content all fall out of this\&.
+.PP
+\fBReturns\fP
+.RS 4
+The StackPane vtable\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_pane_absolute (void)"
+
+.PP
+Children at explicit coordinates\&. Each child is placed at the x and y in its layout params, at its preferred size\&. Measure returns the union of the child extents, so an absolute pane still reports a sensible size to whatever contains it\&. \fBUnbounded\fP is passed to the children\&. Children may overflow the pane's bounds; clipping is a separate concern, not a layout constraint\&.
+.PP
+\fBReturns\fP
+.RS 4
+The absolute Pane vtable\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_pane_flow (void)"
+
+.PP
+Children run across in rows, starting a new row when one is full\&. The pane a tag list, a wrapping toolbar or a gallery of thumbnails wants\&. Its height depends on the width it is offered, which is the case the measure signature exists for and the same shape as wrapping text: narrower means more rows and a taller pane\&.
+.PP
+A child is as wide as it asks to be and is aligned within its row's height by its own \fCalign\fP, so a row of mixed heights lines up rather than every child stretching\&. The gap sits between children on a row and between the rows themselves\&.
+.PP
+\fBUnbounded\fP width means nothing ever has to wrap, so everything lands on one row and the pane reports the width that row needs\&. That is what a flow pane inside a horizontal scroll view or a context menu asks for\&.
+.PP
+A child wider than the pane is put on a row of its own and allowed to overflow, in the same way as a word too long for a line: there is nowhere narrower to put it\&.
+.PP
+\fBReturns\fP
+.RS 4
+The FlowPane vtable\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_pane_vtable\fP * schultz_pane_border (void)"
+
+.PP
+Five slots: top, bottom, left, right and centre\&. Top and bottom span the full width at their preferred heights, left and right take their preferred widths from what remains, and the centre takes the rest\&. \fBUnbounded\fP on an axis makes the edge children report their natural size and the centre contribute its own\&.
+.PP
+\fBReturns\fP
+.RS 4
+The BorderPane vtable\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

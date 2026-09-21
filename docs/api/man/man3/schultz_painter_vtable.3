@@ -1,0 +1,212 @@
+.TH "schultz_painter_vtable" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_painter_vtable \- The painter interface a rendering backend implements\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_paint\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "int32_t(* \fBbegin\fP )(void *context, \fBschultz_rect\fP bounds)"
+.br
+.ti -1c
+.RI "int32_t(* \fBend\fP )(void *context)"
+.br
+.ti -1c
+.RI "int32_t(* \fBfill_rect\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBstroke_rect\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBfill_round_rect\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBstroke_round_rect\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBfill_ellipse\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBstroke_ellipse\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBline\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBfill_polygon\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBstroke_polygon\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBfill_path\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBstroke_path\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBimage\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBglyph_run\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBglyph_outline\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBclip_begin\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBclip_end\fP )(void *context)"
+.br
+.ti -1c
+.RI "int32_t(* \fBoffset_begin\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBoffset_end\fP )(void *context)"
+.br
+.ti -1c
+.RI "int32_t(* \fBrotation_begin\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBrotation_end\fP )(void *context)"
+.br
+.ti -1c
+.RI "int32_t(* \fBgroup_begin\fP )(void *context, const \fBschultz_draw_cmd\fP *cmd)"
+.br
+.ti -1c
+.RI "int32_t(* \fBgroup_end\fP )(void *context)"
+.br
+.ti -1c
+.RI "int32_t(* \fBdevice_pixels_begin\fP )(void *context)"
+.br
+.ti -1c
+.RI "int32_t(* \fBdevice_pixels_end\fP )(void *context)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+The painter interface a rendering backend implements\&. 
+
+Every entry must be non-NULL\&. schultz_draw_list_play rejects an incomplete vtable rather than silently skipping drawing, because a missing entry would otherwise show up as content that never appears\&.
+.PP
+Each command handler receives the whole command; read the union member that matches its kind\&. Handlers return SCHULTZ_OK to continue, or any error to abort the frame\&. 
+.PP
+Definition at line \fB690\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "int32_t(* schultz_painter_vtable::begin) (void *context, \fBschultz_rect\fP bounds)"
+Called once before any command\&. Receives the frame bounds\&. 
+.PP
+Definition at line \fB692\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::end) (void *context)"
+Called once after the last command, including after an abort\&. 
+.PP
+Definition at line \fB694\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::fill_rect) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Fill a rectangle\&. Read cmd->as\&.fill_rect\&. 
+.PP
+Definition at line \fB696\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::stroke_rect) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Outline a rectangle\&. Read cmd->as\&.stroke_rect\&. 
+.PP
+Definition at line \fB698\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::fill_round_rect) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Fill a rounded rectangle\&. Read cmd->as\&.fill_round_rect\&. 
+.PP
+Definition at line \fB700\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::stroke_round_rect) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Outline a rounded rectangle\&. Read cmd->as\&.stroke_round_rect\&. 
+.PP
+Definition at line \fB702\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::fill_ellipse) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Stroke a line segment\&. Read cmd->as\&.line\&. Fill an ellipse\&. Read cmd->as\&.fill_ellipse\&. 
+.PP
+Definition at line \fB705\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::stroke_ellipse) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Outline an ellipse\&. Read cmd->as\&.stroke_ellipse\&. 
+.PP
+Definition at line \fB707\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::line) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Stroke a line segment\&. Read cmd->as\&.line\&. 
+.PP
+Definition at line \fB709\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::fill_polygon) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Fill a closed polygon\&. Read cmd->as\&.fill_polygon\&. 
+.PP
+Definition at line \fB711\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::stroke_polygon) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Outlines a polygon, or a polyline when it is not closed\&. 
+.PP
+Definition at line \fB713\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::fill_path) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Fill a path that may curve\&. Read cmd->as\&.fill_path\&. 
+.PP
+Definition at line \fB715\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::stroke_path) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Stroke a path that may curve\&. Read cmd->as\&.stroke_path\&. 
+.PP
+Definition at line \fB717\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::image) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Blit an image\&. Resolve cmd->as\&.image\&.image to a texture\&. 
+.PP
+Definition at line \fB719\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::glyph_run) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Draw positioned glyphs\&. Resolve cmd->as\&.glyph_run\&.font\&. 
+.PP
+Definition at line \fB721\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::glyph_outline) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Stroke a run of glyphs\&. Read cmd->as\&.glyph_outline\&. 
+.PP
+Definition at line \fB723\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::clip_begin) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Narrow the clip to cmd->as\&.clip_begin\&.rect until the matching end\&. 
+.PP
+Definition at line \fB725\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::clip_end) (void *context)"
+Restore the clip region saved by the matching clip_begin\&. 
+.PP
+Definition at line \fB727\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::offset_begin) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Shift by cmd->as\&.offset_begin until the matching end\&. 
+.PP
+Definition at line \fB729\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::offset_end) (void *context)"
+Restore the offset saved by the matching offset_begin\&. 
+.PP
+Definition at line \fB731\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::rotation_begin) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Turn what follows about a point\&. Read cmd->as\&.rotation_begin\&. 
+.PP
+Definition at line \fB733\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::rotation_end) (void *context)"
+Restore the rotation saved by the matching rotation_begin\&. 
+.PP
+Definition at line \fB735\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::group_begin) (void *context, const \fBschultz_draw_cmd\fP *cmd)"
+Starts a group; everything until group_end composes as one picture\&. 
+.PP
+Definition at line \fB737\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::group_end) (void *context)"
+Finishes that group and blends it in at the opacity it was given\&. 
+.PP
+Definition at line \fB739\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::device_pixels_begin) (void *context)"
+Draw what follows in screen pixels, whatever the toolkit's unit\&. 
+.PP
+Definition at line \fB742\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t(* schultz_painter_vtable::device_pixels_end) (void *context)"
+Restore the unit saved by the matching device_pixels_begin\&. 
+.PP
+Definition at line \fB744\fP of file \fBschultz_paint\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

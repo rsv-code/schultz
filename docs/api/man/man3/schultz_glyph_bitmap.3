@@ -1,0 +1,77 @@
+.TH "schultz_glyph_bitmap" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_glyph_bitmap \- One rasterized glyph\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_glyphs\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const unsigned char * \fBbitmap\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBwidth\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBheight\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBpitch\fP"
+.br
+.ti -1c
+.RI "int32_t \fBbearing_x\fP"
+.br
+.ti -1c
+.RI "int32_t \fBbearing_y\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBformat\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+One rasterized glyph\&. 
+
+The bitmap is \fCheight\fP rows of \fCpitch\fP bytes, and \fCformat\fP says what a pixel in them is\&. A glyph with no outline, such as a space, has a NULL bitmap and zero extents but still has valid bearings\&. 
+.PP
+Definition at line \fB80\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const unsigned char* schultz_glyph_bitmap::bitmap"
+Pixel rows, or NULL when blank\&. 
+.PP
+Definition at line \fB81\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SS "uint32_t schultz_glyph_bitmap::width"
+Bitmap width in pixels\&. 
+.PP
+Definition at line \fB82\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SS "uint32_t schultz_glyph_bitmap::height"
+Bitmap height in pixels\&. 
+.PP
+Definition at line \fB83\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SS "uint32_t schultz_glyph_bitmap::pitch"
+Bytes per row, at least width\&. 
+.PP
+Definition at line \fB84\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SS "int32_t schultz_glyph_bitmap::bearing_x"
+Pen to left edge, rightward positive\&. 
+.PP
+Definition at line \fB85\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SS "int32_t schultz_glyph_bitmap::bearing_y"
+Baseline to top edge, upward positive\&. 
+.PP
+Definition at line \fB86\fP of file \fBschultz_glyphs\&.h\fP\&.
+.SS "uint32_t schultz_glyph_bitmap::format"
+SCHULTZ_GLYPH_COVERAGE or _COLOR\&. 
+.PP
+Definition at line \fB87\fP of file \fBschultz_glyphs\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,49 @@
+.TH "schultz_arena" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_arena \- A chain of blocks that allocates by bumping a cursor\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_arena\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_arena_block\fP * \fBfirst\fP"
+.br
+.ti -1c
+.RI "\fBschultz_arena_block\fP * \fBcurrent\fP"
+.br
+.ti -1c
+.RI "size_t \fBblock_size\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A chain of blocks that allocates by bumping a cursor\&. 
+
+Call schultz_arena_init before use\&. 
+.PP
+Definition at line \fB69\fP of file \fBschultz_arena\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_arena_block\fP* schultz_arena::first"
+Oldest block, head of the chain\&. 
+.PP
+Definition at line \fB70\fP of file \fBschultz_arena\&.h\fP\&.
+.SS "\fBschultz_arena_block\fP* schultz_arena::current"
+Block being filled\&. 
+.PP
+Definition at line \fB71\fP of file \fBschultz_arena\&.h\fP\&.
+.SS "size_t schultz_arena::block_size"
+Size of blocks this arena requests\&. 
+.PP
+Definition at line \fB72\fP of file \fBschultz_arena\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

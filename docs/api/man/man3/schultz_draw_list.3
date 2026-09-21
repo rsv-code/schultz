@@ -1,0 +1,68 @@
+.TH "schultz_draw_list" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_draw_list \- An ordered list of draw commands backed by an arena\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_paint\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_arena\fP * \fBarena\fP"
+.br
+.ti -1c
+.RI "\fBschultz_draw_chunk\fP * \fBfirst\fP"
+.br
+.ti -1c
+.RI "\fBschultz_draw_chunk\fP * \fBlast\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcount\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBchunk_capacity\fP"
+.br
+.ti -1c
+.RI "int32_t \fBoverflowed\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+An ordered list of draw commands backed by an arena\&. 
+.PP
+Definition at line \fB198\fP of file \fBschultz_paint\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_arena\fP* schultz_draw_list::arena"
+Where chunks come from\&. 
+.PP
+Definition at line \fB199\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_draw_chunk\fP* schultz_draw_list::first"
+First chunk, or NULL\&. 
+.PP
+Definition at line \fB200\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "\fBschultz_draw_chunk\fP* schultz_draw_list::last"
+Chunk being appended to\&. 
+.PP
+Definition at line \fB201\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_list::count"
+Total commands in the list\&. 
+.PP
+Definition at line \fB202\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "uint32_t schultz_draw_list::chunk_capacity"
+Commands per new chunk\&. 
+.PP
+Definition at line \fB203\fP of file \fBschultz_paint\&.h\fP\&.
+.SS "int32_t schultz_draw_list::overflowed"
+Nonzero once an append failed\&. 
+.PP
+Definition at line \fB204\fP of file \fBschultz_paint\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

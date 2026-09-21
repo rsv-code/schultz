@@ -1,0 +1,100 @@
+.TH "schultz_widget_vtable" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_widget_vtable \- What a widget type must provide\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_widget\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "int32_t(* \fBpaint\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_draw_list\fP *list, \fBschultz_arena\fP *arena)"
+.br
+.ti -1c
+.RI "int32_t(* \fBevent\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const \fBschultz_event\fP *event)"
+.br
+.ti -1c
+.RI "int32_t(* \fBtick\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint64_t now_ms, uint32_t elapsed_ms)"
+.br
+.ti -1c
+.RI "void(* \fBdestroy\fP )(void *data)"
+.br
+.ti -1c
+.RI "const \fBschultz_selectable_vtable\fP * \fBselectable\fP"
+.br
+.ti -1c
+.RI "int32_t(* \fBclickable_span\fP )(\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_point\fP local, uint32_t *out_index, uint64_t *out_tag)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+What a widget type must provide\&. 
+
+Every entry may be NULL\&. A widget with no \fCpaint\fP contributes nothing to the frame but still lays out and routes events, which is what a container usually wants\&. 
+.PP
+Definition at line \fB213\fP of file \fBschultz_widget\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "int32_t(* schultz_widget_vtable::paint) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_draw_list\fP *list, \fBschultz_arena\fP *arena)"
+Appends this node's drawing to the frame's command list\&.
+.PP
+Called with the node's absolute bounds already computed and any clip already pushed\&. Coordinates are in window space, so a widget positions itself from schultz_node_absolute_bounds rather than assuming an origin\&.
+.PP
+The arena is per frame scratch and is reset before the next one, so anything allocated from it must not be kept\&. 
+.PP
+Definition at line \fB225\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "int32_t(* schultz_widget_vtable::event) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const \fBschultz_event\fP *event)"
+Handles an event aimed at this node, before the host sees it\&.
+.PP
+Returning nonzero consumes the event and stops it reaching the host, which is what a text field does with a keystroke\&. Returning zero lets it through, which is what a button does with its click\&. 
+.PP
+Definition at line \fB235\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "int32_t(* schultz_widget_vtable::tick) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, uint64_t now_ms, uint32_t elapsed_ms)"
+Moves this node on by however long has passed\&.
+.PP
+Called from schultz_tree_advance, and only for nodes that asked to be ticked with schultz_node_set_animating\&. Nothing else in the toolkit knows what time it is, so this is where anything that changes on its own rather than in answer to input does its changing\&.
+.PP
+Return nonzero when something changed and the node needs painting again\&. A widget that has nothing to do this tick returns zero, and the frame costs nothing\&. 
+.PP
+Definition at line \fB250\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "void(* schultz_widget_vtable::destroy) (void *data)"
+Releases whatever \fCpaint\fP and \fCevent\fP were using\&. 
+.PP
+Definition at line \fB254\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "const \fBschultz_selectable_vtable\fP* schultz_widget_vtable::selectable"
+How this widget takes part in a selection that spans widgets, or NULL when it takes none\&. See \fBschultz_selectable_vtable\fP\&. 
+.PP
+Definition at line \fB260\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "int32_t(* schultz_widget_vtable::clickable_span) (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_point\fP local, uint32_t *out_index, uint64_t *out_tag)"
+Which clickable span of this widget's text is at a point, or zero when none is\&.
+.PP
+Asked by the router as a click goes out, so the event that reaches the host can name the stretch that was pressed\&. One event per click, the same one every other widget produces, with two more fields filled in\&.
+.PP
+Optional\&. A widget that leaves it NULL reports clicks the way it always did, and a host that does not look at the two fields never notices\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIlocal\fP The point, in the node's own coordinates\&. 
+.br
+\fIout_index\fP Receives which span, counting from zero\&. 
+.br
+\fIout_tag\fP Receives that span's tag\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when a clickable span is there\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB278\fP of file \fBschultz_widget\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

@@ -1,0 +1,952 @@
+.TH "schultz_window.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_window.h \- A window: one call opens it, one call draws it\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_event\&.h'\fP
+.br
+\fC#include 'schultz_font\&.h'\fP
+.br
+\fC#include 'schultz_glyphs\&.h'\fP
+.br
+\fC#include 'schultz_image\&.h'\fP
+.br
+\fC#include 'schultz_node\&.h'\fP
+.br
+\fC#include 'schultz_resource\&.h'\fP
+.br
+\fC#include 'schultz_style\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_window_options\fP"
+.br
+.RI "How a window should open\&. "
+.ti -1c
+.RI "struct \fBschultz_keyboard_options\fP"
+.br
+.RI "What the window's own keyboard may do\&. "
+.ti -1c
+.RI "struct \fBschultz_file_filter\fP"
+.br
+.RI "One entry in a file dialog's list of what it will show\&. "
+.ti -1c
+.RI "struct \fBschultz_file_options\fP"
+.br
+.RI "How a file dialog should open\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBschultz_window\fP \fBschultz_window\fP"
+.br
+.RI "Opaque window state\&. Open one with schultz_window_create\&. "
+.ti -1c
+.RI "typedef struct \fBschultz_window_options\fP \fBschultz_window_options\fP"
+.br
+.RI "How a window should open\&. "
+.ti -1c
+.RI "typedef int32_t(* \fBschultz_window_update_fn\fP) (void *context)"
+.br
+.RI "Called once per turn of the loop, before anything is drawn\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_SCREEN_ANY\fP = 0, \fBSCHULTZ_SCREEN_PORTRAIT\fP, \fBSCHULTZ_SCREEN_LANDSCAPE\fP }"
+.br
+.RI "Which way up a screen may be used\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_TURN_AUTO\fP = 0, \fBSCHULTZ_TURN_NONE\fP, \fBSCHULTZ_TURN_90\fP, \fBSCHULTZ_TURN_180\fP, \fBSCHULTZ_TURN_270\fP }"
+.br
+.RI "How far the picture is turned before it reaches the panel\&. "
+.ti -1c
+.RI "enum { \fBSCHULTZ_KEYBOARD_NEVER\fP = 0, \fBSCHULTZ_KEYBOARD_WHEN_NEEDED\fP, \fBSCHULTZ_KEYBOARD_ALWAYS\fP }"
+.br
+.RI "Returns the part of the window it is safe to put content in\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBschultz_window_options_init\fP (\fBschultz_window_options\fP *options)"
+.br
+.RI "Fills in the options a zeroed struct cannot express\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_create\fP (const \fBschultz_window_options\fP *options, \fBschultz_window\fP **out_window)"
+.br
+.RI "Opens a window and builds everything drawing it needs\&. "
+.ti -1c
+.RI "const char * \fBschultz_window_error\fP (void)"
+.br
+.RI "Returns the platform's description of the most recent failure\&. "
+.ti -1c
+.RI "void \fBschultz_window_destroy\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Closes the window and releases everything it owns\&. "
+.ti -1c
+.RI "\fBschultz_tree\fP * \fBschultz_window_tree\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Returns the widget tree to build in\&. Never outlives the window\&. "
+.ti -1c
+.RI "\fBschultz_events\fP * \fBschultz_window_events\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Returns the event router, for accelerators and the host callback\&. "
+.ti -1c
+.RI "\fBschultz_font_system\fP * \fBschultz_window_fonts\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Returns the font system to load faces into\&. "
+.ti -1c
+.RI "\fBschultz_glyph_cache\fP * \fBschultz_window_glyphs\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Returns the glyph cache, which a host needs only to render offscreen\&. "
+.ti -1c
+.RI "\fBschultz_resource_table\fP * \fBschultz_window_resources\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Returns the gradient and dash table to register into\&. "
+.ti -1c
+.RI "\fBschultz_image_table\fP * \fBschultz_window_images\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Returns the image table to load pictures and animations into\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_window_width\fP (const \fBschultz_window\fP *window)"
+.br
+.RI "Returns the width content may fill, in pixels\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_window_height\fP (const \fBschultz_window\fP *window)"
+.br
+.RI "Returns the height content may fill, in pixels\&. "
+.ti -1c
+.RI "int32_t \fBschultz_keyboard_options_init\fP (\fBschultz_keyboard_options\fP *out_options)"
+.br
+.RI "Fills in the defaults: a keyboard where the machine has no keys, and emoji offered\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_set_keyboard\fP (\fBschultz_window\fP *window, const \fBschultz_keyboard_options\fP *options)"
+.br
+.RI "Says whether this window draws a keyboard, and what it may offer\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_keyboard_options\fP (const \fBschultz_window\fP *window, \fBschultz_keyboard_options\fP *out_options)"
+.br
+.RI "Returns what this window's keyboard has been told it may do\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_show_keyboard\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Puts the keyboard up now, whatever the focus is\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_hide_keyboard\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Takes the keyboard away\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_window_keyboard\fP (const \fBschultz_window\fP *window)"
+.br
+.RI "Returns the keyboard node, or SCHULTZ_HANDLE_NONE\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_safe_area\fP (const \fBschultz_window\fP *window, \fBschultz_rect\fP *out_area)"
+.br
+.RI "The part of the window content may occupy\&. "
+.ti -1c
+.RI "float \fBschultz_window_pixel_scale\fP (const \fBschultz_window\fP *window)"
+.br
+.RI "Returns how many screen pixels fit in one toolkit unit\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_set_orientation\fP (\fBschultz_window\fP *window, uint32_t orientation)"
+.br
+.RI "Changes which ways up the screen may be used, after it is open\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_set_turn\fP (\fBschultz_window\fP *window, uint32_t turn)"
+.br
+.RI "Changes how far the picture is turned on its way to the panel\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_window_time_ms\fP (const \fBschultz_window\fP *window)"
+.br
+.RI "Returns the millisecond clock the last redraw ran at\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_window_frame_count\fP (const \fBschultz_window\fP *window)"
+.br
+.RI "Returns how many frames have been presented\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_open_file\fP (\fBschultz_window\fP *window, const \fBschultz_file_options\fP *options, uint32_t *out_request)"
+.br
+.RI "Opens the platform's file picker, without waiting for an answer\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_save_file\fP (\fBschultz_window\fP *window, const \fBschultz_file_options\fP *options, uint32_t *out_request)"
+.br
+.RI "Opens the platform's save picker\&. Otherwise as open file\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_open_folder\fP (\fBschultz_window\fP *window, const \fBschultz_file_options\fP *options, uint32_t *out_request)"
+.br
+.RI "Opens the platform's folder picker\&. Otherwise as open file\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_window_file_count\fP (const \fBschultz_window\fP *window, uint32_t request)"
+.br
+.RI "Returns how many paths a finished request came back with\&. "
+.ti -1c
+.RI "const char * \fBschultz_window_file_path\fP (const \fBschultz_window\fP *window, uint32_t request, uint32_t index)"
+.br
+.RI "Returns one of a finished request's paths\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_file_filter\fP (const \fBschultz_window\fP *window, uint32_t request)"
+.br
+.RI "Returns which filter was showing when the choice was made\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_update\fP (\fBschultz_window\fP *window, int32_t *out_quit)"
+.br
+.RI "Advances the clock, draws one redraw, presents it, and reads input\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_request_close\fP (\fBschultz_window\fP *window)"
+.br
+.RI "Asks the redraw loop to stop after this redraw\&. "
+.ti -1c
+.RI "int32_t \fBschultz_window_run\fP (\fBschultz_window\fP *window, \fBschultz_window_update_fn\fP update, void *context, uint64_t max_frames)"
+.br
+.RI "Runs the loop until the user closes the window\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+A window: one call opens it, one call draws it\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&.
+.PP
+Everything below this header can be driven by hand, and the toolkit's own demo did exactly that: reset an arena, advance the clock, resolve styles, lay out, read the dirty region, paint, play the draw list, present, then process events\&. Nine calls in a fixed order, and getting the order wrong is a bug that shows up as a blank or torn window\&.
+.PP
+That order is not a host's decision to make, and for a host bound over a foreign function interface every one of those calls costs a crossing\&. So it lives here instead\&. A host opens a window, asks it for the tree and fills that tree in once, and then either calls schultz_window_update for one turn of the loop or hands the whole loop over with schultz_window_run\&.
+.PP
+A window owns everything a picture cannot be drawn without: the platform's own window and its pixel buffer, the rasterizer, the scratch arena, the draw list, the font system, the glyph cache, the gradient and dash table, the image table, the widget tree, and the event router\&. It hands out the ones a host has to fill in\&.
+.PP
+The theme is not among them, because a tree copies the theme it is given rather than pointing at it\&. A host keeps its own and installs it with schultz_tree_set_theme whenever it changes\&.
+.PP
+There is one window\&. Opening a second is not supported\&. 
+.PP
+Definition in file \fBschultz_window\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBschultz_window\fP \fBschultz_window\fP"
+
+.PP
+Opaque window state\&. Open one with schultz_window_create\&. 
+.PP
+Definition at line \fB70\fP of file \fBschultz_window\&.h\fP\&.
+.SS "typedef struct \fBschultz_window_options\fP \fBschultz_window_options\fP"
+
+.PP
+How a window should open\&. Zero every field first, then set the ones that matter\&. A zeroed struct asks for an 800x600 window named 'Schultz' with vertical sync on and no debug tint, which is a working choice rather than a broken one\&. 
+.SS "typedef int32_t(* schultz_window_update_fn) (void *context)"
+
+.PP
+Called once per turn of the loop, before anything is drawn\&. This is where a host moves things: the tree may be changed freely here, and what changes is what gets repainted\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP The pointer handed to schultz_window_run\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK to draw\&. Anything else stops the loop and is returned from schultz_window_run\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB263\fP of file \fBschultz_window\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+Which way up a screen may be used\&. Not SCHULTZ_ORIENT_HORIZONTAL and _VERTICAL, which say which way a separator or a split runs\&. This is about which way the device is held\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_SCREEN_ANY \fP\fP
+Whichever way the device is turned\&. 
+.TP
+\fB\fISCHULTZ_SCREEN_PORTRAIT \fP\fP
+Taller than wide, either way up\&. 
+.TP
+\fB\fISCHULTZ_SCREEN_LANDSCAPE \fP\fP
+Wider than tall, either way round\&. 
+.PP
+Definition at line \fB78\fP of file \fBschultz_window\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+How far the picture is turned before it reaches the panel\&. For a display fitted into its case the other way round, which is a thing that is decided once at a factory and cannot be argued with afterwards\&. The interface is drawn in the shape it wants and turned on the way out; a pointer is turned back on the way in, so nothing above this notices\&.
+.PP
+Clockwise, as the panel sees it\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_TURN_AUTO \fP\fP
+Work it out from \fCorientation\fP, and do not turn if that says any\&. 
+.TP
+\fB\fISCHULTZ_TURN_NONE \fP\fP
+Straight through\&. 
+.TP
+\fB\fISCHULTZ_TURN_90 \fP\fP
+A quarter clockwise\&. 
+.TP
+\fB\fISCHULTZ_TURN_180 \fP\fP
+Upside down\&. 
+.TP
+\fB\fISCHULTZ_TURN_270 \fP\fP
+A quarter anticlockwise\&. 
+.PP
+Definition at line \fB94\fP of file \fBschultz_window\&.h\fP\&.
+.SS "anonymous enum"
+
+.PP
+Returns the part of the window it is safe to put content in\&. A phone puts a camera notch over the top of its screen and a home indicator across the bottom, and a rounded corner cuts the edges\&. This is what is left, in the same pixels schultz_window_width counts\&.
+.PP
+\fBMost hosts do not need this\&.\fP The root's bounds are already the safe area, so a tree built as its children is placed correctly with nothing asked for, and schultz_window_width reports the size to build against\&. This is here for a host that wants the rectangle's position within the window\&.
+.PP
+Node bounds are relative to the parent, and the root already sits at the safe origin, so a child of the root starts at (0, 0) rather than here\&.
+.PP
+On a screen with nothing in the way, which is every desktop, this is the whole window\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIout_area\fP Receives the safe rectangle\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer\&.
+.RE
+.PP
+When a window puts up a keyboard of its own\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_KEYBOARD_NEVER \fP\fP
+Not at all, which is what a window that never asks gets\&. A zeroed options struct means this\&. 
+.TP
+\fB\fISCHULTZ_KEYBOARD_WHEN_NEEDED \fP\fP
+Only when the machine has no keys of its own\&. A touch screen on a framebuffer has no other way to type; a desktop needs nothing drawn\&. This is what schultz_keyboard_options_init asks for\&. 
+.TP
+\fB\fISCHULTZ_KEYBOARD_ALWAYS \fP\fP
+Whenever a text widget takes focus\&. 
+.PP
+Definition at line \fB412\fP of file \fBschultz_window\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "void schultz_window_options_init (\fBschultz_window_options\fP * options)"
+
+.PP
+Fills in the options a zeroed struct cannot express\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIoptions\fP The struct to fill\&. NULL does nothing\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_create (const \fBschultz_window_options\fP * options, \fBschultz_window\fP ** out_window)"
+
+.PP
+Opens a window and builds everything drawing it needs\&. On success the tree is empty but ready: its viewport and root bounds match the window, its theme is the built in dark one, its font system, image table and clipboard are wired up, and an event router is attached\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIoptions\fP How to start\&. NULL accepts every default\&. 
+.br
+\fIout_window\fP Receives the window\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_window is NULL or the platform refused the window, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "const char * schultz_window_error (void)"
+
+.PP
+Returns the platform's description of the most recent failure\&. A result code says what went wrong in the toolkit's terms; when the window itself is what failed, this says why in the platform's\&. It is the only reason a host ever needs the platform layer, so it is passed through here rather than leaving that header to be included\&.
+.PP
+\fBReturns\fP
+.RS 4
+A NUL terminated string owned by the platform\&. Never NULL, but it is empty when nothing has failed\&. 
+.RE
+.PP
+
+.SS "void schultz_window_destroy (\fBschultz_window\fP * window)"
+
+.PP
+Closes the window and releases everything it owns\&. That includes the tree, so every handle a host holds into it is dead afterwards\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window to close\&. NULL is accepted and does nothing\&. 
+.RE
+.PP
+
+.SS "\fBschultz_tree\fP * schultz_window_tree (\fBschultz_window\fP * window)"
+
+.PP
+Returns the widget tree to build in\&. Never outlives the window\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The tree\&. 
+.RE
+.PP
+
+.SS "\fBschultz_events\fP * schultz_window_events (\fBschultz_window\fP * window)"
+
+.PP
+Returns the event router, for accelerators and the host callback\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The router\&. 
+.RE
+.PP
+
+.SS "\fBschultz_font_system\fP * schultz_window_fonts (\fBschultz_window\fP * window)"
+
+.PP
+Returns the font system to load faces into\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The font system\&. 
+.RE
+.PP
+
+.SS "\fBschultz_glyph_cache\fP * schultz_window_glyphs (\fBschultz_window\fP * window)"
+
+.PP
+Returns the glyph cache, which a host needs only to render offscreen\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The glyph cache\&. 
+.RE
+.PP
+
+.SS "\fBschultz_resource_table\fP * schultz_window_resources (\fBschultz_window\fP * window)"
+
+.PP
+Returns the gradient and dash table to register into\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The resource table\&. 
+.RE
+.PP
+
+.SS "\fBschultz_image_table\fP * schultz_window_images (\fBschultz_window\fP * window)"
+
+.PP
+Returns the image table to load pictures and animations into\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The image table\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_window_width (const \fBschultz_window\fP * window)"
+
+.PP
+Returns the width content may fill, in pixels\&. This is the area content may fill, which on a phone is the window minus the camera notch and the home indicator\&. A tree meant to fill the screen is built against this and is then correct on both, since on a desktop it is the whole window\&.
+.PP
+Worth asking rather than assuming, since a maximized window is whatever size the window manager gave it\&.
+.PP
+This is a size and not a rectangle\&. The safe area's position is carried by the root's bounds, which the window sets; a host that sets those itself from this and an origin of (0, 0) throws the position away and draws under the notch\&. Use schultz_window_safe_area for the whole rectangle\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The width\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_window_height (const \fBschultz_window\fP * window)"
+
+.PP
+Returns the height content may fill, in pixels\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The height\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_keyboard_options_init (\fBschultz_keyboard_options\fP * out_options)"
+
+.PP
+Fills in the defaults: a keyboard where the machine has no keys, and emoji offered\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIout_options\fP The struct to fill\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_set_keyboard (\fBschultz_window\fP * window, const \fBschultz_keyboard_options\fP * options)"
+
+.PP
+Says whether this window draws a keyboard, and what it may offer\&. The window builds one the first time it is needed, puts it across the bottom of the safe area when a text widget takes focus, and takes it away when focus leaves\&. While it is up, the content slides so that the field being edited stays visible\&.
+.PP
+A platform with a keyboard of its own, which is every phone, is left to use it: this is for a machine where there is nothing else\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIoptions\fP What it may do\&. NULL restores the defaults\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, or an error from building the keyboard\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_keyboard_options (const \fBschultz_window\fP * window, \fBschultz_keyboard_options\fP * out_options)"
+
+.PP
+Returns what this window's keyboard has been told it may do\&. A window that has never been asked answers the defaults, which are no keyboard at all\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIout_options\fP Receives the settings\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_show_keyboard (\fBschultz_window\fP * window)"
+
+.PP
+Puts the keyboard up now, whatever the focus is\&. For an application that offers a button rather than waiting for a field\&. Does nothing when the policy is SCHULTZ_KEYBOARD_NEVER\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_hide_keyboard (\fBschultz_window\fP * window)"
+
+.PP
+Takes the keyboard away\&. It comes back on the next focus into a text widget, unless the policy says otherwise\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_window_keyboard (const \fBschultz_window\fP * window)"
+
+.PP
+Returns the keyboard node, or SCHULTZ_HANDLE_NONE\&. For a host that wants to style it or read what it offers\&. The window owns it; destroying it is the window's business\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The keyboard, or SCHULTZ_HANDLE_NONE when there is none yet\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_safe_area (const \fBschultz_window\fP * window, \fBschultz_rect\fP * out_area)"
+
+.PP
+The part of the window content may occupy\&. The whole window everywhere that nothing is in the way of it, and less than that on a screen with a camera notch, a rounded corner or a home indicator\&. A host that puts its own shell together rather than using the tree's root measures against this rather than against the window\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIout_area\fP Receives the area, in toolkit units\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer\&. 
+.RE
+.PP
+
+.SS "float schultz_window_pixel_scale (const \fBschultz_window\fP * window)"
+
+.PP
+Returns how many screen pixels fit in one toolkit unit\&. Three on a dense phone, two on a Retina laptop, one on an ordinary monitor\&.
+.PP
+With scale_to_screen on this is what the toolkit is multiplying by, so a one unit line covers this many pixels and a host that wants exactly one writes 1 divided by this\&. With it off it is one, because a unit is already a pixel, and this reports what the screen would have scaled by\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields 1\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The scale\&. Never zero or negative\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_set_orientation (\fBschultz_window\fP * window, uint32_t orientation)"
+
+.PP
+Changes which ways up the screen may be used, after it is open\&. The same values as the \fCorientation\fP option: SCHULTZ_SCREEN_ANY, SCHULTZ_SCREEN_PORTRAIT or SCHULTZ_SCREEN_LANDSCAPE\&. A window whose turn is SCHULTZ_TURN_AUTO works its turn out from this, so changing it here can turn the picture straight away\&.
+.PP
+\fBWhat this reaches on a phone is limited, and the limit is SDL's\&.\fP The orientations an application permits are one hint, and SDL reads that hint when it makes the window\&. iOS asks again whenever the system re-examines the view controller, so a change here is picked up at the next rotation\&. Android reads it again only when the window's resizability changes, so a change here may not be noticed at all until something else does that\&. Say it in the options instead where a phone is the target\&.
+.PP
+On a fixed panel, where SCHULTZ_TURN_AUTO does the work, this is exact and immediate\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIorientation\fP The wanted orientation\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL window or an orientation that is not one of the three\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_set_turn (\fBschultz_window\fP * window, uint32_t turn)"
+
+.PP
+Changes how far the picture is turned on its way to the panel\&. The same values as the \fCturn\fP option: SCHULTZ_TURN_NONE, _90, _180, _270, or SCHULTZ_TURN_AUTO to work it out from the orientation again\&.
+.PP
+The buffer is rebuilt in the shape the new turn calls for, so a quarter turn swaps the width and the height the interface is built against, and everything lays out again on the next redraw\&. A pointer keeps arriving in the coordinates the interface was built in\&.
+.PP
+Ignored on phones and tablets, which turn their own screens\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIturn\fP How far to turn\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT for a NULL window or a turn that is not one of the five\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_window_time_ms (const \fBschultz_window\fP * window)"
+
+.PP
+Returns the millisecond clock the last redraw ran at\&. The same reading the tree's animations were advanced with, so host motion driven from it stays in step with theirs\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Milliseconds since the window was opened\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_window_frame_count (const \fBschultz_window\fP * window)"
+
+.PP
+Returns how many frames have been presented\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The frame count\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_open_file (\fBschultz_window\fP * window, const \fBschultz_file_options\fP * options, uint32_t * out_request)"
+
+.PP
+Opens the platform's file picker, without waiting for an answer\&. The call returns straight away with a request number\&. The answer arrives later as a \fCSCHULTZ_EVENT_FILES_CHOSEN\fP or \fCSCHULTZ_EVENT_FILES_CANCELLED\fP event carrying that number in its \fCtoken\fP, which is the same way every other answer reaches a host\&.
+.PP
+\fBKeep drawing redraws while it is open\&.\fP On Linux the dialog runs through XDG portals over DBus, which needs the event loop turning; a host that blocks waiting for the answer will wait forever\&.
+.PP
+\fBOn iOS the path is a copy\&.\fP iOS does not let an application open a file the person chose; it hands back something outside the sandbox that an ordinary open would be refused\&. So the file is copied into this application's own temporary directory and that copy's path is what comes back\&. Reading it works the way it does everywhere else\&. Writing to it changes the copy and not the original, and the temporary directory is the system's to empty, so anything worth keeping should be read and stored rather than pointed at later\&. Nothing about this is visible on the other five platforms, where the path is the file\&.
+.PP
+The options are copied, so nothing in them has to outlive the call\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIoptions\fP How to open it, or NULL for every default\&. 
+.br
+\fIout_request\fP Receives the request number\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_INVALID_HANDLE when too many are already open\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_save_file (\fBschultz_window\fP * window, const \fBschultz_file_options\fP * options, uint32_t * out_request)"
+
+.PP
+Opens the platform's save picker\&. Otherwise as open file\&. \fBOn iOS this asks a different question\&.\fP The platform has no 'choose
+somewhere to write': it can only export a file that already exists\&. So an empty one is made first and the picker moves it where the person chose, which means they are choosing a folder for a file that is already named rather than typing a name\&. The path that comes back is where it landed and can be written to\&. The name is taken from the first filter's extension, because the options carry no name to suggest\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIoptions\fP How to open it, or NULL for every default\&. 
+.br
+\fIout_request\fP Receives the request number\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+As schultz_window_open_file\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_open_folder (\fBschultz_window\fP * window, const \fBschultz_file_options\fP * options, uint32_t * out_request)"
+
+.PP
+Opens the platform's folder picker\&. Otherwise as open file\&. Filters are ignored, since a folder has no extension\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIoptions\fP How to open it, or NULL for every default\&. 
+.br
+\fIout_request\fP Receives the request number\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+As schultz_window_open_file\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_window_file_count (const \fBschultz_window\fP * window, uint32_t request)"
+
+.PP
+Returns how many paths a finished request came back with\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields 0\&. 
+.br
+\fIrequest\fP The number the request was given\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The count, which is zero for a cancelled dialog\&. 
+.RE
+.PP
+
+.SS "const char * schultz_window_file_path (const \fBschultz_window\fP * window, uint32_t request, uint32_t index)"
+
+.PP
+Returns one of a finished request's paths\&. The paths stay valid until the next redraw that delivers a result, so a host reads what it wants out of them when it is told, not later\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields NULL\&. 
+.br
+\fIrequest\fP The number the request was given\&. 
+.br
+\fIindex\fP Which path, counting from zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The path, or NULL when there is none there\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_file_filter (const \fBschultz_window\fP * window, uint32_t request)"
+
+.PP
+Returns which filter was showing when the choice was made\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. NULL yields -1\&. 
+.br
+\fIrequest\fP The number the request was given\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The index into the filters given, or -1 when the platform did not say\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_update (\fBschultz_window\fP * window, int32_t * out_quit)"
+
+.PP
+Advances the clock, draws one redraw, presents it, and reads input\&. The whole redraw in one call, in the only order that works:
+.PP
+.IP "1." 4
+reclaim last redraw's scratch memory
+.IP "2." 4
+advance animations to the current time
+.IP "3." 4
+resolve styles, because painting reads only what that produces
+.IP "4." 4
+lay out whatever asked to be laid out
+.IP "5." 4
+read the dirty region, which bounds the next two steps
+.IP "6." 4
+paint the tree into a draw list, skipping what is outside it
+.IP "7." 4
+play that list through the rasterizer
+.IP "8." 4
+upload the dirty region and present
+.IP "9." 4
+turn platform input into events and route it
+.PP
+.PP
+Input is read last so that what it changes is drawn by the next redraw, rather than half of it landing in this one\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIout_quit\fP Set to 1 when the user asked to close the window, 0 otherwise\&. May be NULL if the caller does not care\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or the first failure the redraw hit\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_request_close (\fBschultz_window\fP * window)"
+
+.PP
+Asks the redraw loop to stop after this redraw\&. What a Quit menu item calls\&. Without it a host has no way to end schultz_window_run of its own accord: the loop stops when the window is closed, and a machine showing one application on a bare screen has no window furniture to close it with\&.
+.PP
+Takes effect at the end of the current redraw, so a handler may call it and carry on doing whatever else it was doing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_window_run (\fBschultz_window\fP * window, \fBschultz_window_update_fn\fP update, void * context, uint64_t max_frames)"
+
+.PP
+Runs the loop until the user closes the window\&. The loop a host would otherwise write, kept on this side so that a bound language pays one crossing a frame rather than nine\&.
+.PP
+\fBA host that cannot take an upcall drives the loop itself\&.\fP The update function is called once per turn, which is an upcall per frame; a host that would rather not be called at all keeps its own loop and calls schultz_window_update, which is one turn of this one\&. The nine crossings become one either way\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwindow\fP The window\&. Must not be NULL\&. 
+.br
+\fIupdate\fP Called before each frame is drawn, or NULL for a still scene\&. 
+.br
+\fIcontext\fP Passed to update untouched\&. 
+.br
+\fImax_frames\fP Stop after drawing this many frames\&. Zero means run until the window is closed\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK when the loop ended because the window closed or the frame count ran out, or the failure that stopped it\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

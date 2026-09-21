@@ -1,0 +1,63 @@
+.TH "schultz_file_options" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_file_options \- How a file dialog should open\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_window\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBtitle\fP"
+.br
+.ti -1c
+.RI "const char * \fBlocation\fP"
+.br
+.ti -1c
+.RI "int32_t \fBallow_many\fP"
+.br
+.ti -1c
+.RI "const \fBschultz_file_filter\fP * \fBfilters\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBfilter_count\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+How a file dialog should open\&. 
+
+Zero every field first, then set the ones that matter\&. Not every platform honours every field; the ones it does not are ignored rather than refused\&. 
+.PP
+Definition at line \fB627\fP of file \fBschultz_window\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "const char* schultz_file_options::title"
+The dialog's title, or NULL for the usual\&. 
+.PP
+Definition at line \fB628\fP of file \fBschultz_window\&.h\fP\&.
+.SS "const char* schultz_file_options::location"
+Where to start, or NULL for the usual\&. 
+.PP
+Definition at line \fB629\fP of file \fBschultz_window\&.h\fP\&.
+.SS "int32_t schultz_file_options::allow_many"
+Nonzero to let several files be chosen\&. 
+.PP
+Definition at line \fB630\fP of file \fBschultz_window\&.h\fP\&.
+.SS "const \fBschultz_file_filter\fP* schultz_file_options::filters"
+What to show, or NULL for all\&. 
+.PP
+Definition at line \fB631\fP of file \fBschultz_window\&.h\fP\&.
+.SS "uint32_t schultz_file_options::filter_count"
+How many filters there are\&. 
+.PP
+Definition at line \fB632\fP of file \fBschultz_window\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

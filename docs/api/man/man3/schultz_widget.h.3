@@ -1,0 +1,1250 @@
+.TH "schultz_widget.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_widget.h \- The widget interface and the paint walk\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_arena\&.h'\fP
+.br
+\fC#include 'schultz_event\&.h'\fP
+.br
+\fC#include 'schultz_node\&.h'\fP
+.br
+\fC#include 'schultz_paint\&.h'\fP
+.br
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBschultz_span\fP"
+.br
+.RI "One stretch of text with a look of its own\&. "
+.ti -1c
+.RI "struct \fBschultz_selectable_vtable\fP"
+.br
+.RI "What a widget must provide to take part in a selection\&. "
+.ti -1c
+.RI "struct \fBschultz_widget_vtable\fP"
+.br
+.RI "What a widget type must provide\&. "
+.ti -1c
+.RI "struct \fBschultz_clipboard_entry\fP"
+.br
+.RI "One format the clipboard is being given, and the bytes for it\&. "
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBSCHULTZ_CLIPBOARD_TEXT\fP   'text/plain;charset=utf\-8'"
+.br
+.RI "The format for plain text, which is what a clipboard nearly always holds\&. "
+.ti -1c
+.RI "#define \fBSCHULTZ_CLIPBOARD_HTML\fP   'text/html'"
+.br
+.RI "The format for text that keeps its formatting\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef const void *(* \fBschultz_clipboard_make_fn\fP) (void *context, const char *format, uint64_t *out_length)"
+.br
+.RI "Produces the bytes of one format, when something asks for it\&. "
+.ti -1c
+.RI "typedef int32_t(* \fBschultz_clipboard_offer_fn\fP) (void *context, const char *const *formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void *make_context)"
+.br
+.RI "Offers a set of formats to the system clipboard\&. "
+.ti -1c
+.RI "typedef const void *(* \fBschultz_clipboard_take_fn\fP) (void *context, const char *format, uint64_t *out_length)"
+.br
+.RI "Reads one format off the system clipboard\&. "
+.ti -1c
+.RI "typedef int32_t(* \fBschultz_clipboard_holds_fn\fP) (void *context, const char *format)"
+.br
+.RI "Whether the system clipboard holds a format\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum { \fBSCHULTZ_CLIPBOARD_MAX\fP = 6 }"
+.br
+.RI "The largest number of formats one clipboard write may carry\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_node_set_widget\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, const \fBschultz_widget_vtable\fP *vtable, void *data)"
+.br
+.RI "Gives a node a widget type and its state\&. "
+.ti -1c
+.RI "void * \fBschultz_node_widget_data\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns a node's widget state\&. "
+.ti -1c
+.RI "const \fBschultz_widget_vtable\fP * \fBschultz_node_widget\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns a node's widget type\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_clips_children\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t clips)"
+.br
+.RI "Sets whether a node clips its children to its own bounds\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_clips_children\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node clips its children\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_fills_viewport\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t fills)"
+.br
+.RI "Makes a node take its size from the window\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_fills_viewport\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node takes its size from the window\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_keeps_focus\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t keeps)"
+.br
+.RI "Says that pressing this node leaves keyboard focus where it is\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_keeps_focus\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether pressing this node leaves focus alone\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_hit_testable\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t testable)"
+.br
+.RI "Says whether the pointer can land on this node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_hit_testable\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether the pointer can land on this node\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_paint_margin\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, float margin)"
+.br
+.RI "Says how far a node's painting reaches outside its own bounds\&. "
+.ti -1c
+.RI "float \fBschultz_node_paint_margin\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns how far a node's painting reaches outside its bounds\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_scroll_offset\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_point\fP offset)"
+.br
+.RI "Shifts where a node's children are drawn and hit tested\&. "
+.ti -1c
+.RI "\fBschultz_point\fP \fBschultz_node_scroll_offset\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Returns how far a node's children are shifted\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_set_animating\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, int32_t animating)"
+.br
+.RI "Asks for a node to be ticked, or stops asking\&. "
+.ti -1c
+.RI "int32_t \fBschultz_node_animating\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Reports whether a node is being ticked\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_tree_advance\fP (\fBschultz_tree\fP *tree, uint64_t now_ms)"
+.br
+.RI "Moves every animating node on to now\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_font_system\fP (\fBschultz_tree\fP *tree, void *fonts)"
+.br
+.RI "Tells the tree which font system its text widgets shape through\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_image_table\fP (\fBschultz_tree\fP *tree, void *images)"
+.br
+.RI "Tells the tree where its widgets' images live\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_glyph_cache\fP (\fBschultz_tree\fP *tree, void *glyphs)"
+.br
+.RI "Tells the tree where its widgets' rasterized glyphs live\&. "
+.ti -1c
+.RI "void * \fBschultz_tree_glyph_cache\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns the glyph cache the tree draws through\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_resources\fP (\fBschultz_tree\fP *tree, void *resources)"
+.br
+.RI "Tells the tree where its gradients and dash patterns live\&. "
+.ti -1c
+.RI "void * \fBschultz_tree_resources\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns the resource table the tree draws through\&. "
+.ti -1c
+.RI "void * \fBschultz_tree_image_table\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns the image table the tree draws through\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_audio\fP (\fBschultz_tree\fP *tree, void *audio)"
+.br
+.RI "Tells the tree which sound system its widgets play through\&. "
+.ti -1c
+.RI "void * \fBschultz_tree_audio\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns the sound system the tree plays through\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_clipboard\fP (\fBschultz_tree\fP *tree, \fBschultz_clipboard_offer_fn\fP offer, \fBschultz_clipboard_take_fn\fP take, \fBschultz_clipboard_holds_fn\fP holds, void *context)"
+.br
+.RI "Gives the tree a way to reach the system clipboard\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_clipboard_offer\fP (\fBschultz_tree\fP *tree, const char *const *formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void *make_context)"
+.br
+.RI "Offers a set of formats through whatever the host installed\&. "
+.ti -1c
+.RI "const void * \fBschultz_tree_clipboard_take\fP (const \fBschultz_tree\fP *tree, const char *format, uint64_t *out_length)"
+.br
+.RI "Takes one format off the clipboard\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_clipboard_holds\fP (const \fBschultz_tree\fP *tree, const char *format)"
+.br
+.RI "Whether the clipboard holds a format\&. "
+.ti -1c
+.RI "const char * \fBschultz_tree_clipboard_read\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Reads the clipboard as text\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_clipboard_write\fP (\fBschultz_tree\fP *tree, const char *utf8)"
+.br
+.RI "Puts text on the clipboard, and nothing else\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_clipboard_write_bytes\fP (\fBschultz_tree\fP *tree, const \fBschultz_clipboard_entry\fP *entries, uint32_t count)"
+.br
+.RI "Puts bytes the caller already has on the clipboard\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_selection_owner\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "Names the node whose text is currently selected\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_tree_selection_owner\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns the node whose text is currently selected\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_safe_area\fP (const \fBschultz_tree\fP *tree, \fBschultz_rect\fP *out_area)"
+.br
+.RI "The part of the window content may occupy\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_set_pointer\fP (\fBschultz_tree\fP *tree, \fBschultz_point\fP point)"
+.br
+.RI "Records where the pointer was last seen\&. "
+.ti -1c
+.RI "int32_t \fBschultz_tree_pointer\fP (const \fBschultz_tree\fP *tree, \fBschultz_point\fP *out_point)"
+.br
+.RI "Where the pointer was last seen\&. "
+.ti -1c
+.RI "void * \fBschultz_tree_font_system\fP (const \fBschultz_tree\fP *tree)"
+.br
+.RI "Returns the font system the tree shapes through\&. "
+.ti -1c
+.RI "int32_t \fBschultz_widget_paint_tree\fP (\fBschultz_tree\fP *tree, \fBschultz_draw_list\fP *list, \fBschultz_arena\fP *arena, \fBschultz_rect\fP dirty)"
+.br
+.RI "Walks the tree and emits every widget's drawing\&. "
+.ti -1c
+.RI "int32_t \fBschultz_widget_paint_tree_parts\fP (\fBschultz_tree\fP *tree, \fBschultz_draw_list\fP *list, \fBschultz_arena\fP *arena, const \fBschultz_rect\fP *dirty, uint32_t parts)"
+.br
+.RI "Paints a tree into a list, culled against several areas at once\&. "
+.ti -1c
+.RI "int32_t \fBschultz_widget_paint_subtree\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP node, \fBschultz_draw_list\fP *list, \fBschultz_arena\fP *arena, \fBschultz_rect\fP dirty)"
+.br
+.RI "Walks one subtree and emits its widgets' drawing\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The widget interface and the paint walk\&. 
+
+\fBPart of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP, which includes this header\&. It is the one that comes with a caveat: the widget vtable below is for widgets written in C inside the toolkit, and a host does not implement it\&. A host draws its own widget by recording into a canvas instead, which is why this header pulls in the arena and the draw list that the rest of the interface has no need of\&.
+.PP
+A widget is not a new kind of object\&. It is a node that has been given a function table and a lump of its own state\&. The node already carries identity, bounds, state flags, dirty bits and accessibility; the pane already says how big it wants to be; the resolved style already says what it looks like\&. What is added here is what it draws and how it reacts\&.
+.PP
+Dispatch is through function pointers, exactly as panes work, so an application can add a widget type without modifying Schultz\&. 
+.PP
+Definition in file \fBschultz_widget\&.h\fP\&.
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define SCHULTZ_CLIPBOARD_TEXT   'text/plain;charset=utf\-8'"
+
+.PP
+The format for plain text, which is what a clipboard nearly always holds\&. Formats are named the way the platforms name them, as media types\&. Every clipboard underneath this one negotiates: the side copying says what it can produce, the side pasting picks what it understands\&. So the same copy can be plain text in a text box and something richer in an editor, and nobody had to choose a mode\&. 
+.PP
+Definition at line \fB680\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "#define SCHULTZ_CLIPBOARD_HTML   'text/html'"
+
+.PP
+The format for text that keeps its formatting\&. What a word processor, a mail client or a browser takes when it is offered something richer than plain text, and what carries pictures along with the words rather than beside them\&. 
+.PP
+Definition at line \fB689\fP of file \fBschultz_widget\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef const void *(* schultz_clipboard_make_fn) (void *context, const char *format, uint64_t *out_length)"
+
+.PP
+Produces the bytes of one format, when something asks for it\&. Called later than the copy, and only for a format somebody actually wants\&. That is the point of it: offering an expensive format costs nothing until it is asked for, and it is often never asked for\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP The pointer given to schultz_tree_clipboard_offer\&. 
+.br
+\fIformat\fP Which of the offered formats is wanted\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bytes, which must stay valid until the next clipboard call, or NULL when this format cannot be produced after all\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB704\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "typedef int32_t(* schultz_clipboard_offer_fn) (void *context, const char *const *formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void *make_context)"
+
+.PP
+Offers a set of formats to the system clipboard\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP The pointer given when the clipboard was installed\&. 
+.br
+\fIformats\fP The media types on offer, most preferred first\&. 
+.br
+\fIcount\fP How many\&. Never zero\&. 
+.br
+\fImake\fP Produces the bytes of whichever one is asked for\&. 
+.br
+\fImake_context\fP Passed to make, unchanged\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or an error the platform reported\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB718\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "typedef const void *(* schultz_clipboard_take_fn) (void *context, const char *format, uint64_t *out_length)"
+
+.PP
+Reads one format off the system clipboard\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP The pointer given when the clipboard was installed\&. 
+.br
+\fIformat\fP The media type wanted\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bytes, or NULL when the clipboard holds nothing in that format\&. They belong to the callback and stay valid until the next call to any clipboard function\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB734\fP of file \fBschultz_widget\&.h\fP\&.
+.SS "typedef int32_t(* schultz_clipboard_holds_fn) (void *context, const char *format)"
+
+.PP
+Whether the system clipboard holds a format\&. Asked before taking, so that a caller can pick the best of several without paying to fetch the ones it will not use\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcontext\fP The pointer given when the clipboard was installed\&. 
+.br
+\fIformat\fP The media type to ask about\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is there\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB748\fP of file \fBschultz_widget\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "anonymous enum"
+
+.PP
+The largest number of formats one clipboard write may carry\&. 
+.PP
+Definition at line \fB867\fP of file \fBschultz_widget\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_node_set_widget (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, const \fBschultz_widget_vtable\fP * vtable, void * data)"
+
+.PP
+Gives a node a widget type and its state\&. The node takes ownership of \fCdata\fP: it is passed to the vtable's \fCdestroy\fP when the node is destroyed or when a different widget replaces this one\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to turn into a widget\&. 
+.br
+\fIvtable\fP The widget's function table, or NULL to remove one\&. It must outlive the node; the built in widgets have static storage\&. 
+.br
+\fIdata\fP The widget's state, or NULL\&. Owned by the node from here\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "void * schultz_node_widget_data (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns a node's widget state\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The data given to schultz_node_set_widget, or NULL\&. 
+.RE
+.PP
+
+.SS "const \fBschultz_widget_vtable\fP * schultz_node_widget (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns a node's widget type\&. Comparing this against a known vtable is how a caller checks what a node is, which is what the widget accessors do before touching their own data\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields NULL\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The vtable, or NULL when the node is not a widget\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_clips_children (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t clips)"
+
+.PP
+Sets whether a node clips its children to its own bounds\&. Clipping is a flag rather than a layout constraint, so a child may still be arranged outside its parent and simply not be drawn there\&. Scroll views need this, and so does anything with rounded corners holding content\&.
+.PP
+\fBIt decides input as well as painting\&.\fP A press outside a clipping node reaches nothing inside it, because what is not drawn must not be clickable\&. That matters most for a scroll view, which keeps its rows where they are and moves them by the scroll offset: a row scrolled off the top still has bounds, and without this it would lie over whatever is drawn above the scroll view and swallow presses meant for it\&.
+.PP
+A node that does not clip keeps the opposite behaviour: a child arranged outside it is drawn there and is reachable there\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to configure\&. 
+.br
+\fIclips\fP Nonzero to clip its children\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_clips_children (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node clips its children\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when it clips, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_fills_viewport (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t fills)"
+
+.PP
+Makes a node take its size from the window\&. A dialog covers the whole window, and so would any other full screen layer\&. Such a node is not placed by a parent, so nothing tells it when the window changed size and it keeps whatever size it had when it was shown\&. The window changes size more often than it looks: a phone being turned, a keyboard arriving, a band appearing across the top of the screen\&.
+.PP
+With this set, layout gives the node the viewport, so it follows the window without anything having to remember to tell it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to configure\&. 
+.br
+\fIfills\fP Nonzero to track the window, zero to be placed normally\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_fills_viewport (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node takes its size from the window\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when it tracks the window, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_keeps_focus (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t keeps)"
+
+.PP
+Says that pressing this node leaves keyboard focus where it is\&. A press ordinarily decides focus: it moves to whatever was pressed if that is focusable, and goes away otherwise, which is how pressing the background ends an edit\&. A few controls act on whatever is focused and must not disturb it, and a key on the on-screen keyboard is the clearest case: a key that took focus, or cleared it, would end the edit it exists to serve before the letter arrived\&.
+.PP
+\fBIt stops both halves\fP, and is asked before anything else about a press\&. A focusable node with this set is still reachable by tab, and pressing it still does not move focus to it: that is what a Bold button over a text area wants, since the text it acts on has to keep the caret\&.
+.PP
+\fBIt covers what is inside it\&.\fP A press that lands on a child, or in the gap between two of them, keeps focus as well, because the gap belongs to the node that owns it and missing a key by two pixels must not end an edit\&. A child that can hold focus itself is the exception and still takes it when pressed, so a field inside a container marked this way behaves normally\&.
+.PP
+Off by default, which is what every ordinary node wants\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to change\&. 
+.br
+\fIkeeps\fP Nonzero to leave focus alone when this node is pressed\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_keeps_focus (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether pressing this node leaves focus alone\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when a press on it does not change focus\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_hit_testable (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t testable)"
+
+.PP
+Says whether the pointer can land on this node\&. Nodes are hit testable by default\&. Turning it off makes the node itself invisible to the pointer while leaving its children reachable, which is what decoration inside a control wants: a button's caption is part of the button, so a click on the words must reach the button and not the text\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to change\&. 
+.br
+\fItestable\fP Nonzero to let the pointer land on it\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_hit_testable (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether the pointer can land on this node\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when the pointer can land on it, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_paint_margin (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, float margin)"
+
+.PP
+Says how far a node's painting reaches outside its own bounds\&. Zero by default, which is the assumption the dirty rectangle rests on: repainting a node's bounds repaints everything it drew\&. A widget that breaks that assumption has to say by how much, or the part outside its bounds is never invalidated and survives on screen until something else happens to cover it\&. A focus ring drawn around a control is the case this exists for\&.
+.PP
+The margin widens what invalidation marks and what the paint walk considers when culling\&. It does not widen the node's bounds, so it changes neither layout nor hit testing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to change\&. 
+.br
+\fImargin\fP How far the painting reaches past every edge, in logical units\&. Must not be negative\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a negative margin, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "float schultz_node_paint_margin (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns how far a node's painting reaches outside its bounds\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The margin, or 0 when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_scroll_offset (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_point\fP offset)"
+
+.PP
+Shifts where a node's children are drawn and hit tested\&. A positive offset moves the children up and to the left, which is what scrolling down and right looks like\&. The children's bounds do not change, so scrolling costs a repaint and never a relayout, and it costs nothing to scroll a subtree of any size\&.
+.PP
+Painting, hit testing and invalidation all ask one function where a node is, so they cannot disagree about where a scrolled child ended up\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node whose children move\&. 
+.br
+\fIoffset\fP How far the children are shifted, in pixels\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "\fBschultz_point\fP schultz_node_scroll_offset (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Returns how far a node's children are shifted\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields the origin\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The offset, or the origin when the node is not live\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_set_animating (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, int32_t animating)"
+
+.PP
+Asks for a node to be ticked, or stops asking\&. A ticking node is visited by schultz_tree_advance and its widget's \fCtick\fP is called\&. Nothing ticks by default, so a tree with nothing animating pays nothing for the clock\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to tick, whose widget must have a \fCtick\fP\&. 
+.br
+\fIanimating\fP Nonzero to be ticked, zero to stop\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_node_animating (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Reports whether a node is being ticked\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields 0\&. 
+.br
+\fInode\fP The node to query\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+1 when it is ticked, 0 otherwise\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_tree_advance (\fBschultz_tree\fP * tree, uint64_t now_ms)"
+
+.PP
+Moves every animating node on to now\&. The one clock the toolkit has\&. A host calls it once a frame, before resolving styles and painting, and passes the time from whatever clock it already keeps\&. The toolkit owns no thread and no timer, because it runs inside somebody else's loop, so this is where anything that changes on its own gets its chance to change\&.
+.PP
+A node that changes marks itself, so a small animation in a corner repaints a corner rather than the window\&.
+.PP
+The first call sets the starting point and reports nothing changed, since no time has passed yet\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to advance\&. Must not be NULL\&. 
+.br
+\fInow_ms\fP Milliseconds from any fixed point, so long as it only rises\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many nodes changed, or 0 when nothing did\&. A host that wants to skip a frame entirely can check this along with the dirty region\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_font_system (\fBschultz_tree\fP * tree, void * fonts)"
+
+.PP
+Tells the tree which font system its text widgets shape through\&. A widget's \fCpaint\fP is handed a list and an arena but no font system, so the tree holds it, the same way it holds the theme\&. Without it a text widget measures to nothing and draws nothing rather than guessing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIfonts\fP The font system, or NULL to clear it\&. Not owned, and must outlive the tree\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_image_table (\fBschultz_tree\fP * tree, void * images)"
+
+.PP
+Tells the tree where its widgets' images live\&. A widget's \fCpaint\fP is handed a list and an arena but no image table, so the tree holds it, the same way it holds the font system\&. Without one an image widget measures to nothing and draws nothing rather than guessing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIimages\fP The image table, or NULL to clear it\&. Not owned, and must outlive the tree\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_glyph_cache (\fBschultz_tree\fP * tree, void * glyphs)"
+
+.PP
+Tells the tree where its widgets' rasterized glyphs live\&. The third of the four things drawing needs, beside the font system and the image table\&. The tree holds it for the same reason it holds those: nothing else is handed to a widget, and anything that has to draw the tree on its own -- copying a picture out of a selection, for one -- can then assemble what a render wants without the host passing it in again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIglyphs\fP The glyph cache, or NULL to clear it\&. Not owned, and must outlive the tree\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "void * schultz_tree_glyph_cache (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns the glyph cache the tree draws through\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to ask\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The glyph cache, or NULL when none is set\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_resources (\fBschultz_tree\fP * tree, void * resources)"
+
+.PP
+Tells the tree where its gradients and dash patterns live\&. The fourth\&. A widget reaches these through the tree the same way it reaches a font or an image\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIresources\fP The resource table, or NULL to clear it\&. Not owned, and must outlive the tree\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "void * schultz_tree_resources (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns the resource table the tree draws through\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to ask\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The resource table, or NULL when none is set\&. 
+.RE
+.PP
+
+.SS "void * schultz_tree_image_table (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns the image table the tree draws through\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The image table, or NULL when none is set\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_audio (\fBschultz_tree\fP * tree, void * audio)"
+
+.PP
+Tells the tree which sound system its widgets play through\&. The same arrangement as the font system and the image table, for the same reason: a widget's \fCtick\fP is handed neither\&. A video node without one shows its pictures and stays silent\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIaudio\fP The sound system from schultz_audio_create, or NULL to clear it\&. Not owned, and must outlive the tree\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "void * schultz_tree_audio (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns the sound system the tree plays through\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The sound system, or NULL when none is set\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_clipboard (\fBschultz_tree\fP * tree, \fBschultz_clipboard_offer_fn\fP offer, \fBschultz_clipboard_take_fn\fP take, \fBschultz_clipboard_holds_fn\fP holds, void * context)"
+
+.PP
+Gives the tree a way to reach the system clipboard\&. A text field without cut, copy and paste is not usable, and nothing inside the toolkit knows what a platform clipboard is, so these three reach one\&. Without them the editing keys still work on the selection and only the clipboard ones do nothing\&.
+.PP
+\fBMost hosts never call this\&.\fP A window installs its own the moment it is created: SDL's on every platform, and a second set on Windows, where rich text travels in a registered format SDL has no code for\&. This is for a host driving a tree without one of our windows, or one replacing the platform clipboard with something of its own\&. Because it takes three function pointers, it is also the one call here a bound language should leave alone\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to configure\&. Must not be NULL\&. 
+.br
+\fIoffer\fP Puts formats on the clipboard, or NULL to remove it\&. 
+.br
+\fItake\fP Reads one back, or NULL to remove it\&. 
+.br
+\fIholds\fP Says whether a format is there\&. May be NULL, in which case asking is answered by taking and throwing the result away\&. 
+.br
+\fIcontext\fP Passed to all three, unchanged\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_clipboard_offer (\fBschultz_tree\fP * tree, const char *const * formats, uint32_t count, \fBschultz_clipboard_make_fn\fP make, void * make_context)"
+
+.PP
+Offers a set of formats through whatever the host installed\&. The general form, for a host putting its own data on the clipboard in more than one format: a spreadsheet offering a range as a table and as tab separated text, say, where the formats come from the host's own model and nothing in the tree knows about them\&.
+.PP
+\fBTwo narrower calls cover what a toolkit host usually wants, and neither takes a callback\&.\fP schultz_tree_clipboard_write puts a string on the clipboard\&. schultz_selection_area_copy puts a selection there as markup, plain text and, where the selection holds one, a picture\&. Both supply a producer of their own, so a bound language reaches every shipped case with downcalls alone\&.
+.PP
+The callback exists because the bytes are wanted later than this call: a paste may come minutes afterwards or never, and a format nobody asks for should cost nothing\&. That is also why it cannot be a queue the host drains at its leisure\&. When the request arrives the platform is inside a paste and waiting, and an answer that comes next frame arrives after that paste has already returned empty\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to offer through\&. Must not be NULL\&. 
+.br
+\fIformats\fP The media types, most preferred first\&. Must not be NULL\&. 
+.br
+\fIcount\fP How many, from 1 to SCHULTZ_CLIPBOARD_MAX\&. 
+.br
+\fImake\fP Produces the bytes of one\&. Must not be NULL\&. 
+.br
+\fImake_context\fP Passed to make, unchanged\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument, too many formats, or no clipboard installed, or SCHULTZ_ERR_UNAVAILABLE when the platform could carry none of the formats offered\&. 
+.RE
+.PP
+
+.SS "const void * schultz_tree_clipboard_take (const \fBschultz_tree\fP * tree, const char * format, uint64_t * out_length)"
+
+.PP
+Takes one format off the clipboard\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to read through\&. NULL yields NULL\&. 
+.br
+\fIformat\fP The media type wanted\&. NULL yields NULL\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The bytes, or NULL when the clipboard holds nothing in that format\&. Owned by the host's clipboard and valid until the next clipboard call\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_clipboard_holds (const \fBschultz_tree\fP * tree, const char * format)"
+
+.PP
+Whether the clipboard holds a format\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to ask through\&. NULL yields 0\&. 
+.br
+\fIformat\fP The media type to ask about\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when it is there\&. 
+.RE
+.PP
+
+.SS "const char * schultz_tree_clipboard_read (const \fBschultz_tree\fP * tree)"
+
+.PP
+Reads the clipboard as text\&. The short way to say schultz_tree_clipboard_take with SCHULTZ_CLIPBOARD_TEXT, for the case that is nearly all of them\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to read through\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The text, NUL terminated, or NULL when there is none or no clipboard is installed\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_clipboard_write (\fBschultz_tree\fP * tree, const char * utf8)"
+
+.PP
+Puts text on the clipboard, and nothing else\&. The short way to offer one format\&. A copy that has something richer to give uses schultz_tree_clipboard_offer instead\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to write through\&. Must not be NULL\&. 
+.br
+\fIutf8\fP The text, NUL terminated\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when there is no clipboard installed\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_clipboard_write_bytes (\fBschultz_tree\fP * tree, const \fBschultz_clipboard_entry\fP * entries, uint32_t count)"
+
+.PP
+Puts bytes the caller already has on the clipboard\&. For content the caller produced rather than the tree: a picture of a widget from schultz_render_encode, a table built from the host's own rows, an export in a format only the host knows how to write\&.
+.PP
+\fBCopying an image is what this is usually for\&.\fP Render the node, then hand the bytes over: 
+.PP
+.nf
+const void *png; uint64_t length;
+schultz_clipboard_entry one;
+schultz_render_encode(tree, node, 1\&.0f, &options, SCHULTZ_IMAGE_PNG,
+                      &png, &length);
+one\&.format = 'image/png'; one\&.bytes = png; one\&.length = length;
+schultz_tree_clipboard_write_bytes(tree, &one, 1u);
+
+.fi
+.PP
+ Every entry goes up at once, most preferred first, and the program pasting picks\&. Calling this twice does not add a second format: each call replaces what was there, because that is what putting something on a clipboard means\&.
+.PP
+The bytes are copied and held until the next clipboard write, so the caller's may be a local and may be freed straight away\&. That is the difference between this and schultz_tree_clipboard_offer, which produces bytes only if something asks: here the cost is paid now\&. For a copy the person explicitly asked for, that is the right trade, and it needs no callback, so a host across a language boundary can use it\&.
+.PP
+\fBNot every platform carries every format\&.\fP Windows puts up markup, plain text and image/png, and ignores anything else; the others offer whatever they are given\&. So a format outside those three is worth treating as a convenience rather than something to rely on, and worth pairing with one of the three so that a copy still reaches a Windows program\&.
+.PP
+Offering none that the platform can carry is refused with SCHULTZ_ERR_UNAVAILABLE rather than passing quietly: the clipboard is cleared before the new formats go on, so a write that put nothing back would otherwise leave the person having pressed copy and lost what they had, with nothing to say so\&. A mixture is not refused\&. Offering markup and a format Windows does not know puts the markup up and returns SCHULTZ_OK\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to write through\&. Must not be NULL\&. 
+.br
+\fIentries\fP The formats and their bytes\&. Must not be NULL\&. 
+.br
+\fIcount\fP How many, from 1 to SCHULTZ_CLIPBOARD_MAX\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a bad argument or when there is no clipboard installed, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_selection_owner (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+Names the node whose text is currently selected\&. Copy is aimed at this node rather than at whatever holds keyboard focus, so a block of prose can be selected and copied without becoming a tab stop\&. That is how a browser behaves, and making every paragraph focusable instead would put explanatory text in the middle of a form's tab order\&.
+.PP
+Setting this does not clear the selection the previous owner was holding\&. The widget taking ownership does that, because only it knows what a selection is made of\&.
+.PP
+The tree forgets the owner when that node is destroyed, so the handle is never left dangling\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to change\&. Must not be NULL\&. 
+.br
+\fInode\fP The new owner, or SCHULTZ_HANDLE_NONE for none\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when tree is NULL\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_tree_selection_owner (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns the node whose text is currently selected\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The owner, or SCHULTZ_HANDLE_NONE when nothing is selected\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_safe_area (const \fBschultz_tree\fP * tree, \fBschultz_rect\fP * out_area)"
+
+.PP
+The part of the window content may occupy\&. The root's own bounds\&. A window layer gives the root whatever is left once a camera notch and a home indicator are taken off, and everything below the root is arranged inside it, so the root's box is the safe area by construction\&. A root that has not been given bounds yet answers with the whole window, which is what the toolkit did before there was a safe area\&.
+.PP
+Anything that places itself against the screen wants this rather than the viewport\&. On a desktop the two are the same rectangle; on a phone the difference is a menu that opens under the notch or a toast below the bottom of the glass\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to ask\&. Must not be NULL\&. 
+.br
+\fIout_area\fP Receives the area, in window coordinates\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_set_pointer (\fBschultz_tree\fP * tree, \fBschultz_point\fP point)"
+
+.PP
+Records where the pointer was last seen\&. The event router calls this as it routes a move\&. A widget that has to appear near the pointer reads it back with schultz_tree_pointer; it is kept on the tree because a widget is ticked with the tree and has no way to reach the router\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to record on\&. Must not be NULL\&. 
+.br
+\fIpoint\fP Where the pointer is, in the tree's own coordinates\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_tree_pointer (const \fBschultz_tree\fP * tree, \fBschultz_point\fP * out_point)"
+
+.PP
+Where the pointer was last seen\&. A touch screen may never have seen one, and neither has a program that has only just started, so this can fail and a caller has to have an answer for that: a tooltip falls back to the middle of what it explains\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to ask\&. Must not be NULL\&. 
+.br
+\fIout_point\fP Receives the position\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or SCHULTZ_ERR_EXHAUSTED when no pointer has ever been seen\&. 
+.RE
+.PP
+
+.SS "void * schultz_tree_font_system (const \fBschultz_tree\fP * tree)"
+
+.PP
+Returns the font system the tree shapes through\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to query\&. NULL yields NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The font system, or NULL when none is set\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_widget_paint_tree (\fBschultz_tree\fP * tree, \fBschultz_draw_list\fP * list, \fBschultz_arena\fP * arena, \fBschultz_rect\fP dirty)"
+
+.PP
+Walks the tree and emits every widget's drawing\&. Depth first, parents before children, so a child paints over its parent\&. Three tests decide whether a node is visited: it is skipped along with its subtree when it is not visible, and when its bounds do not touch the dirty rectangle\&. A node that clips pushes a clip that is popped on the way out\&.
+.PP
+Culling against the dirty rectangle is what keeps a one pixel change from rebuilding the whole command list\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to paint\&. Must not be NULL\&. 
+.br
+\fIlist\fP The command list to append to\&. Must not be NULL\&. 
+.br
+\fIarena\fP Per frame scratch for widgets that need it\&. Must not be NULL\&. 
+.br
+\fIdirty\fP The region being repainted, in window coordinates\&. An empty rectangle means paint everything, which is what the first frame and a full repaint want\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or a widget's own error, which stops the walk\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_widget_paint_tree_parts (\fBschultz_tree\fP * tree, \fBschultz_draw_list\fP * list, \fBschultz_arena\fP * arena, const \fBschultz_rect\fP * dirty, uint32_t parts)"
+
+.PP
+Paints a tree into a list, culled against several areas at once\&. What a frame driver uses\&. A frame usually has a few separate things that changed rather than one, and the rectangle covering all of them can be most of the window while what actually changed is a fraction of it\&. Naming each area separately is what keeps a small change small; docs/repainting\&.md has the measurements\&.
+.PP
+One walk whatever the count, because the walk costs the same whether it is testing one rectangle or eight, and doing it once per area would throw away most of what this is for\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to paint\&. Must not be NULL\&. 
+.br
+\fIlist\fP The list to append to\&. Must not be NULL\&. 
+.br
+\fIarena\fP Per frame scratch\&. Must not be NULL\&. 
+.br
+\fIdirty\fP The areas that changed, or NULL for all of it\&. 
+.br
+\fIparts\fP How many, or zero for all of it\&. Above SCHULTZ_TREE_DIRTY_PARTS the rest are ignored\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK or SCHULTZ_ERR_INVALID_ARGUMENT\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_widget_paint_subtree (\fBschultz_tree\fP * tree, \fBschultz_handle\fP node, \fBschultz_draw_list\fP * list, \fBschultz_arena\fP * arena, \fBschultz_rect\fP dirty)"
+
+.PP
+Walks one subtree and emits its widgets' drawing\&. The same walk, started somewhere other than the root, which is what rendering one widget on its own needs\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to walk\&. Must not be NULL\&. 
+.br
+\fInode\fP The node to start at\&. Its own painting is included\&. 
+.br
+\fIlist\fP Where the commands go\&. Must not be NULL\&. 
+.br
+\fIarena\fP Per frame scratch\&. Must not be NULL\&. 
+.br
+\fIdirty\fP The region being repainted\&. Empty means paint everything\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT for a NULL pointer, or a widget's own error, which stops the walk\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

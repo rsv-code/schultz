@@ -1,0 +1,120 @@
+.TH "schultz_colr.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_colr.h \- Drawing a colour glyph that the font describes as a picture\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdint\&.h>\fP
+.br
+\fC#include <ft2build\&.h>\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_colr_has_drawing\fP (FT_Face face, FT_UInt glyph)"
+.br
+.RI "Whether a glyph is described as a drawing rather than an outline\&. "
+.ti -1c
+.RI "void * \fBschultz_colr_glyph_outline\fP (FT_Face face, FT_UInt glyph)"
+.br
+.RI "One glyph's outline as a shape the rasterizer can draw\&. "
+.ti -1c
+.RI "int32_t \fBschultz_colr_render\fP (FT_Face face, FT_UInt glyph, unsigned char **out_pixels, uint32_t *out_width, uint32_t *out_height, int32_t *out_left, int32_t *out_top)"
+.br
+.RI "Draws one such glyph at the face's current size\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Drawing a colour glyph that the font describes as a picture\&. 
+
+Internal header\&.
+.PP
+An emoji is not a letter with a colour applied to it\&. Newer emoji fonts describe each one as a small drawing: shapes filled with flat colours or gradients, moved and scaled, clipped to outlines, and layered over one another\&. OpenType calls that description a COLR version 1 table\&.
+.PP
+FreeType reads the description and hands it over, but does not draw it, because drawing it needs gradients and clipping and blending -- a vector engine\&. The toolkit already carries one for everything else it draws, so this walks the description and builds the same kind of scene the painter builds, then rasterizes it into the pixels the glyph cache keeps\&.
+.PP
+Nothing here is reached for a plain letter, or for the older kind of colour font that stores flat layers or pictures: FreeType finishes both of those itself\&.
+.PP
+\fBNot part of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP\&. 
+.PP
+Definition in file \fBschultz_colr\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_colr_has_drawing (FT_Face face, FT_UInt glyph)"
+
+.PP
+Whether a glyph is described as a drawing rather than an outline\&. True only for the newer colour format, the one FreeType will not draw on its own\&. A face whose colour glyphs are flat layers or pictures answers no here, and FreeType rasterizes those the ordinary way\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIface\fP The face to ask\&. NULL yields zero\&. 
+.br
+\fIglyph\fP The glyph index\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when schultz_colr_render can draw it\&. 
+.RE
+.PP
+
+.SS "void * schultz_colr_glyph_outline (FT_Face face, FT_UInt glyph)"
+
+.PP
+One glyph's outline as a shape the rasterizer can draw\&. The shape comes back in the font's own units, with y pointing up the way a font measures it\&. The caller puts a matrix on it to get pixels, which is also where a rotation goes: turning the outline before it is rasterized is what keeps text at an angle sharp, rather than turning a picture of it\&.
+.PP
+Returns \fCvoid *\fP rather than the rasterizer's own paint type so this header does not have to include the rasterizer\&. It is a \fCTvg_Paint\fP\&.
+.PP
+Not every glyph has one\&. A bitmap emoji is a picture with no outline at all, and answers NULL\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIface\fP The face to load from\&. Must not be NULL\&. 
+.br
+\fIglyph\fP The glyph index\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The shape, which the caller owns and must hand to the canvas or release, or NULL when the glyph has no outline\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_colr_render (FT_Face face, FT_UInt glyph, unsigned char ** out_pixels, uint32_t * out_width, uint32_t * out_height, int32_t * out_left, int32_t * out_top)"
+
+.PP
+Draws one such glyph at the face's current size\&. The pixels come back blue, green, red, alpha, with the colour channels already multiplied by the alpha, which is the arrangement FreeType uses for the other colour formats and therefore the one the glyph cache and the painter already expect\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIface\fP The face, at the size the glyph is wanted\&. Must not be NULL\&. 
+.br
+\fIglyph\fP The glyph index\&. 
+.br
+\fIout_pixels\fP Receives the pixels, allocated here\&. The caller owns them and frees them with free()\&. Must not be NULL\&. 
+.br
+\fIout_width\fP Receives the width in pixels\&. Must not be NULL\&. 
+.br
+\fIout_height\fP Receives the height in pixels\&. Must not be NULL\&. 
+.br
+\fIout_left\fP Receives the pen to left edge distance\&. Must not be NULL\&. 
+.br
+\fIout_top\fP Receives the baseline to top edge distance, upward positive\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when the glyph is not one of these or an argument is NULL, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

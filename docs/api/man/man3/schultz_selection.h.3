@@ -1,0 +1,340 @@
+.TH "schultz_selection.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_selection.h \- Selecting text across more than one widget\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_render\&.h'\fP
+.br
+\fC#include 'schultz_widget\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_create\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP parent, \fBschultz_handle\fP *out_node)"
+.br
+.RI "Makes a selection area\&. "
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_set_range\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP area, \fBschultz_handle\fP from, uint32_t from_at, \fBschultz_handle\fP to, uint32_t to_at)"
+.br
+.RI "Sets where the selection starts and where it now ends\&. "
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_ends\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP area, \fBschultz_handle\fP *out_from, uint32_t *out_from_at, \fBschultz_handle\fP *out_to, uint32_t *out_to_at)"
+.br
+.RI "Where the selection starts and ends, in reading order\&. "
+.ti -1c
+.RI "\fBschultz_handle\fP \fBschultz_selection_area_of\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP node)"
+.br
+.RI "The nearest selection area above a node, or none\&. "
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_copy\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP area, const \fBschultz_render_options\fP *options)"
+.br
+.RI "Puts the selected text on the clipboard\&. "
+.ti -1c
+.RI "const char * \fBschultz_selection_area_text\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP area)"
+.br
+.RI "The selected text, as one string\&. "
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_set_limit\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP area, uint64_t bytes)"
+.br
+.RI "The most bytes a copy out of this area may produce\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_selection_area_limit\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP area)"
+.br
+.RI "The limit a copy out of this area stops at\&. "
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_was_cut\fP (const \fBschultz_tree\fP *tree, \fBschultz_handle\fP area)"
+.br
+.RI "Whether the last copy stopped early because of the limit\&. "
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_picture\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP area, uint32_t format, const \fBschultz_render_options\fP *options, const void **out_bytes, uint64_t *out_length)"
+.br
+.RI "The selected picture, written out as a file, or nothing\&. "
+.ti -1c
+.RI "const char * \fBschultz_selection_area_html\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP area)"
+.br
+.RI "The selected content as HTML, keeping its formatting\&. "
+.ti -1c
+.RI "int32_t \fBschultz_selection_area_clear\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP area)"
+.br
+.RI "Takes the selection away, leaving nothing selected anywhere in it\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Selecting text across more than one widget\&. 
+
+A selection normally belongs to one widget: press in a paragraph, drag into the next, and only the first is selected\&. A selection area changes that for the subtree underneath it\&. A drag inside the area runs from wherever it started to wherever it is now, across as many widgets as it passes over, and a copy takes the lot in reading order\&.
+.PP
+It is opt in\&. A host wraps the part of its tree where selecting is the right meaning for a drag, and everywhere else behaves exactly as before\&. That matters because a drag usually already means something -- scroll, reorder, move a card -- and only the host knows which\&.
+.PP
+Areas nest\&. An area inside another keeps its own selection: the outer one cannot reach into it and it cannot reach out\&. That is how a text field inside a selectable page behaves correctly\&. 
+.PP
+Definition in file \fBschultz_selection\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "int32_t schultz_selection_area_create (\fBschultz_tree\fP * tree, \fBschultz_handle\fP parent, \fBschultz_handle\fP * out_node)"
+
+.PP
+Makes a selection area\&. The node itself draws nothing and takes no room of its own\&. Give it a pane and children like any other container\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree to build in\&. Must not be NULL\&. 
+.br
+\fIparent\fP The node to hang it from\&. 
+.br
+\fIout_node\fP Receives the new node\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_selection_area_set_range (\fBschultz_tree\fP * tree, \fBschultz_handle\fP area, \fBschultz_handle\fP from, uint32_t from_at, \fBschultz_handle\fP to, uint32_t to_at)"
+
+.PP
+Sets where the selection starts and where it now ends\&. The two ends each name a node and a byte offset inside it\&. They may be the same node, and they may be given in either order: dragging backwards is an ordinary thing to do, so the area works out which comes first in reading order rather than asking the caller to\&.
+.PP
+Every selectable node in the area is then told its share, which is all of its text, part of it, or none\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. Must not be NULL\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.br
+\fIfrom\fP The node the selection started in\&. 
+.br
+\fIfrom_at\fP The byte offset it started at\&. 
+.br
+\fIto\fP The node it now ends in\&. 
+.br
+\fIto_at\fP The byte offset it now ends at\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE when the area is not one or when either end is not inside it\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_selection_area_ends (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP area, \fBschultz_handle\fP * out_from, uint32_t * out_from_at, \fBschultz_handle\fP * out_to, uint32_t * out_to_at)"
+
+.PP
+Where the selection starts and ends, in reading order\&. Named for the question rather than as the mirror of the setter, because what comes back is sorted and what went in need not have been\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. NULL yields an error\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.br
+\fIout_from\fP Receives the earlier node\&. May be NULL\&. 
+.br
+\fIout_from_at\fP Receives its byte offset\&. May be NULL\&. 
+.br
+\fIout_to\fP Receives the later node\&. May be NULL\&. 
+.br
+\fIout_to_at\fP Receives its byte offset\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK when there is a selection, SCHULTZ_ERR_UNAVAILABLE when there is none, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "\fBschultz_handle\fP schultz_selection_area_of (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP node)"
+
+.PP
+The nearest selection area above a node, or none\&. A widget asks this to find out whether it owns its own selection or takes part in somebody else's\&. A label inside an area lets a press go past it so that the area can run the drag; the same label on its own handles the press itself, as it always did\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the node\&. NULL yields SCHULTZ_HANDLE_NONE\&. 
+.br
+\fInode\fP The node to look above\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The nearest ancestor area, or SCHULTZ_HANDLE_NONE when there is none\&. A node that is itself an area is not its own area\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_selection_area_copy (\fBschultz_tree\fP * tree, \fBschultz_handle\fP area, const \fBschultz_render_options\fP * options)"
+
+.PP
+Puts the selected text on the clipboard\&. The pieces in reading order, with a line break between the text of one widget and the next, because two paragraphs pasted together with nothing between them read as one\&.
+.PP
+When the selection holds a picture and render options are given, the picture is offered beside the text as image/png and image/bmp, built only if something asks\&. Pass NULL for the options to offer text alone\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. Must not be NULL\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.br
+\fIoptions\fP How to render a selected picture, or NULL for text alone\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_INVALID_HANDLE, SCHULTZ_ERR_UNAVAILABLE when nothing is selected, or SCHULTZ_ERR_OUT_OF_MEMORY\&. 
+.RE
+.PP
+
+.SS "const char * schultz_selection_area_text (\fBschultz_tree\fP * tree, \fBschultz_handle\fP area)"
+
+.PP
+The selected text, as one string\&. What a copy would put on the clipboard, for a host that wants it without involving the clipboard at all\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. NULL yields NULL\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The text, NUL terminated, or NULL when nothing is selected\&. Owned by the area and valid until the selection changes\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_selection_area_set_limit (\fBschultz_tree\fP * tree, \fBschultz_handle\fP area, uint64_t bytes)"
+
+.PP
+The most bytes a copy out of this area may produce\&. Bytes rather than characters, because once a picture can be in a selection a character count stops describing what producing it costs\&. A page of text is kilobytes; one screenshot is megabytes\&.
+.PP
+The limit is on producing a result, not on what may be highlighted\&. Highlighting a long transcript is a walk; building the string, or the picture beside it, is the part that can hurt\&.
+.PP
+Twenty megabytes by default, which text never comes near: that is around twenty million characters, or a hundred thousand chat messages\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. Must not be NULL\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.br
+\fIbytes\fP The limit\&. Zero means no limit at all\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "uint64_t schultz_selection_area_limit (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP area)"
+
+.PP
+The limit a copy out of this area stops at\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. NULL yields 0\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The limit in bytes, or 0 when there is none\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_selection_area_was_cut (const \fBschultz_tree\fP * tree, \fBschultz_handle\fP area)"
+
+.PP
+Whether the last copy stopped early because of the limit\&. Named for the question, because the answer is about what happened rather than about what was set\&. A host that gets a yes here has something to say to the person: what they copied is not all of what they selected\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. NULL yields 0\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Nonzero when the last text or copy was cut short\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_selection_area_picture (\fBschultz_tree\fP * tree, \fBschultz_handle\fP area, uint32_t format, const \fBschultz_render_options\fP * options, const void ** out_bytes, uint64_t * out_length)"
+
+.PP
+The selected picture, written out as a file, or nothing\&. A selection may cover a picture as well as text\&. Plain text has nowhere to put one, so it is offered separately and produced only when something asks for a format that can hold it\&.
+.PP
+The picture is rendered from the node rather than taken from anywhere, which is what lets a drawn canvas be copied as well as a loaded picture\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. Must not be NULL\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.br
+\fIformat\fP SCHULTZ_IMAGE_PNG or SCHULTZ_IMAGE_BMP\&. 
+.br
+\fIoptions\fP How to render it: the fonts, glyphs, images and resources a draw needs\&. Must not be NULL, because only the host has them\&. 
+.br
+\fIout_bytes\fP Receives the file's bytes\&. Must not be NULL\&. Owned by the toolkit and valid until the next picture is written\&. 
+.br
+\fIout_length\fP Receives how many bytes\&. Must not be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, SCHULTZ_ERR_UNAVAILABLE when no picture is selected or the result would pass the limit, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SS "const char * schultz_selection_area_html (\fBschultz_tree\fP * tree, \fBschultz_handle\fP area)"
+
+.PP
+The selected content as HTML, keeping its formatting\&. What a copy offers beside the plain text, and what a word processor takes when it is given the choice\&. Each widget's share becomes a paragraph carrying its own size, colour and, when the face is a code face, a monospace family\&. A picture in the range is written into the document itself, so one format carries the whole selection rather than the text and one picture arriving separately\&.
+.PP
+The styles come from each widget's resolved style rather than from the theme, so a host that set a colour on one paragraph keeps it in the paste\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. NULL yields NULL\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The markup, NUL terminated, or NULL when nothing is selected\&. Owned by the area and valid until the selection changes\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_selection_area_clear (\fBschultz_tree\fP * tree, \fBschultz_handle\fP area)"
+
+.PP
+Takes the selection away, leaving nothing selected anywhere in it\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fItree\fP The tree holding the area\&. Must not be NULL\&. 
+.br
+\fIarea\fP A node from schultz_selection_area_create\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_HANDLE\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

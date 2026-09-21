@@ -1,0 +1,83 @@
+.TH "schultz_stroke" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_stroke \- Everything about a stroke but the shape it follows\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_geom\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_paint\fP \fBpaint\fP"
+.br
+.ti -1c
+.RI "float \fBwidth\fP"
+.br
+.ti -1c
+.RI "\fBschultz_handle\fP \fBdash\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBcap\fP"
+.br
+.ti -1c
+.RI "uint32_t \fBjoin\fP"
+.br
+.ti -1c
+.RI "float \fBdash_offset\fP"
+.br
+.ti -1c
+.RI "float \fBmiter_limit\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Everything about a stroke but the shape it follows\&. 
+
+Passed by value so the eight drawing calls that stroke something keep one parameter rather than five, and so adding to it later touches none of them\&.
+.PP
+Build one with schultz_stroke_solid or schultz_stroke_make rather than by assigning the fields, so a field added later starts out sensible instead of holding whatever was on the stack\&. 
+.PP
+Definition at line \fB273\fP of file \fBschultz_geom\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_paint\fP schultz_stroke::paint"
+What the stroke is drawn with\&. 
+.PP
+Definition at line \fB274\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "float schultz_stroke::width"
+How thick, in pixels\&. 
+.PP
+Definition at line \fB275\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "\fBschultz_handle\fP schultz_stroke::dash"
+A registered dash pattern, or none\&. 
+.PP
+Definition at line \fB276\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "uint32_t schultz_stroke::cap"
+One of the SCHULTZ_CAP_* values\&. 
+.PP
+Definition at line \fB277\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "uint32_t schultz_stroke::join"
+One of the SCHULTZ_JOIN_* values\&. 
+.PP
+Definition at line \fB278\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "float schultz_stroke::dash_offset"
+How far along the pattern to start, in pixels\&. Zero starts on the first mark\&. Drawing the same shape twice at two offsets is how a dashed outline is made to look like it is moving, and it is why this sits on the stroke rather than on the registered pattern: one pattern serves every offset\&.
+.PP
+Ignored when \fCdash\fP names nothing\&. 
+.PP
+Definition at line \fB288\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "float schultz_stroke::miter_limit"
+How far a mitred corner may reach past the corner itself, as a multiple of the stroke width\&. A sharp enough angle sends a mitre off towards infinity, so past this limit the corner is cut flat instead\&. Four by default, which is what SVG and the rasterizer both start from\&.
+.PP
+Ignored unless \fCjoin\fP is SCHULTZ_JOIN_MITER\&. 
+.PP
+Definition at line \fB297\fP of file \fBschultz_geom\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

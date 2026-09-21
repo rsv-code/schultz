@@ -1,0 +1,120 @@
+.TH "schultz_files_backend.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_files_backend.h \- The one part of a file dialog that differs by platform\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <SDL3/SDL\&.h>\fP
+.br
+\fC#include 'schultz\&.h'\fP
+.br
+\fC#include 'schultz_window\&.h'\fP
+.br
+
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef void(* \fBschultz_files_answer_fn\fP) (void *userdata, const char *const *paths, int32_t filter)"
+.br
+.RI "Where a backend delivers what the person chose\&. "
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBschultz_files_kind\fP { \fBSCHULTZ_FILES_OPEN\fP, \fBSCHULTZ_FILES_SAVE\fP, \fBSCHULTZ_FILES_FOLDER\fP }"
+.br
+.RI "Which of the three dialogs to show\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBschultz_files_show\fP (\fBschultz_files_kind\fP kind, \fBSDL_Window\fP *window, const \fBschultz_file_options\fP *options, const \fBschultz_file_filter\fP *filters, uint32_t filter_count, \fBschultz_files_answer_fn\fP answer, void *userdata)"
+.br
+.RI "Shows one file dialog and returns without waiting for an answer\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The one part of a file dialog that differs by platform\&. 
+
+Asking for a file is the same everywhere: schultz_window\&.c takes a request number, copies what the caller asked for, and turns the answer into an event\&. Showing the dialog is not the same everywhere\&.
+.PP
+On Linux, Windows, macOS and Android, SDL already has a backend, and this seam is one call through to it\&. On iOS it does not: SDL 3\&.4\&.16 ships dialog backends for android, cocoa, haiku, unix and windows, its build selects the cocoa one with \fCelseif(MACOS)\fP, and iOS matches no branch at all\&. What gets compiled instead is the dummy, which is three lines that report failure without showing anything\&. That is why a file picker on iOS looked like a dialog the person dismissed the instant it opened\&.
+.PP
+So iOS answers here, with UIDocumentPickerViewController, and everything above this line stays the same on all six platforms\&.
+.PP
+\fBNot part of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP\&. 
+.PP
+Definition in file \fBschultz_files_backend\&.h\fP\&.
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef void(* schultz_files_answer_fn) (void *userdata, const char *const *paths, int32_t filter)"
+
+.PP
+Where a backend delivers what the person chose\&. Called exactly once for every schultz_files_show, however it ended, and possibly on a thread that is not the one the window loop runs on\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIuserdata\fP The pointer given to schultz_files_show\&. 
+.br
+\fIpaths\fP The chosen paths, NULL terminated, or NULL for none\&. An empty list and NULL both mean nothing was chosen; the caller treats them alike\&. 
+.br
+\fIfilter\fP Which filter was showing, or -1 when the platform did not say\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB60\fP of file \fBschultz_files_backend\&.h\fP\&.
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBschultz_files_kind\fP"
+
+.PP
+Which of the three dialogs to show\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fISCHULTZ_FILES_OPEN \fP\fP
+Choose one or more existing files\&. 
+.TP
+\fB\fISCHULTZ_FILES_SAVE \fP\fP
+Choose where to write a new one\&. 
+.TP
+\fB\fISCHULTZ_FILES_FOLDER \fP\fP
+Choose a directory\&. 
+.PP
+Definition at line \fB41\fP of file \fBschultz_files_backend\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "void schultz_files_show (\fBschultz_files_kind\fP kind, \fBSDL_Window\fP * window, const \fBschultz_file_options\fP * options, const \fBschultz_file_filter\fP * filters, uint32_t filter_count, \fBschultz_files_answer_fn\fP answer, void * userdata)"
+
+.PP
+Shows one file dialog and returns without waiting for an answer\&. The filters are the caller's copies and stay alive until after the answer arrives, so a backend may point at their strings rather than copying them again\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIkind\fP Which dialog to show\&. 
+.br
+\fIwindow\fP The window to hang it off\&. May be NULL\&. 
+.br
+\fIoptions\fP What the caller asked for, or NULL for every default\&. 
+.br
+\fIfilters\fP Copied filters, or NULL for none\&. 
+.br
+\fIfilter_count\fP How many filters there are\&. 
+.br
+\fIanswer\fP Called once, later, with the result\&. Must not be NULL\&. 
+.br
+\fIuserdata\fP Passed back to the callback untouched\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

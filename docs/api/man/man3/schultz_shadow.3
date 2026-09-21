@@ -1,0 +1,60 @@
+.TH "schultz_shadow" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_shadow \- A shadow cast by a node and everything under it\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <schultz_geom\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBschultz_color\fP \fBcolor\fP"
+.br
+.ti -1c
+.RI "float \fBangle\fP"
+.br
+.ti -1c
+.RI "float \fBdistance\fP"
+.br
+.ti -1c
+.RI "float \fBblur\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A shadow cast by a node and everything under it\&. 
+
+The whole subtree is drawn once, and that picture is what casts the shadow, so a card with a title and a button on it casts one shadow in the shape of the card rather than three overlapping ones\&. 
+.PP
+Definition at line \fB307\fP of file \fBschultz_geom\&.h\fP\&.
+.SH "Field Documentation"
+.PP 
+.SS "\fBschultz_color\fP schultz_shadow::color"
+The shadow's colour, alpha included\&. Alpha zero means no shadow at all and costs nothing, which is why it is the default on every node\&. 
+.PP
+Definition at line \fB312\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "float schultz_shadow::angle"
+Which way it falls, in degrees clockwise, with 0 directly above the node\&. So 90 is to its right, 180 below it, and 270 to its left\&. Below is the usual answer, which makes 180 the usual angle\&.
+.PP
+Clockwise, and measured from above, to agree with the rotation a draw list can push\&. One meaning for degrees across the toolkit\&.
+.PP
+A node that is itself turned keeps its shadow falling the same way on screen, because a light source does not turn with the thing it lights\&. 
+.PP
+Definition at line \fB324\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "float schultz_shadow::distance"
+How far along that angle the shadow sits, in logical units\&. 
+.PP
+Definition at line \fB326\fP of file \fBschultz_geom\&.h\fP\&.
+.SS "float schultz_shadow::blur"
+How soft the edge is\&. Zero gives a hard edged copy of the shape, which is a real shadow and not a special case\&. Larger spreads it further, and spreading costs blur work over a larger area\&. 
+.PP
+Definition at line \fB332\fP of file \fBschultz_geom\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.
