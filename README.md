@@ -78,6 +78,11 @@ A whole program, including the event handler, is in
 
 ## Documentation
 
+Everything below is published at
+**[rsv-code.github.io/schultz](https://rsv-code.github.io/schultz/)**, which is
+the same pages rendered, and the only place the API reference is readable
+without cloning.
+
 | Guide | What it covers |
 |---|---|
 | [Getting started](docs/getting-started.md) | Running the demo, and a first application that compiles |
@@ -87,11 +92,13 @@ A whole program, including the event handler, is in
 | [Styling](docs/styling.md) | Tokens, properties, states, and the two themes |
 | [Audio](docs/audio.md) | Sound, music, streaming and the microphone |
 | [Accessibility](docs/accessibility.md) | How the tree reaches a screen reader, and what makes a widget readable |
+| [Repainting](docs/repainting.md) | What gets redrawn each frame, and what to check when a pixel goes stale |
 
-The API reference is generated from the comments in the headers and is
-committed, so it can be read without building anything: open
-[docs/api/index.html](docs/api/index.html). `make docs` regenerates it after a
-header's comments change.
+**[API reference](https://rsv-code.github.io/schultz/api/)** -- every function,
+type and constant, generated from the comments in the headers. It is committed
+under `docs/api`, so it is in a clone as well, but read it at that address:
+GitHub shows a checked in HTML file as its source rather than as a page.
+`make docs` regenerates it after a header's comments change.
 
 Every C snippet in these pages, this one included, is put through the compiler
 by `sh scripts/check_doc_code.sh`.

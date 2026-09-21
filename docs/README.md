@@ -51,9 +51,11 @@ one after the node is gone and you get an error code, not a crash.
 | [Accessibility](accessibility.md) | How the tree is read by a screen reader, and what makes a widget readable |
 | [Repainting](repainting.md) | What gets redrawn each frame, why it is several areas rather than one, and what to check when a pixel goes stale |
 
-The API reference is generated from the comments in the headers and is
-committed beside these guides: open [api/index.html](api/index.html).
-`make docs` regenerates it.
+The **[API reference](https://rsv-code.github.io/schultz/api/)** is every
+function, type and constant, generated from the comments in the headers.
+It is committed beside these guides under `api/`, so it is in a clone too,
+but read it at that address: GitHub shows a checked in HTML file as its
+source rather than as a page. `make docs` regenerates it.
 
 Every C snippet on these pages is put through the compiler by
 `sh scripts/check_doc_code.sh`, so a call that has been renamed breaks the

@@ -17,8 +17,9 @@ leave the check out for room. Real code should not.
 
 The code with each widget shows how to make one and what can be set on it.
 Anything visual, a colour, a corner radius, a font, is a style property rather
-than a call, and belongs in [Styling](styling.md). For the full generated
-reference is in [api/index.html](api/index.html).
+than a call, and belongs in [Styling](styling.md). The full generated
+reference is at
+[rsv-code.github.io/schultz/api](https://rsv-code.github.io/schultz/api/).
 
 **Getting told when something happens.** Stamp a node with a token and every
 event about it carries that number back:
