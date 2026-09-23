@@ -45,9 +45,21 @@ BUILD    ?= build
 # Every other place that needs it -- the shared library's name, the API
 # reference's title -- takes it from there, so that a release is one edit and
 # cannot end up saying two things.
-SCHULTZ_VERSION_MAJOR := $(shell sed -n 's/^#define SCHULTZ_VERSION_MAJOR *//p' schultz.h)
-SCHULTZ_VERSION_MINOR := $(shell sed -n 's/^#define SCHULTZ_VERSION_MINOR *//p' schultz.h)
-SCHULTZ_VERSION_PATCH := $(shell sed -n 's/^#define SCHULTZ_VERSION_PATCH *//p' schultz.h)
+#
+# The dot in each pattern is the hash of "#define", matched rather than
+# written. A hash is make's comment character, and make strips comments
+# before it parses a function call, so a literal one here ends the line in
+# the middle of $(shell and the closing bracket is never seen:
+#
+#   Makefile:48: *** unterminated call to function `shell': missing `)'.
+#
+# GNU make 4 lets it pass. The make Apple ships is 3.81 and does not, so this
+# read fine on Linux and stopped every build on a Mac. Escaping it as \# works
+# too; not writing it at all cannot be undone by the next person who tidies
+# the expression.
+SCHULTZ_VERSION_MAJOR := $(shell sed -n 's/^.define SCHULTZ_VERSION_MAJOR *//p' schultz.h)
+SCHULTZ_VERSION_MINOR := $(shell sed -n 's/^.define SCHULTZ_VERSION_MINOR *//p' schultz.h)
+SCHULTZ_VERSION_PATCH := $(shell sed -n 's/^.define SCHULTZ_VERSION_PATCH *//p' schultz.h)
 SCHULTZ_VERSION := $(SCHULTZ_VERSION_MAJOR).$(SCHULTZ_VERSION_MINOR).$(SCHULTZ_VERSION_PATCH)
 
 # What the loader matches on, which is not the release number.
@@ -874,9 +886,6 @@ $(TEXT_OBJS): $(BUILD)/%.o: %.c $(TARGET_CONFIG) | $(BUILD)
 $(TVG_OBJS): $(BUILD)/%.o: %.c $(TARGET_CONFIG) | $(BUILD)
 	$(CC) $(CFLAGS) $(TVG_CFLAGS) $(TEXT_CFLAGS) -MMD -MP -c -o $@ $<
 
-$(BUILD)/schultz_voice.o: schultz_voice.c $(TARGET_CONFIG) | $(BUILD)
-	$(CC) $(CFLAGS) $(VOICE_CFLAGS) -MMD -MP -c -o $@ $<
-
 $(VIDEO_OBJS): $(BUILD)/%.o: %.c $(TARGET_CONFIG) | $(BUILD)
 	$(CC) $(CFLAGS) $(VIDEO_CFLAGS) $(NE_CFLAGS) -MMD -MP -c -o $@ $<
 
@@ -901,7 +910,7 @@ else
 # back empty, and a build with no prefix at all got twelve files in before
 # stopping on a missing ft2build.h.
 $(BIN) $(BACKEND_C_OBJS) $(BACKEND_OBJC_OBJS) $(TEXT_OBJS) $(TVG_OBJS) \
-$(BUILD)/schultz_demo.o:
+$(VIDEO_OBJS) $(BUILD)/schultz_demo.o:
 	@echo "dependencies for $(DEPS_TARGET) not found."
 	@echo
 	@$(PKG_CONFIG) --print-errors --exists $(DEPS_PKGS) 2>&1 \
@@ -924,6 +933,17 @@ $(UB_OBJS): $(BUILD)/%.o: %.c $(TARGET_CONFIG) | $(BUILD)
 $(NE_OBJS): $(BUILD)/%.o: %.c $(TARGET_CONFIG) | $(BUILD)
 	@mkdir -p $(dir $@)
 	$(CC) $(VENDOR_CFLAGS) $(NE_CFLAGS) -MMD -MP -c -o $@ $<
+
+# Outside the dependency check above, because what this needs is vendored.
+# schultz_voice.c includes <speex/...> and nothing else that is not the
+# standard library, so it builds whether or not a prefix has been made. It sat
+# inside that check once, and a target with no prefix yet fell through to the
+# ordinary rule below, lost this include path, and stopped on a header that is
+# in the repository:
+#
+#   schultz_voice.c:28:10: fatal error: 'speex/speex_echo.h' file not found
+$(BUILD)/schultz_voice.o: schultz_voice.c $(TARGET_CONFIG) | $(BUILD)
+	$(CC) $(CFLAGS) $(VOICE_CFLAGS) -MMD -MP -c -o $@ $<
 
 $(SDSP_OBJS): $(BUILD)/%.o: %.c $(TARGET_CONFIG) | $(BUILD)
 	@mkdir -p $(dir $@)

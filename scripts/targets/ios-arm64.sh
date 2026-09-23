@@ -23,9 +23,21 @@ TARGET_MIN_VERSION=${TARGET_MIN_VERSION:-14.0}
 TARGET_SYSROOT=$(xcrun --sdk "$TARGET_SDK" --show-sdk-path)
 TARGET_CFLAGS_EXTRA="-arch arm64 -isysroot $TARGET_SYSROOT -miphoneos-version-min=$TARGET_MIN_VERSION"
 
+# CMAKE_SYSTEM_PROCESSOR is named because CMAKE_SYSTEM_NAME is.
+#
+# Setting the system name puts cmake into cross compiling mode, and in that
+# mode it stops working the processor out and expects to be told. Left empty,
+# a project that reads it hands cmake an empty argument, and what surfaces is
+# an error inside that project rather than a word about this line:
+#
+#   CMakeLists.txt:108 (string): string no output variable specified
+#
+# That is libjpeg-turbo doing string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} ...)
+# with nothing in the middle.
 TARGET_CMAKE_EXTRA="-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
  -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET_MIN_VERSION \
- -DCMAKE_OSX_SYSROOT=$TARGET_SDK"
+ -DCMAKE_OSX_SYSROOT=$TARGET_SDK \
+ -DCMAKE_SYSTEM_PROCESSOR=arm64"
 
 # The toolkit's own compile. The dependency builds get these through meson's
 # cross file; Schultz itself is built by its Makefile, which reads them from
