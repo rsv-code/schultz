@@ -75,7 +75,7 @@ extern "C" {
  */
 #define SCHULTZ_VERSION_MAJOR  0
 /**< Changes when something that existed is changed or taken away. */
-#define SCHULTZ_VERSION_MINOR  1
+#define SCHULTZ_VERSION_MINOR  2
 /**< Changes when something is added and nothing existing moves. */
 #define SCHULTZ_VERSION_PATCH  0
 /**< Changes when only the implementation did. */

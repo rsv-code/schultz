@@ -136,8 +136,11 @@ in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Versioning
 
-Schultz is **0.1.0-alpha**. While the major number is zero, nothing here is
-promised: any release may change or remove anything, so pin an exact version.
+Schultz is alpha. The version itself is in [schultz.h](schultz.h), as
+`SCHULTZ_VERSION_MAJOR`, `_MINOR` and `_PATCH`, and is written down nowhere
+else; `schultz_version()` reports it at runtime. While the major number is
+zero, nothing here is promised: any release may change or remove anything, so
+pin an exact version.
 
 From 1.0 the numbers mean what they mean for a C library, which is about what
 already-built programs experience rather than about how large the change was:
