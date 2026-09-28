@@ -76,6 +76,8 @@ static const void *bytes;
 static uint32_t *pixels;
 static schultz_glyph_cache *glyphs;
 static uint64_t milliseconds;
+static uint64_t device;
+static schultz_camera *camera;
 DECLS
 
 # Every fenced C block in the documentation, each wrapped in a function of

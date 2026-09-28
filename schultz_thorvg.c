@@ -326,38 +326,109 @@ static void schultz_tvg_times(Tvg_Matrix *a, const Tvg_Matrix *b)
 }
 
 /*
- * Attaches the current clip to a shape, when one is in effect. ThorVG clips a
- * paint against another paint, so the clip rectangle becomes a throwaway
- * shape owned by the clipped shape.
+ * The upright box around a rectangle once the panel's turn is applied.
+ *
+ * The clip is kept as rectangles, and a turned rectangle is not one unless
+ * the turn is a quarter, which is all a panel is ever fitted by. Taking the
+ * box around the four turned corners is exact for those and lets through a
+ * little more than it names for anything else, which is the safe direction
+ * to be wrong in.
  */
-static int32_t schultz_tvg_apply_clip(schultz_thorvg *backend, Tvg_Paint shape)
+static schultz_rect schultz_tvg_turn_box(const schultz_thorvg *backend,
+                                         schultz_rect rect)
 {
+    schultz_point corner[4];
+    float least_x;
+    float least_y;
+    float most_x;
+    float most_y;
+    uint32_t i;
+
+    if (!backend->rotated) {
+        return rect;
+    }
+    corner[0] = schultz_point_make(rect.x, rect.y);
+    corner[1] = schultz_point_make(rect.x + rect.width, rect.y);
+    corner[2] = schultz_point_make(rect.x, rect.y + rect.height);
+    corner[3] = schultz_point_make(rect.x + rect.width,
+                                   rect.y + rect.height);
+    least_x = most_x = backend->rotation.e11 * corner[0].x +
+                       backend->rotation.e12 * corner[0].y +
+                       backend->rotation.e13;
+    least_y = most_y = backend->rotation.e21 * corner[0].x +
+                       backend->rotation.e22 * corner[0].y +
+                       backend->rotation.e23;
+    for (i = 1u; i < 4u; i++) {
+        float x = backend->rotation.e11 * corner[i].x +
+                  backend->rotation.e12 * corner[i].y +
+                  backend->rotation.e13;
+        float y = backend->rotation.e21 * corner[i].x +
+                  backend->rotation.e22 * corner[i].y +
+                  backend->rotation.e23;
+
+        if (x < least_x) { least_x = x; }
+        if (y < least_y) { least_y = y; }
+        if (x > most_x)  { most_x  = x; }
+        if (y > most_y)  { most_y  = y; }
+    }
+    return schultz_rect_make(least_x, least_y, most_x - least_x,
+                             most_y - least_y);
+}
+
+/*
+ * Attaches to a shape the rectangle it may paint in, when there is one.
+ * ThorVG clips a paint against another paint, so that rectangle becomes a
+ * throwaway shape owned by the clipped shape.
+ *
+ * A shape carries one clipper and no more, so a crop of its own and the clip
+ * around it cannot be applied one after the other: the second would take the
+ * place of the first, and a piece of an image drawn inside a clip would
+ * spread across everything the clip allows. They are both rectangles, so
+ * intersecting them says exactly what the two of them together allow.
+ */
+static int32_t schultz_tvg_apply_clip(schultz_thorvg *backend,
+                                      Tvg_Paint shape,
+                                      const schultz_rect *crop)
+{
+    schultz_rect within;
     Tvg_Paint clipper;
 
-    if (backend->clip_depth == 0) {
-        return SCHULTZ_OK;
+    if (crop == NULL) {
+        if (backend->clip_depth == 0) {
+            return SCHULTZ_OK;
+        }
+        within = backend->clip;
+    } else if (backend->clip_depth == 0) {
+        within = *crop;
+    } else {
+        within = schultz_rect_intersect(backend->clip, *crop);
     }
 
     clipper = tvg_shape_new();
     if (clipper == NULL) {
         return SCHULTZ_ERR_OUT_OF_MEMORY;
     }
-    tvg_shape_append_rect(clipper, backend->clip.x, backend->clip.y,
-                          backend->clip.width, backend->clip.height,
-                          0.0f, 0.0f, true);
+    tvg_shape_append_rect(clipper, within.x, within.y,
+                          within.width, within.height, 0.0f, 0.0f, true);
     return schultz_tvg_ok(tvg_paint_set_clip(shape, clipper));
 }
 
 /*
- * Creates a shape, turns it if a rotation is in force, applies the clip, and
- * adds it to the canvas.
+ * Creates a shape, turns it if a rotation is in force, says where it may
+ * paint, and adds it to the canvas.
  *
  * Every shape goes through here, which is why the rotation is applied here
  * and nowhere else. The composition matters: a picture has already placed
  * itself with a transform of its own, so the turn multiplies onto that rather
  * than replacing it.
+ *
+ * `crop` is a rectangle the shape brings with it, in the coordinates the
+ * canvas uses, or NULL when the shape paints wherever the clip allows. Only
+ * a piece of an image has one.
  */
-static int32_t schultz_tvg_finish(schultz_thorvg *backend, Tvg_Paint shape)
+static int32_t schultz_tvg_finish_inside(schultz_thorvg *backend,
+                                         Tvg_Paint shape,
+                                         const schultz_rect *crop)
 {
     int32_t result;
 
@@ -370,7 +441,7 @@ static int32_t schultz_tvg_finish(schultz_thorvg *backend, Tvg_Paint shape)
         }
         tvg_paint_set_transform(shape, &turned);
     }
-    result = schultz_tvg_apply_clip(backend, shape);
+    result = schultz_tvg_apply_clip(backend, shape, crop);
     if (result != SCHULTZ_OK) {
         tvg_paint_unref(shape, true);
         return result;
@@ -386,6 +457,12 @@ static int32_t schultz_tvg_finish(schultz_thorvg *backend, Tvg_Paint shape)
             backend->scenes[backend->scene_depth - 1u], shape));
     }
     return schultz_tvg_ok(tvg_canvas_add(backend->canvas, shape));
+}
+
+/* The same, for the shapes that paint wherever the clip lets them. */
+static int32_t schultz_tvg_finish(schultz_thorvg *backend, Tvg_Paint shape)
+{
+    return schultz_tvg_finish_inside(backend, shape, NULL);
 }
 
 /* ------------------------------------------------------------ vtable entries */
@@ -946,16 +1023,15 @@ static int32_t schultz_tvg_image(void *context, const schultz_draw_cmd *cmd)
     }
     tvg_paint_set_opacity(picture, cmd->as.image.opacity);
 
+    /*
+     * A piece of an image shows only where it was put. The rest of the
+     * picture is placed too -- a transform is what puts the piece in the
+     * right spot -- so without this the whole of it would appear.
+     */
     if (!schultz_rect_is_empty(source)) {
-        Tvg_Paint clip = tvg_shape_new();
+        schultz_rect crop = schultz_tvg_turn_box(backend, dest);
 
-        if (clip == NULL) {
-            tvg_paint_unref(picture, true);
-            return SCHULTZ_ERR_OUT_OF_MEMORY;
-        }
-        tvg_shape_append_rect(clip, dest.x, dest.y, dest.width, dest.height,
-                              0.0f, 0.0f, true);
-        tvg_paint_set_clip(picture, clip);
+        return schultz_tvg_finish_inside(backend, picture, &crop);
     }
     return schultz_tvg_finish(backend, picture);
 }
@@ -1580,50 +1656,13 @@ static int32_t schultz_tvg_clip_begin(void *context,
     backend->clips[backend->clip_depth] = backend->clip;
     backend->clip_depth++;
 
-    rect = schultz_tvg_place(backend, cmd->as.clip_begin.rect);
-    if (backend->rotated) {
-        /*
-         * The clip stack is rectangles, and intersecting two turned ones does
-         * not give a rectangle. So a clip started inside a rotation is the
-         * upright box around the turned rectangle: it lets through a little
-         * more than it names, never less, which is the safe direction to be
-         * wrong in. The canvas's own clip starts outside any rotation and
-         * is therefore exact.
-         */
-        schultz_point corner[4];
-        float least_x;
-        float least_y;
-        float most_x;
-        float most_y;
-        uint32_t i;
-
-        corner[0] = schultz_point_make(rect.x, rect.y);
-        corner[1] = schultz_point_make(rect.x + rect.width, rect.y);
-        corner[2] = schultz_point_make(rect.x, rect.y + rect.height);
-        corner[3] = schultz_point_make(rect.x + rect.width,
-                                       rect.y + rect.height);
-        least_x = most_x = backend->rotation.e11 * corner[0].x +
-                           backend->rotation.e12 * corner[0].y +
-                           backend->rotation.e13;
-        least_y = most_y = backend->rotation.e21 * corner[0].x +
-                           backend->rotation.e22 * corner[0].y +
-                           backend->rotation.e23;
-        for (i = 1u; i < 4u; i++) {
-            float x = backend->rotation.e11 * corner[i].x +
-                      backend->rotation.e12 * corner[i].y +
-                      backend->rotation.e13;
-            float y = backend->rotation.e21 * corner[i].x +
-                      backend->rotation.e22 * corner[i].y +
-                      backend->rotation.e23;
-
-            if (x < least_x) { least_x = x; }
-            if (y < least_y) { least_y = y; }
-            if (x > most_x)  { most_x  = x; }
-            if (y > most_y)  { most_y  = y; }
-        }
-        rect = schultz_rect_make(least_x, least_y, most_x - least_x,
-                                 most_y - least_y);
-    }
+    /*
+     * A clip started inside a rotation is the upright box around the turned
+     * rectangle, which lets through a little more than it names and never
+     * less. The canvas's own clip starts outside any rotation and is exact.
+     */
+    rect = schultz_tvg_turn_box(backend, schultz_tvg_place(backend,
+                                             cmd->as.clip_begin.rect));
     backend->clip = schultz_rect_intersect(backend->clip, rect);
     return SCHULTZ_OK;
 }

@@ -21,6 +21,7 @@
 #include "schultz_font.h"
 #include "schultz_glyphs.h"
 #include "schultz_image.h"
+#include "schultz_layout.h"
 #include "schultz_style.h"
 #include "schultz_video.h"
 #include "schultz_widget.h"
@@ -841,6 +842,208 @@ TEST a_file_plays_all_the_way_to_the_end(void)
 
 /* ------------------------------------------------------------- with sound */
 
+/* ------------------------------------------------- what shape it comes out */
+
+/*
+ * A column the width of a phone in portrait, holding one film and nothing
+ * else, with no size asked for anywhere. This is the arrangement the default
+ * shape has to be reasonable in.
+ */
+#define COLUMN_W 354.0f
+#define COLUMN_H 700.0f
+
+static schultz_handle column_with_clip(video_fixture *f, const char *path,
+                                       uint32_t controls,
+                                       schultz_handle *out_column)
+{
+    schultz_handle column = SCHULTZ_HANDLE_NONE;
+    schultz_handle node = SCHULTZ_HANDLE_NONE;
+    size_t size = 0u;
+    unsigned char *bytes;
+
+    *out_column = SCHULTZ_HANDLE_NONE;
+    if (schultz_node_create(f->tree, schultz_tree_root(f->tree), &column)
+            != SCHULTZ_OK) {
+        return SCHULTZ_HANDLE_NONE;
+    }
+    schultz_node_set_pane(f->tree, column, schultz_pane_vbox());
+    if (schultz_video_create(f->tree, column, 0u, &node) != SCHULTZ_OK) {
+        return SCHULTZ_HANDLE_NONE;
+    }
+    schultz_video_set_controls(f->tree, node, controls);
+    bytes = slurp(path, &size);
+    if (bytes == NULL) {
+        return SCHULTZ_HANDLE_NONE;
+    }
+    schultz_video_write(f->tree, node, bytes, size);
+    free(bytes);
+    schultz_video_play(f->tree, node);
+    schultz_tree_resolve_styles(f->tree);
+    *out_column = column;
+    return node;
+}
+
+/* One turn of a frame loop: decode, then lay out what came of it. */
+static void run_and_lay_out(video_fixture *f, schultz_handle column,
+                            float width, float height, uint32_t turns)
+{
+    uint32_t i;
+
+    for (i = 0; i < turns; i++) {
+        clock_ms += 33u;
+        schultz_tree_advance(f->tree, clock_ms);
+        schultz_layout_arrange(f->tree, column,
+                               schultz_rect_make(0, 0, width, height));
+    }
+}
+
+/* How tall the control row wants to be at this width, or zero for no row. */
+static float row_height(video_fixture *f, schultz_handle node, float width)
+{
+    schultz_handle row = SCHULTZ_HANDLE_NONE;
+    schultz_size size;
+
+    if (schultz_node_child_count(f->tree, node) == 0u ||
+        schultz_node_child_at(f->tree, node, 0u, &row) != SCHULTZ_OK ||
+        schultz_layout_measure(f->tree, row, width, -1.0f, &size)
+            != SCHULTZ_OK) {
+        return 0.0f;
+    }
+    return size.height;
+}
+
+/*
+ * With nothing said about its size, a film in a column is the width of the
+ * column and the height its own proportions make of that.
+ *
+ * It used to be neither. The node is a border pane and the only thing in it
+ * is the control row, so the pane measured the row and nothing else: a film
+ * with controls came out the height of its own buttons with the picture
+ * squeezed in above them, and a film without any came out nothing high and
+ * could not be seen at all.
+ */
+TEST a_film_with_no_size_asked_for_takes_the_shape_of_its_picture(void)
+{
+    video_fixture f;
+    schultz_handle column;
+    schultz_handle node;
+    schultz_rect bounds;
+    uint32_t wide = 0u;
+    uint32_t high = 0u;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    node = column_with_clip(&f, CLIP_VP8, SCHULTZ_VIDEO_CONTROLS_NONE,
+                            &column);
+    ASSERT(node != SCHULTZ_HANDLE_NONE);
+    run_and_lay_out(&f, column, COLUMN_W, COLUMN_H, 8u);
+
+    ASSERT(schultz_video_frames_shown(f.tree, node) > 0u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_video_size(f.tree, node, &wide, &high));
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, node,
+                                                       &bounds));
+    ASSERT_EQ(COLUMN_W, bounds.width);
+    ASSERT_IN_RANGE(COLUMN_W * (float)high / (float)wide, bounds.height,
+                    0.5f);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* And with controls, that shape plus room underneath for the buttons. */
+TEST a_film_with_controls_leaves_room_for_them_below_the_picture(void)
+{
+    video_fixture f;
+    schultz_handle column;
+    schultz_handle node;
+    schultz_rect bounds;
+    uint32_t wide = 0u;
+    uint32_t high = 0u;
+    float row;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    node = column_with_clip(&f, CLIP_VP8, SCHULTZ_VIDEO_CONTROLS_ALL,
+                            &column);
+    ASSERT(node != SCHULTZ_HANDLE_NONE);
+    run_and_lay_out(&f, column, COLUMN_W, COLUMN_H, 8u);
+
+    ASSERT(schultz_video_frames_shown(f.tree, node) > 0u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_video_size(f.tree, node, &wide, &high));
+    row = row_height(&f, node, COLUMN_W);
+    ASSERT(row > 0.0f);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, node,
+                                                       &bounds));
+    ASSERT_IN_RANGE(COLUMN_W * (float)high / (float)wide + row,
+                    bounds.height, 0.5f);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* Turned on its side the column is wider, and the picture follows it. */
+TEST a_film_follows_the_width_it_is_given(void)
+{
+    video_fixture f;
+    schultz_handle column;
+    schultz_handle node;
+    schultz_rect portrait;
+    schultz_rect landscape;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    node = column_with_clip(&f, CLIP_VP8, SCHULTZ_VIDEO_CONTROLS_NONE,
+                            &column);
+    ASSERT(node != SCHULTZ_HANDLE_NONE);
+    run_and_lay_out(&f, column, COLUMN_W, COLUMN_H, 8u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, node,
+                                                       &portrait));
+    ASSERT(portrait.height > 0.0f);
+
+    run_and_lay_out(&f, column, COLUMN_H, COLUMN_W, 4u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, node,
+                                                       &landscape));
+    ASSERT_EQ(COLUMN_H, landscape.width);
+    /* The same proportions, so the heights are in the same ratio. */
+    ASSERT_IN_RANGE(portrait.height * COLUMN_H / COLUMN_W,
+                    landscape.height, 0.5f);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * A height the host asked for is the host's, and pictures arriving do not
+ * take it away. Without this the default would be no default at all: it
+ * would overrule anyone who said what they wanted.
+ */
+TEST a_height_the_host_asked_for_is_left_alone(void)
+{
+    video_fixture f;
+    schultz_handle column;
+    schultz_handle node;
+    schultz_rect bounds;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    node = column_with_clip(&f, CLIP_VP8, SCHULTZ_VIDEO_CONTROLS_ALL,
+                            &column);
+    ASSERT(node != SCHULTZ_HANDLE_NONE);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_set_pref_size(f.tree, node,
+                              SCHULTZ_SIZE_UNSET, 120.0f));
+    run_and_lay_out(&f, column, COLUMN_W, COLUMN_H, 8u);
+
+    ASSERT(schultz_video_frames_shown(f.tree, node) > 0u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, node,
+                                                       &bounds));
+    ASSERT_EQ(120.0f, bounds.height);
+
+    /* Turning it on its side does not take it away either. */
+    run_and_lay_out(&f, column, COLUMN_H, COLUMN_W, 4u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, node,
+                                                       &bounds));
+    ASSERT_EQ(120.0f, bounds.height);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
 TEST a_clip_with_sound_says_so(void)
 {
     video_fixture f;
@@ -1644,6 +1847,10 @@ SUITE(video)
     RUN_TEST(dragging_the_bar_moves_the_film);
     RUN_TEST(the_mute_button_silences_and_restores);
     RUN_TEST(a_film_not_yet_playing_shows_its_first_picture);
+    RUN_TEST(a_film_with_no_size_asked_for_takes_the_shape_of_its_picture);
+    RUN_TEST(a_film_with_controls_leaves_room_for_them_below_the_picture);
+    RUN_TEST(a_film_follows_the_width_it_is_given);
+    RUN_TEST(a_height_the_host_asked_for_is_left_alone);
     RUN_TEST(a_clip_with_sound_says_so);
     RUN_TEST(sound_drives_the_clock);
     RUN_TEST(the_sound_survives_a_stall_in_the_frame_loop);

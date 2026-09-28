@@ -1,0 +1,102 @@
+.TH "schultz_camera_internal.h" 3 "Version 0.1.0" "Schultz" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+schultz_camera_internal.h \- Turning a camera picture upright, apart from the camera\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'schultz_camera\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBschultz_camera_upright\fP (const void *from, uint32_t width, uint32_t height, uint32_t pitch, uint32_t quarters, uint32_t *into)"
+.br
+.RI "Copies a camera picture into place, turning it upright on the way\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_camera_quarters\fP (float degrees)"
+.br
+.RI "How far a frame says it is out, as quarter turns clockwise\&. "
+.ti -1c
+.RI "void \fBschultz_camera_preview_size\fP (float want_width, uint32_t frame_w, uint32_t frame_h, float *out_width, float *out_height)"
+.br
+.RI "The size a preview should ask to be, given the pictures arriving\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Turning a camera picture upright, apart from the camera\&. 
+
+A phone camera is fitted one way round and the phone is held another, so what the sensor reads is rarely what a person is looking at\&. SDL does not turn the picture for you; it measures how far it is out and hands that over with the frame, as SDL_PROP_SURFACE_ROTATION_FLOAT, leaving the turn to whoever is drawing\&.
+.PP
+The turn itself is arithmetic over a block of pixels, with no camera and no platform in it\&. It is declared here so that it can be tested against known pictures rather than against a device that has to be held a particular way round\&.
+.PP
+\fBNot part of the host facing interface\&.\fP A host binds to \fBschultz_api\&.h\fP\&. 
+.PP
+Definition in file \fBschultz_camera_internal\&.h\fP\&.
+.SH "Function Documentation"
+.PP 
+.SS "void schultz_camera_upright (const void * from, uint32_t width, uint32_t height, uint32_t pitch, uint32_t quarters, uint32_t * into)"
+
+.PP
+Copies a camera picture into place, turning it upright on the way\&. The turn costs nothing on top of the copy that has to happen anyway: the pixels are being moved from the camera's own rows into a packed block either way, and a turn only changes where each one lands\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIfrom\fP The camera's pixels, ARGB8888\&. Must not be NULL\&. 
+.br
+\fIwidth\fP Width of the picture as the camera gave it\&. 
+.br
+\fIheight\fP Height of the picture as the camera gave it\&. 
+.br
+\fIpitch\fP Bytes per row in \fCfrom\fP, which a camera pads\&. 
+.br
+\fIquarters\fP Quarter turns clockwise to apply, 0 to 3\&. 
+.br
+\fIinto\fP Receives width by height pixels, packed, with the width and height swapped for one and three quarter turns\&. Must not be NULL and must have room for width * height of them\&. 
+.RE
+.PP
+
+.SS "uint32_t schultz_camera_quarters (float degrees)"
+
+.PP
+How far a frame says it is out, as quarter turns clockwise\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIdegrees\fP What the frame reported, which may be negative or above a full turn\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+0 to 3\&. Anything that is not a right angle answers 0, because a picture cannot be turned by part of one without resampling it, and a picture the wrong way up is better than a smeared one\&. 
+.RE
+.PP
+
+.SS "void schultz_camera_preview_size (float want_width, uint32_t frame_w, uint32_t frame_h, float * out_width, float * out_height)"
+
+.PP
+The size a preview should ask to be, given the pictures arriving\&. A widget here cannot tell layout what shape it is: the vtable has no measure, and a leaf takes its size hints and nothing else\&. So a preview says what it wants by setting its own preferred size, and this is the rule it uses\&.
+.PP
+Declared apart from the camera so it can be checked against numbers rather than against a phone held a particular way round\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIwant_width\fP The width the node actually has, which is not the width it asked for: a column stretches a child across itself and ignores the request\&. Anything not positive falls back to the picture's own width, which is all there is to go on before anything has been laid out\&. 
+.br
+\fIframe_w\fP Width of the pictures arriving\&. Must not be zero\&. 
+.br
+\fIframe_h\fP Height of them\&. Must not be zero\&. 
+.br
+\fIout_width\fP Receives the width to ask for\&. Must not be NULL\&. 
+.br
+\fIout_height\fP Receives the height that width implies, from the picture's own proportions\&. Must not be NULL\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Schultz from the source code\&.

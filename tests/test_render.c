@@ -575,6 +575,62 @@ TEST the_rasterizer_can_be_pointed_at_a_new_buffer(void)
     PASS();
 }
 
+/*
+ * A piece of an image stays in the box it was given, clip or no clip.
+ *
+ * Drawing a region of an image places the whole picture and shows only the
+ * part that lands in the destination. A clip already in force is a second
+ * rule about where paint may land, and the two have to be added together:
+ * with the piece's own rule replaced by the clip's, the whole picture
+ * appears. The magnifier is what found this, because it is the one thing
+ * that draws a piece of an image, and it always draws inside a clip.
+ */
+TEST a_piece_of_an_image_stays_in_its_box_under_a_clip(void)
+{
+    schultz_thorvg *backend = NULL;
+    schultz_image_table *images = NULL;
+    schultz_handle image = SCHULTZ_HANDLE_NONE;
+    schultz_painter painter;
+    schultz_arena arena;
+    schultz_draw_list list;
+    uint32_t buffer[64 * 64];
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_thorvg_engine_init(0));
+    memset(buffer, 0, sizeof(buffer));
+    ASSERT_EQ(SCHULTZ_OK, schultz_image_table_create(&images));
+    ASSERT_EQ(SCHULTZ_OK, schultz_image_load_file(images, PNG_PATH, &image));
+    ASSERT_EQ(SCHULTZ_OK, schultz_thorvg_create(buffer, 64u, 64u, 64u,
+                                                &backend));
+    ASSERT_EQ(SCHULTZ_OK, schultz_thorvg_set_images(backend, images));
+    schultz_thorvg_painter(backend, &painter);
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_arena_init(&arena, 0));
+    ASSERT_EQ(SCHULTZ_OK, schultz_draw_list_init(&list, &arena, 0));
+    /* A clip over the whole buffer, which forbids nothing by itself. */
+    ASSERT_EQ(SCHULTZ_OK, schultz_draw_clip_begin(&list,
+        schultz_rect_make(0, 0, 64, 64)));
+    /* A quarter of a 48 by 48 picture, drawn at its own size in a corner. */
+    ASSERT_EQ(SCHULTZ_OK, schultz_draw_image(&list, image,
+        schultz_rect_make(0, 0, 24, 24), schultz_rect_make(0, 0, 24, 24),
+        255u));
+    ASSERT_EQ(SCHULTZ_OK, schultz_draw_clip_end(&list));
+    ASSERT_EQ(SCHULTZ_OK, schultz_draw_list_play(&list, &painter,
+        schultz_rect_make(0, 0, 64, 64)));
+
+    /* The quarter is there. */
+    ASSERT(alpha_of(pixel_at(buffer, 64u, 12u, 12u)) > 0u);
+    /* The other three quarters of the picture are not. */
+    ASSERT_EQ(0u, alpha_of(pixel_at(buffer, 64u, 36u, 12u)));
+    ASSERT_EQ(0u, alpha_of(pixel_at(buffer, 64u, 12u, 36u)));
+    ASSERT_EQ(0u, alpha_of(pixel_at(buffer, 64u, 36u, 36u)));
+
+    schultz_arena_free(&arena);
+    schultz_thorvg_destroy(backend);
+    schultz_image_table_destroy(images);
+    schultz_thorvg_engine_term();
+    PASS();
+}
+
 /* A canvas with nothing of its own showing, so only what is drawn into it
  * lands in the buffer. */
 static schultz_handle bare_canvas(render_fixture *f, float w, float h)
@@ -2746,6 +2802,7 @@ TEST a_png_written_out_and_loaded_again_draws_the_same(void)
 SUITE(render)
 {
     RUN_TEST(the_rasterizer_can_be_pointed_at_a_new_buffer);
+    RUN_TEST(a_piece_of_an_image_stays_in_its_box_under_a_clip);
     RUN_TEST(two_changes_far_apart_stay_two_areas);
     RUN_TEST(two_changes_close_together_become_one_area);
     RUN_TEST(more_changes_than_slots_still_cover_everything);

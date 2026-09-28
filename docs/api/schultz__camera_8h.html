@@ -121,9 +121,18 @@ Functions</h2></td></tr>
 <tr class="memitem:a197a51d759af4852dbf8d0ac1ca52397" id="r_a197a51d759af4852dbf8d0ac1ca52397"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#a197a51d759af4852dbf8d0ac1ca52397">schultz_camera_facing</a> (uint64_t device)</td></tr>
 <tr class="memdesc:a197a51d759af4852dbf8d0ac1ca52397"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reports which way a camera points.  <br /></td></tr>
 <tr class="separator:a197a51d759af4852dbf8d0ac1ca52397"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84a72bd1d17617a558d114bce49fb9f6" id="r_a84a72bd1d17617a558d114bce49fb9f6"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#a84a72bd1d17617a558d114bce49fb9f6">schultz_camera_open</a> (uint64_t device, uint32_t width, uint32_t height, <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> **out_camera)</td></tr>
-<tr class="memdesc:a84a72bd1d17617a558d114bce49fb9f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens a camera.  <br /></td></tr>
-<tr class="separator:a84a72bd1d17617a558d114bce49fb9f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0822e25e48f5d74f22aed08236ce3741" id="r_a0822e25e48f5d74f22aed08236ce3741"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#a0822e25e48f5d74f22aed08236ce3741">schultz_camera_size_count</a> (uint64_t device)</td></tr>
+<tr class="memdesc:a0822e25e48f5d74f22aed08236ce3741"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many sizes a camera offers.  <br /></td></tr>
+<tr class="separator:a0822e25e48f5d74f22aed08236ce3741"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5c0e462973649fa299fdc20c39f2ce4" id="r_ae5c0e462973649fa299fdc20c39f2ce4"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#ae5c0e462973649fa299fdc20c39f2ce4">schultz_camera_size_at</a> (uint64_t device, uint32_t index, uint32_t *out_width, uint32_t *out_height, uint32_t *out_rate)</td></tr>
+<tr class="memdesc:ae5c0e462973649fa299fdc20c39f2ce4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads one of the sizes a camera offers.  <br /></td></tr>
+<tr class="separator:ae5c0e462973649fa299fdc20c39f2ce4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d95fd15a941c6cd7400dbd9fb015778" id="r_a1d95fd15a941c6cd7400dbd9fb015778"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#a1d95fd15a941c6cd7400dbd9fb015778">schultz_camera_open</a> (uint64_t device, uint32_t width, uint32_t height, uint32_t rate, <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> **out_camera)</td></tr>
+<tr class="memdesc:a1d95fd15a941c6cd7400dbd9fb015778"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens a camera.  <br /></td></tr>
+<tr class="separator:a1d95fd15a941c6cd7400dbd9fb015778"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dbfea995b927695f1f68f12f4f345e5" id="r_a2dbfea995b927695f1f68f12f4f345e5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#a2dbfea995b927695f1f68f12f4f345e5">schultz_camera_rate</a> (const <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> *camera)</td></tr>
+<tr class="memdesc:a2dbfea995b927695f1f68f12f4f345e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">How many pictures a second the camera settled on.  <br /></td></tr>
+<tr class="separator:a2dbfea995b927695f1f68f12f4f345e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69824e89b0ad4661734040256c415cbc" id="r_a69824e89b0ad4661734040256c415cbc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#a69824e89b0ad4661734040256c415cbc">schultz_camera_close</a> (<a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> *camera)</td></tr>
 <tr class="memdesc:a69824e89b0ad4661734040256c415cbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Closes a camera and releases it.  <br /></td></tr>
 <tr class="separator:a69824e89b0ad4661734040256c415cbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -139,6 +148,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ac61b426f644e61a1144086d5940cdbf6" id="r_ac61b426f644e61a1144086d5940cdbf6"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#ac61b426f644e61a1144086d5940cdbf6">schultz_camera_frames_taken</a> (const <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> *camera)</td></tr>
 <tr class="memdesc:ac61b426f644e61a1144086d5940cdbf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Counts the pictures taken since the camera was opened.  <br /></td></tr>
 <tr class="separator:ac61b426f644e61a1144086d5940cdbf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a2e0e2a4c738dc3e0e292f405080dcd" id="r_a4a2e0e2a4c738dc3e0e292f405080dcd"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#a4a2e0e2a4c738dc3e0e292f405080dcd">schultz_camera_frames_skipped</a> (const <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> *camera)</td></tr>
+<tr class="memdesc:a4a2e0e2a4c738dc3e0e292f405080dcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Counts the pictures passed over to get to a newer one.  <br /></td></tr>
+<tr class="separator:a4a2e0e2a4c738dc3e0e292f405080dcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4c5b97972d3e1481841043770e84e87" id="r_ad4c5b97972d3e1481841043770e84e87"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="schultz__camera_8h.html#ad4c5b97972d3e1481841043770e84e87">schultz_camera_preview_create</a> (<a class="el" href="schultz__layout_8h.html#a4c5f9e208daf1b3827addd2af969537f">schultz_tree</a> *tree, <a class="el" href="schultz_8h.html#a6f02c36b8ef84f403c3cc1cbb8266ab9">schultz_handle</a> parent, <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> *camera, <a class="el" href="schultz_8h.html#a6f02c36b8ef84f403c3cc1cbb8266ab9">schultz_handle</a> *out_node)</td></tr>
 <tr class="memdesc:ad4c5b97972d3e1481841043770e84e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a node that shows what a camera sees.  <br /></td></tr>
 <tr class="separator:ad4c5b97972d3e1481841043770e84e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -352,8 +364,95 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a84a72bd1d17617a558d114bce49fb9f6" name="a84a72bd1d17617a558d114bce49fb9f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a84a72bd1d17617a558d114bce49fb9f6">&#9670;&#160;</a></span>schultz_camera_open()</h2>
+<a id="a0822e25e48f5d74f22aed08236ce3741" name="a0822e25e48f5d74f22aed08236ce3741"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0822e25e48f5d74f22aed08236ce3741">&#9670;&#160;</a></span>schultz_camera_size_count()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t schultz_camera_size_count </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>device</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>How many sizes a camera offers. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">device</td><td>An identifier from schultz_camera_device. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The count, or zero when the camera will not say. A camera is allowed to answer nothing: on some platforms it tells nobody anything until it has been opened once. </dd></dl>
+
+</div>
+</div>
+<a id="ae5c0e462973649fa299fdc20c39f2ce4" name="ae5c0e462973649fa299fdc20c39f2ce4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5c0e462973649fa299fdc20c39f2ce4">&#9670;&#160;</a></span>schultz_camera_size_at()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t schultz_camera_size_at </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>device</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>index</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>out_width</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>out_height</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>out_rate</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads one of the sizes a camera offers. </p>
+<p><b>Ask before opening.</b> A camera converts anything it is given, so opening at a size it does not have works and is the wrong thing to do twice over: the conversion is done in software on every frame, and a phone sensor's own size is enormous. A twelve megapixel frame is forty eight megabytes of pixels, which is measured in seconds per picture rather than pictures per second. Every phone offers something small natively; this is how to find it.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">device</td><td>An identifier from schultz_camera_device. </td></tr>
+    <tr><td class="paramname">index</td><td>Which one, from zero to schultz_camera_size_count - 1. </td></tr>
+    <tr><td class="paramname">out_width</td><td>Receives the width. May be NULL. </td></tr>
+    <tr><td class="paramname">out_height</td><td>Receives the height. May be NULL. </td></tr>
+    <tr><td class="paramname">out_rate</td><td>Receives pictures per second, rounded, or zero where the camera did not say. May be NULL. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when there is no such camera or no such index. </dd></dl>
+
+</div>
+</div>
+<a id="a1d95fd15a941c6cd7400dbd9fb015778" name="a1d95fd15a941c6cd7400dbd9fb015778"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d95fd15a941c6cd7400dbd9fb015778">&#9670;&#160;</a></span>schultz_camera_open()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -379,6 +478,12 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>rate</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype"><a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> **&#160;</td>
           <td class="paramname"><em>out_camera</em>&#160;</td>
         </tr>
@@ -391,18 +496,48 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Opens a camera. </p>
-<p>The size is what the pictures are wanted at. A camera that cannot produce it is asked for the nearest thing it can and the pictures are converted, so any reasonable size works; ask for what will be drawn rather than what the hardware has, and pass zero for both to take whatever the camera offers.</p>
+<p>The size is what the pictures are wanted at. <b>Choose one the camera offers</b>, using schultz_camera_size_count and schultz_camera_size_at. A camera that cannot produce the size asked for converts every frame in software instead, which costs more than the drawing does and has been seen to produce a torn picture. Passing zero for both takes the camera's own size, which on a phone is the whole sensor and far larger than anything worth previewing.</p>
 <p>Opening does not mean the camera is usable yet. See schultz_camera_permission.</p>
+<p><b>Name a rate, or let this pick the fastest.</b> Passing zero here does not mean "no preference" to the layer underneath: it reads an unset rate as zero and then chooses the rate closest to it, which is the <em>slowest</em> the camera offers. A phone lists the bottom of every range as well as the top, so that is often one picture a second, and the session is then pinned to it. This call therefore never leaves the rate unset: zero here means the fastest offered at the size chosen, and any other number is matched to the nearest the camera has.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">device</td><td>An identifier from schultz_camera_device. </td></tr>
     <tr><td class="paramname">width</td><td>The width wanted, or zero for the camera's own. </td></tr>
     <tr><td class="paramname">height</td><td>The height wanted, or zero for the camera's own. </td></tr>
+    <tr><td class="paramname">rate</td><td>Pictures per second wanted, or zero for the fastest the camera offers at that size. </td></tr>
     <tr><td class="paramname">out_camera</td><td>Receives the open camera. Must not be NULL. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when there is no such camera or the machine will not open it. </dd></dl>
+
+</div>
+</div>
+<a id="a2dbfea995b927695f1f68f12f4f345e5" name="a2dbfea995b927695f1f68f12f4f345e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dbfea995b927695f1f68f12f4f345e5">&#9670;&#160;</a></span>schultz_camera_rate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t schultz_camera_rate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> *&#160;</td>
+          <td class="paramname"><em>camera</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>How many pictures a second the camera settled on. </p>
+<p>What was actually negotiated, which is not always what was asked for. Zero until the camera has been allowed and has chosen, so a program that wants to show it asks again rather than once.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">camera</td><td>An open camera. NULL yields 0. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pictures per second, rounded, or zero when it is not settled yet. </dd></dl>
 
 </div>
 </div>
@@ -424,6 +559,9 @@ Functions</h2></td></tr>
 
 <p>Closes a camera and releases it. </p>
 <p>Safe on NULL. The pixels from the last schultz_camera_frame belong to the camera and are gone after this.</p>
+<p><b>On the thread that runs the tree</b>, this is safe to call while a preview is still showing the camera, and in any order with destroying that preview. A camera knows which previews are pointed at it and tells them when it goes, so a stop button needs no particular sequence. The preview keeps whatever it last drew on the screen and simply stops asking for more; point it somewhere else, or hide it, to clear that.</p>
+<p><b>From any other thread it is not safe, and the failure is quiet.</b> A preview reads its camera on every turn, and there is no lock between the two: closing from a worker while the tree is being advanced can free the camera between the turn's check and its use. What happens then is the platform's business &ndash; on a desktop it faults, and on a phone it can block instead, inside a lock belonging to memory that has been handed back, which shows as an interface that never draws again rather than as a crash.</p>
+<p>Close it from the thread that runs the window, like everything else that touches the tree. If the decision to stop is made elsewhere, carry it over as a message and act on it there.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">camera</td><td>The camera to close. </td></tr>
@@ -596,6 +734,35 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a4a2e0e2a4c738dc3e0e292f405080dcd" name="a4a2e0e2a4c738dc3e0e292f405080dcd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a2e0e2a4c738dc3e0e292f405080dcd">&#9670;&#160;</a></span>schultz_camera_frames_skipped()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t schultz_camera_frames_skipped </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="schultz__camera_8h.html#ad011d12723060d2121ea97b833f63a63">schultz_camera</a> *&#160;</td>
+          <td class="paramname"><em>camera</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Counts the pictures passed over to get to a newer one. </p>
+<p>A camera goes on producing whether or not anything is looking, and what matters to a preview is the newest picture rather than every picture. So asking for one takes whatever has piled up and answers with the last of them; the ones in front are counted here.</p>
+<p>Which makes this the answer to "is this program keeping up?". Zero, or rising slowly, means it is. Rising as fast as the camera's own rate means every second picture is being passed over, and so on. It is the number to look at when a preview feels late rather than slow.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">camera</td><td>An open camera. NULL yields zero. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>How many pictures have been passed over. </dd></dl>
+
+</div>
+</div>
 <a id="ad4c5b97972d3e1481841043770e84e87" name="ad4c5b97972d3e1481841043770e84e87"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad4c5b97972d3e1481841043770e84e87">&#9670;&#160;</a></span>schultz_camera_preview_create()</h2>
 
@@ -639,6 +806,8 @@ Functions</h2></td></tr>
 <p>It does the waiting for permission on the host's behalf. Before the answer comes it draws nothing; if the answer is no it goes on drawing nothing, and schultz_camera_permission on the camera says which.</p>
 <p>A node with no camera asks for no clock at all, so a preview that is not showing anything costs nothing.</p>
 <p>The camera is not owned by the node. It must outlive it, and closing it while a node still points at it leaves the node showing its last picture.</p>
+<p><b>The preview asks to be the shape of the pictures.</b> A camera's shape is not something a host can know in advance: a phone turns its pictures upright, so a stream that is sixteen by nine on the wire arrives nine by sixteen, and which it is depends on how the phone is being held. So when the shape changes the preview sets its own preferred height, from whatever width the host asked for and the picture's proportions. The width is left alone, because how wide to be is the host's decision.</p>
+<p>A host that also fixes the height, or caps it with a maximum size, still wins: this is a preference and a maximum outranks it. That is also the reason a preview still letterboxed after all this is a host holding its height down.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">tree</td><td>The tree to create in. Must not be NULL. </td></tr>

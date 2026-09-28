@@ -375,8 +375,14 @@ hyperlink widget does; what a press means is yours to decide.
 
 The pointer turns to a hand over a pressable stretch, on labels that can be
 selected and on labels that cannot. Dragging across the words to select them
-does not press what the drag started on, and on a touch screen a tap presses
-while a hold still selects.
+does not press what the drag started on.
+
+On a touch screen a selectable label answers the same gestures a text field
+does: a tap presses what is under it, two taps take the word, three take the
+whole label, and a hold selects the word under the finger. The selection gets
+a grip under each end to pull it with. See *Selecting text with a finger*
+under **Text entry**; the two kinds of text share the code for where a grip
+sits, what counts as pressing one, and what a run of taps means.
 
 Set the text before the spans. A span is byte offsets into the words that were
 there, so changing the text clears them rather than leaving them marking
@@ -768,6 +774,70 @@ schultz_text_area_set_grows(tree, area, 1);           /* or grow with text */
 ```
 
 ![Text area](img/text-area.png)
+
+### Selecting text with a finger
+
+A mouse selects by pressing and dragging. A finger cannot: dragging is how the
+page behind a field is scrolled, and a field that answered the press would take
+that gesture away and put a keyboard over whatever was being read. So a finger
+says what it wants a different way, and a text field and a text area both
+understand four gestures:
+
+| gesture | what it does |
+| --- | --- |
+| tap | places the caret |
+| tap twice | selects the word |
+| tap three times | selects the line |
+| tap twice, hold, drag | takes more words |
+| hold | places the caret under a magnifier, and drags it |
+
+A selectable Label answers the first three the same way, except that three taps
+take the whole label, which is a label's version of a line. The hold is the one
+place the two differ: a label has no caret to place, so a hold there selects the
+word instead. That is the same split both iPhone and Android make, by whether
+the text can be edited.
+
+A selection made by a finger gets two grips, one under each end, which drag the
+ends apart or together. They are drawn only for a selection a finger made,
+because a mouse has a pointer of its own and needs no target. Using a mouse
+puts them away. A selectable Label gets the same grips for the same reason, and
+they work the same way; the two kinds of text share one piece of code for where
+a grip sits and what counts as pressing it.
+
+The hold is the one place iPhone and Android disagree, and Schultz picks one
+way for every platform, as it does everywhere else. A hold places the caret,
+which is the harder thing to do on a touch screen and the thing a magnifier
+exists for; Android's habit of selecting the word on a hold is still reachable
+by tapping twice, which both platforms agree on. Picking it the other way round
+would have left no gesture at all for placing the caret exactly.
+
+The magnifier itself is a small rounded pane, about a finger wide, that sits
+above the line being touched and clear of it by half its own height again,
+because a thumb covers the line it is resting on and a good deal above it. It
+shows one line of text, twice its own size, centred on the caret, and it
+draws the caret inside the pane at the place the lift will put it. The
+picture it shows is taken without a caret of its own, so there is one mark in
+the pane rather than two; without it a person can see the letters but still
+has to guess which two of them the caret is going between, which is the
+question the magnifier is there to answer.
+
+It is drawn on the same layer as menus and popovers rather than by the text
+widget, so a scroll view around the text cannot cut it off and nothing else
+on the page can be drawn over it. Near the top of the window it is cut off by
+the window itself, which is as far as anything can help.
+
+To try any of these with a mouse, hold alt as the button goes down and that
+press is read as a finger: alt-press over a text area, keep still, and the
+magnifier opens. Only the press alt was held for is affected, so nothing else
+about using a mouse changes, and the press stays a finger until the button
+comes up whatever the keyboard does meanwhile. It is there for trying the
+gestures out on a desk, since SDL's own `SDL_MOUSE_TOUCH_EVENTS` cannot do
+this: it makes finger events, while Schultz reads the mouse events SDL makes
+from touch, and SDL will not turn a finger it invented from the mouse back
+into one of those.
+
+None of this needs turning on and there is nothing to configure. A field and an
+area behave this way as soon as a finger touches one.
 
 ### Rich text you can edit
 
@@ -2226,16 +2296,73 @@ schultz_camera *camera = NULL;
 schultz_handle preview = SCHULTZ_HANDLE_NONE;
 
 if (schultz_camera_count() > 0u) {
-    schultz_camera_open(schultz_camera_device(0u), 640u, 480u, &camera);
+    schultz_camera_open(schultz_camera_device(0u), 640u, 480u, 0u, &camera);
 }
 schultz_camera_preview_create(tree, parent, camera, &preview);
 ```
 
-Three things are worth knowing.
+Five things are worth knowing.
+
+**It hands over the newest picture, not the next one.** A camera goes on
+producing whether or not anything is looking, and what a preview wants is what
+the room looks like now. So asking for a picture empties whatever has piled up
+and answers with the last of it. The ones passed over are counted by
+`schultz_camera_frames_skipped`, which is the number to look at when a preview
+feels *late* rather than slow: zero means the program is keeping up, and a
+count climbing as fast as the camera's own rate means every second picture is
+being passed over.
+
+```c
+uint64_t behind = schultz_camera_frames_skipped(camera);
+```
+
+Do not confuse it with `schultz_camera_frames_taken`, which counts the ones
+that were used. Neither takes a picture; both only report.
+
+**Stopping it needs no particular order, on the window's own thread.**
+`schultz_camera_close` may be called while a preview is still showing that
+camera, and the preview may be destroyed first instead; either way round is
+safe *from the thread that runs the tree*. From another thread it is not, and
+the failure is quiet rather than loud: see the note on `schultz_camera_close`. The camera knows which
+previews are pointed at it and tells them when it goes. A stopped preview
+keeps its last picture on the screen rather than going blank, so point it at
+nothing or hide it if you want it cleared.
 
 **A camera may not be there.** `schultz_camera_count` returning zero is an
 ordinary answer, not a failure, and every other call answers sensibly on a
 machine with none. Say so and carry on.
+
+**Ask what sizes it has before opening one.** A camera converts anything it
+is handed, so opening at a size it does not have works, and it is the wrong
+thing to do twice over: the conversion runs in software on every frame, and
+a phone sensor's own size is enormous. Twelve megapixels is forty eight
+megabytes of pixels a frame, which is seconds per picture rather than
+pictures per second.
+
+```c
+uint32_t sizes = schultz_camera_size_count(device);
+uint32_t best_w = 0u;
+uint32_t best_h = 0u;
+uint32_t n;
+
+for (n = 0; n < sizes; n++) {
+    uint32_t w = 0u;
+    uint32_t h = 0u;
+    uint32_t rate = 0u;
+
+    schultz_camera_size_at(device, n, &w, &h, &rate);
+    /* The largest that is still small enough to draw every frame. */
+    if (w <= 1280u && w * h > best_w * best_h) {
+        best_w = w;
+        best_h = h;
+    }
+}
+schultz_camera_open(device, best_w, best_h, 0u, &camera);
+```
+
+A camera is allowed to answer nothing, and some platforms do until one has
+been opened once. A count of zero means ask for a modest size and accept what
+arrives, not that the camera is broken.
 
 **Opening one is not the same as being allowed to use it.** The operating
 system asks the person, and the answer can take seconds or minutes. Opening
@@ -2268,7 +2395,7 @@ const uint32_t *pixels;
 uint32_t width, height;
 uint64_t when_ns;
 
-schultz_camera_open(schultz_camera_device(0u), 640u, 480u, &camera);
+schultz_camera_open(schultz_camera_device(0u), 640u, 480u, 0u, &camera);
 if (schultz_camera_frame(camera, &pixels, &width, &height, &when_ns)
         == SCHULTZ_OK) {
     /* width * height words, no padding between rows */

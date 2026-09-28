@@ -281,6 +281,7 @@ typedef struct {
                                *   a camera is hardware, not a widget. */
     schultz_handle camera_view; /**< The node showing it. */
     schultz_handle camera_note; /**< What it is doing, in words. */
+    uint32_t    camera_rate;    /**< Pictures a second it settled on. */
     uint32_t       camera_said; /**< What that label last said. */
 
     /*
@@ -2940,7 +2941,7 @@ static int32_t demo_on_event(void *context, const schultz_event *event)
              * cost more to encode and show no better.
              */
             if (device != 0u &&
-                schultz_camera_open(device, 320u, 240u, &app->camera)
+                schultz_camera_open(device, 320u, 240u, 0u, &app->camera)
                     == SCHULTZ_OK) {
                 schultz_camera_preview_set_camera(app->tree,
                                                   app->camera_view,
@@ -2963,7 +2964,7 @@ static int32_t demo_on_event(void *context, const schultz_event *event)
                 uint64_t device = schultz_camera_device(0u);
 
                 if (device != 0u &&
-                    schultz_camera_open(device, 320u, 240u, &app->camera)
+                    schultz_camera_open(device, 320u, 240u, 0u, &app->camera)
                         == SCHULTZ_OK) {
                     app->camera_from_loop = 1;
                 }
@@ -3346,7 +3347,6 @@ static int32_t demo_before_draw(void *context)
     demo_app *app = (demo_app *)context;
     const float sweep_seconds = 4.0f;
     uint64_t now = schultz_window_time_ms(app->window);
-    schultz_rect bounds;
     float phase;
     char label[64];
 
@@ -3363,11 +3363,21 @@ static int32_t demo_before_draw(void *context)
      * another page is showing. Moving a node on a hidden page changes nothing
      * anybody can see and still costs the work of changing it.
      */
-    if (app->run_mover && app->current == DEMO_PAGE_DRAWING &&
-        schultz_node_get_bounds(app->tree, app->mover, &bounds)
-            == SCHULTZ_OK) {
-        bounds.x = 240.0f * (phase * 2.0f);
-        schultz_node_set_bounds(app->tree, app->mover, bounds);
+    if (app->run_mover && app->current == DEMO_PAGE_DRAWING) {
+        /*
+         * Moved by its layout parameters, which is where it was put in the
+         * first place and the only place the pane above it reads.
+         *
+         * Setting the bounds instead looks like it works and is undone by
+         * the next layout: an absolute pane places every child at its own
+         * params, so the position survives exactly until something asks for
+         * a relayout. On a page with nothing else moving that is never, and
+         * the bug hides; start the round trip below, which settles its shape
+         * as pictures arrive, and this square starts flashing between where
+         * it was put and where it began. The turning one beside it is
+         * unaffected because it redraws in place and never moves.
+         */
+        set_at(app->tree, app->mover, 240.0f * (phase * 2.0f), 12.0f);
     }
 
     /*
@@ -3392,18 +3402,40 @@ static int32_t demo_before_draw(void *context)
                        ? (uint32_t)-2
                        : schultz_camera_permission(app->camera);
 
-        if (state != app->camera_said) {
-            const char *says = "Stopped.";
+        uint32_t rate = (app->camera == NULL)
+                      ? 0u : schultz_camera_rate(app->camera);
+
+        /*
+         * The rate is shown as well as the state, and it changes after the
+         * state does: a camera settles its format when the person allows it.
+         * Worth having on the screen because what was asked for and what was
+         * agreed are not the same number, and the difference is the whole
+         * distance between a preview and a slideshow.
+         */
+        if (state != app->camera_said || rate != app->camera_rate) {
+            char says[96];
+            const char *state_says = "Stopped.";
 
             if (state == SCHULTZ_CAMERA_WAITING) {
-                says = "Waiting for permission.";
+                state_says = "Waiting for permission.";
             } else if (state == SCHULTZ_CAMERA_ALLOWED) {
-                says = "Running.";
+                state_says = "Running.";
             } else if (state == SCHULTZ_CAMERA_REFUSED) {
-                says = "Permission refused.";
+                state_says = "Permission refused.";
+            }
+            if (rate > 0u) {
+                uint32_t w = 0u;
+                uint32_t h = 0u;
+
+                schultz_camera_size(app->camera, &w, &h);
+                snprintf(says, sizeof(says), "%s %ux%u at %u a second.",
+                         state_says, w, h, rate);
+            } else {
+                snprintf(says, sizeof(says), "%s", state_says);
             }
             schultz_label_set_text(app->tree, app->camera_note, says);
             app->camera_said = state;
+            app->camera_rate = rate;
         }
     }
 

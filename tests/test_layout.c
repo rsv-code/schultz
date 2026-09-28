@@ -605,6 +605,66 @@ TEST absolute_places_children_where_told(void)
     PASS();
 }
 
+/*
+ * Bounds written straight onto a laid out child do not survive a layout.
+ *
+ * This is the shape of a bug the demo carried: a square animated across an
+ * absolute pane by writing its bounds every turn. It looked right for as long
+ * as nothing else on the page asked for a layout, and started flashing
+ * between two positions the moment something did -- a video settling its
+ * shape was enough. The pane places each child at its own parameters and does
+ * not read the bounds at all, so the animation was being quietly undone.
+ *
+ * Pinned here rather than only documented, because "it worked until something
+ * unrelated moved" is the kind of thing that comes back.
+ */
+TEST an_absolute_pane_places_children_from_their_params_not_their_bounds(void)
+{
+    schultz_tree *tree;
+    schultz_handle pane;
+    schultz_handle child;
+    schultz_layout_params params;
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_tree_create(&tree));
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_create(tree, schultz_tree_root(tree),
+                                              &pane));
+    schultz_node_set_pane(tree, pane, schultz_pane_absolute());
+    ASSERT_EQ(SCHULTZ_OK, add_leaf(tree, pane, 30, 40, &child));
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_get_layout_params(tree, child,
+                                                         &params));
+    params.x = 10.0f;
+    params.y = 20.0f;
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_set_layout_params(tree, child,
+                                                         &params));
+    ASSERT_EQ(SCHULTZ_OK, schultz_layout_arrange(tree, pane,
+                                        schultz_rect_make(0, 0, 500, 500)));
+    ASSERT_EQ(10.0f, bounds_of(tree, child).x);
+
+    /* Moved the wrong way: the bounds take, for now. */
+    schultz_node_set_bounds(tree, child, schultz_rect_make(200, 20, 30, 40));
+    ASSERT_EQ(200.0f, bounds_of(tree, child).x);
+
+    /* And the next layout puts it back, because that is what places it. */
+    ASSERT_EQ(SCHULTZ_OK, schultz_layout_arrange(tree, pane,
+                                        schultz_rect_make(0, 0, 500, 500)));
+    ASSERT_EQ(10.0f, bounds_of(tree, child).x);
+
+    /* Moved the right way: it stays moved, however often layout runs. */
+    params.x = 200.0f;
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_set_layout_params(tree, child,
+                                                         &params));
+    ASSERT_EQ(SCHULTZ_OK, schultz_layout_arrange(tree, pane,
+                                        schultz_rect_make(0, 0, 500, 500)));
+    ASSERT_EQ(200.0f, bounds_of(tree, child).x);
+    ASSERT_EQ(SCHULTZ_OK, schultz_layout_arrange(tree, pane,
+                                        schultz_rect_make(0, 0, 500, 500)));
+    ASSERT_EQ(200.0f, bounds_of(tree, child).x);
+
+    schultz_tree_destroy(tree);
+    PASS();
+}
+
 TEST absolute_measures_to_the_union_of_its_children(void)
 {
     schultz_tree *tree;
@@ -1530,6 +1590,7 @@ SUITE(layout)
     RUN_TEST(stack_measures_to_its_largest_child);
     RUN_TEST(stack_centres_a_child_when_asked);
     RUN_TEST(absolute_places_children_where_told);
+    RUN_TEST(an_absolute_pane_places_children_from_their_params_not_their_bounds);
     RUN_TEST(absolute_measures_to_the_union_of_its_children);
     RUN_TEST(border_gives_edges_their_size_and_the_centre_the_rest);
     RUN_TEST(panes_nest_without_special_cases);

@@ -1,0 +1,93 @@
+Camera: do not hold the device lock while closing the backend.
+
+Closing a camera deadlocks the calling thread on any backend that drives SDL
+from the platform's own frame callback -- Android and Apple, both of which set
+ProvidesOwnCallbackThread. The application stays alive with every thread
+asleep, and never draws again, because the thread parked is the one that
+draws.
+
+Caught with a debugger attached to a frozen application on a Pixel 5a. Two
+threads, each waiting for the other:
+
+    thread 'SDLThread'                     -- the closer
+      schultz_camera_close
+      ClosePhysicalCamera       SDL_camera.c:245
+      ANDROIDCAMERA_CloseDevice SDL_camera_android.c:490
+      ... AImageReader_delete, waiting for the callback to stop
+
+    thread 'ImageReader-326'               -- the callback
+      SDL_CameraThreadIterate   SDL_camera.c:914
+      ... blocked on SDL_LockMutex(device->lock)
+
+SDL_CameraThreadIterate takes device->lock twice: once around acquiring the
+frame, and again at the end to put the finished surface on the filled list.
+Between the two it converts the picture, which for a large frame is most of
+its running time. ClosePhysicalCamera held that same lock across CloseDevice,
+and CloseDevice must get the platform to stop calling back -- on Android by
+deleting the image reader, which waits for the callback to return. A callback
+converting when the close began reaches its second lock, blocks on the lock
+the closer holds, and the closer waits for that callback for ever.
+
+The window is the conversion time, which is linear in pixels: at 2448x3264 it
+is nearly every close, at 1280x960 it is occasional, and at 1024x768 it
+effectively never happens. That size dependence is what makes it read as a
+memory fault rather than as a lock.
+
+The fix releases the lock before calling the backend's CloseDevice and takes
+it again afterwards. That is safe because the shutdown flag is already set by
+then: a callback arriving from that point takes the lock, sees the flag and
+returns without touching anything, and one already past its first lock is past
+AcquireFrame -- which runs under the lock -- and from there touches only
+surfaces and its own pixels, never the backend's private data being freed.
+Ref counting is unchanged; ReleaseCamera and ObtainPhysicalCameraObj pair.
+
+Note that an earlier attempt at this -- checking the shutdown flag before
+taking the lock at the top of SDL_CameraThreadIterate -- does not fix it. The
+blocked callback is at the *second* lock, long past that check.
+
+This is what the FIXME already sitting on ClosePhysicalCamera has in mind:
+
+    // !!! FIXME: the close_cond stuff from audio might help the race
+    // condition here.
+
+Applies to SDL3-3.4.16. Drop this file when the fix is upstream.
+
+--- a/src/camera/SDL_camera.c
++++ b/src/camera/SDL_camera.c
+@@ -261,7 +261,36 @@
+         }
+     }
+ 
++    // Without the lock, and this is the whole of the bug it fixes.
++    //
++    // A backend that provides its own callback thread -- Android and Apple
++    // both do -- runs SDL_CameraThreadIterate from the platform's frame
++    // callback, and that function takes this lock twice: once around
++    // acquiring the frame, and again at the end to put the finished surface
++    // on the filled list. Between the two it converts the picture, which for
++    // a large frame is most of its running time.
++    //
++    // Closing held this lock across CloseDevice, and CloseDevice has to get
++    // the platform to stop calling back -- on Android by deleting the image
++    // reader, which waits for the callback to return. So a callback that was
++    // converting when the close began would reach its second lock, block on
++    // the lock the closer holds, and the closer would wait for that callback
++    // forever. Both threads asleep, the application alive and never drawing
++    // again. Observed on a Pixel 5a: the closer in AImageReader_delete, the
++    // callback at the second SDL_LockMutex in SDL_CameraThreadIterate.
++    //
++    // Releasing it first is safe because the shutdown flag is already set
++    // above. A callback arriving from here on takes the lock, sees the flag
++    // and returns without touching anything. One already past its first lock
++    // is past AcquireFrame -- which runs under the lock -- and from there
++    // touches only surfaces and its own pixels, never the backend's private
++    // data that CloseDevice is freeing. The surfaces themselves are freed
++    // below, after the lock is taken again, so that callback's last act and
++    // this teardown stay in order.
++    ReleaseCamera(device);
+     camera_driver.impl.CloseDevice(device);
++    ObtainPhysicalCameraObj(device);
++
+     device->hidden = NULL;  // just in case backend didn't reset this.
+ 
+     SDL_DestroyProperties(device->props);

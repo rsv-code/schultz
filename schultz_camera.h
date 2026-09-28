@@ -115,32 +115,111 @@ int32_t schultz_camera_name(uint64_t device, char *out_name, uint64_t size);
 uint32_t schultz_camera_facing(uint64_t device);
 
 /**
+ * @brief How many sizes a camera offers.
+ *
+ * @param device An identifier from schultz_camera_device.
+ * @return The count, or zero when the camera will not say. A camera is
+ *         allowed to answer nothing: on some platforms it tells nobody
+ *         anything until it has been opened once.
+ */
+uint32_t schultz_camera_size_count(uint64_t device);
+
+/**
+ * @brief Reads one of the sizes a camera offers.
+ *
+ * **Ask before opening.** A camera converts anything it is given, so opening
+ * at a size it does not have works and is the wrong thing to do twice over:
+ * the conversion is done in software on every frame, and a phone sensor's own
+ * size is enormous. A twelve megapixel frame is forty eight megabytes of
+ * pixels, which is measured in seconds per picture rather than pictures per
+ * second. Every phone offers something small natively; this is how to find
+ * it.
+ *
+ * @param device     An identifier from schultz_camera_device.
+ * @param index      Which one, from zero to schultz_camera_size_count - 1.
+ * @param out_width  Receives the width. May be NULL.
+ * @param out_height Receives the height. May be NULL.
+ * @param out_rate   Receives pictures per second, rounded, or zero where the
+ *                   camera did not say. May be NULL.
+ * @return SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when there is no such
+ *         camera or no such index.
+ */
+int32_t schultz_camera_size_at(uint64_t device, uint32_t index,
+                               uint32_t *out_width, uint32_t *out_height,
+                               uint32_t *out_rate);
+
+/**
  * @brief Opens a camera.
  *
- * The size is what the pictures are wanted at. A camera that cannot produce
- * it is asked for the nearest thing it can and the pictures are converted, so
- * any reasonable size works; ask for what will be drawn rather than what the
- * hardware has, and pass zero for both to take whatever the camera offers.
+ * The size is what the pictures are wanted at. **Choose one the camera
+ * offers**, using schultz_camera_size_count and schultz_camera_size_at. A
+ * camera that cannot produce the size asked for converts every frame in
+ * software instead, which costs more than the drawing does and has been seen
+ * to produce a torn picture. Passing zero for both takes the camera's own
+ * size, which on a phone is the whole sensor and far larger than anything
+ * worth previewing.
  *
  * Opening does not mean the camera is usable yet. See
  * schultz_camera_permission.
  *
+ * **Name a rate, or let this pick the fastest.** Passing zero here does not
+ * mean "no preference" to the layer underneath: it reads an unset rate as
+ * zero and then chooses the rate closest to it, which is the *slowest* the
+ * camera offers. A phone lists the bottom of every range as well as the top,
+ * so that is often one picture a second, and the session is then pinned to
+ * it. This call therefore never leaves the rate unset: zero here means the
+ * fastest offered at the size chosen, and any other number is matched to the
+ * nearest the camera has.
+ *
  * @param device     An identifier from schultz_camera_device.
  * @param width      The width wanted, or zero for the camera's own.
  * @param height     The height wanted, or zero for the camera's own.
+ * @param rate       Pictures per second wanted, or zero for the fastest the
+ *                   camera offers at that size.
  * @param out_camera Receives the open camera. Must not be NULL.
  * @return SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT,
  *         SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_ERR_UNAVAILABLE when there is
  *         no such camera or the machine will not open it.
  */
 int32_t schultz_camera_open(uint64_t device, uint32_t width, uint32_t height,
-                            schultz_camera **out_camera);
+                            uint32_t rate, schultz_camera **out_camera);
+
+/**
+ * @brief How many pictures a second the camera settled on.
+ *
+ * What was actually negotiated, which is not always what was asked for. Zero
+ * until the camera has been allowed and has chosen, so a program that wants
+ * to show it asks again rather than once.
+ *
+ * @param camera An open camera. NULL yields 0.
+ * @return Pictures per second, rounded, or zero when it is not settled yet.
+ */
+uint32_t schultz_camera_rate(const schultz_camera *camera);
 
 /**
  * @brief Closes a camera and releases it.
  *
  * Safe on NULL. The pixels from the last schultz_camera_frame belong to the
  * camera and are gone after this.
+ *
+ * **On the thread that runs the tree**, this is safe to call while a preview
+ * is still showing the camera, and in any order with destroying that preview.
+ * A camera knows which previews are pointed at it and tells them when it
+ * goes, so a stop button needs no particular sequence. The preview keeps
+ * whatever it last drew on the screen and simply stops asking for more; point
+ * it somewhere else, or hide it, to clear that.
+ *
+ * **From any other thread it is not safe, and the failure is quiet.** A
+ * preview reads its camera on every turn, and there is no lock between the
+ * two: closing from a worker while the tree is being advanced can free the
+ * camera between the turn's check and its use. What happens then is the
+ * platform's business -- on a desktop it faults, and on a phone it can block
+ * instead, inside a lock belonging to memory that has been handed back, which
+ * shows as an interface that never draws again rather than as a crash.
+ *
+ * Close it from the thread that runs the window, like everything else that
+ * touches the tree. If the decision to stop is made elsewhere, carry it over
+ * as a message and act on it there.
  *
  * @param camera The camera to close.
  */
@@ -209,6 +288,24 @@ int32_t schultz_camera_frame(schultz_camera *camera,
 uint64_t schultz_camera_frames_taken(const schultz_camera *camera);
 
 /**
+ * @brief Counts the pictures passed over to get to a newer one.
+ *
+ * A camera goes on producing whether or not anything is looking, and what
+ * matters to a preview is the newest picture rather than every picture. So
+ * asking for one takes whatever has piled up and answers with the last of
+ * them; the ones in front are counted here.
+ *
+ * Which makes this the answer to "is this program keeping up?". Zero, or
+ * rising slowly, means it is. Rising as fast as the camera's own rate means
+ * every second picture is being passed over, and so on. It is the number to
+ * look at when a preview feels late rather than slow.
+ *
+ * @param camera An open camera. NULL yields zero.
+ * @return How many pictures have been passed over.
+ */
+uint64_t schultz_camera_frames_skipped(const schultz_camera *camera);
+
+/**
  * @brief Creates a node that shows what a camera sees.
  *
  * The node takes the size the layout gives it and draws the picture to fit,
@@ -224,6 +321,19 @@ uint64_t schultz_camera_frames_taken(const schultz_camera *camera);
  *
  * The camera is not owned by the node. It must outlive it, and closing it
  * while a node still points at it leaves the node showing its last picture.
+ *
+ * **The preview asks to be the shape of the pictures.** A camera's shape is
+ * not something a host can know in advance: a phone turns its pictures
+ * upright, so a stream that is sixteen by nine on the wire arrives nine by
+ * sixteen, and which it is depends on how the phone is being held. So when
+ * the shape changes the preview sets its own preferred height, from whatever
+ * width the host asked for and the picture's proportions. The width is left
+ * alone, because how wide to be is the host's decision.
+ *
+ * A host that also fixes the height, or caps it with a maximum size, still
+ * wins: this is a preference and a maximum outranks it. That is also the
+ * reason a preview still letterboxed after all this is a host holding its
+ * height down.
  *
  * @param tree     The tree to create in. Must not be NULL.
  * @param parent   The parent node. Must name a live node.

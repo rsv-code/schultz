@@ -402,13 +402,13 @@ Definition in file \fBschultz_node\&.h\fP\&.
 .PP
 How many separate areas the tree keeps track of repainting\&. Enough that scattered changes stay apart, few enough that the fixed cost of a rectangle does not add up\&. Past this they are merged, so the worst case is the single rectangle this used to be rather than anything worse\&. See docs/repainting\&.md\&. 
 .PP
-Definition at line \fB494\fP of file \fBschultz_node\&.h\fP\&.
+Definition at line \fB506\fP of file \fBschultz_node\&.h\fP\&.
 .SS "#define SCHULTZ_TREE_DIRTY_WASTE   4096\&.0f"
 
 .PP
 How many wasted pixels are worth paying to avoid a rectangle\&. Two areas close together cost less as one\&. Measured on this toolkit, a rectangle costs about 0\&.17 ms of fixed work and about five nanoseconds a pixel, so anything under a few thousand wasted pixels is cheaper merged\&. 
 .PP
-Definition at line \fB503\fP of file \fBschultz_node\&.h\fP\&.
+Definition at line \fB515\fP of file \fBschultz_node\&.h\fP\&.
 .SH "Typedef Documentation"
 .PP 
 .SS "typedef struct \fBschultz_tree\fP \fBschultz_tree\fP"
@@ -595,7 +595,7 @@ The node cannot be used\&.
 \fB\fISCHULTZ_STYLE_STATE_COUNT \fP\fP
 How many state patches exist\&. 
 .PP
-Definition at line \fB584\fP of file \fBschultz_node\&.h\fP\&.
+Definition at line \fB596\fP of file \fBschultz_node\&.h\fP\&.
 .SH "Function Documentation"
 .PP 
 .SS "int32_t schultz_tree_create (\fBschultz_tree\fP ** out_tree)"
@@ -859,6 +859,10 @@ SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT when out_child is NULL or index is out 
 
 .PP
 Sets a node's bounds, relative to its parent\&. Both the area vacated and the area newly occupied are marked dirty\&. Marking only the new one is the classic invalidation bug: the old position keeps showing whatever was last painted there\&.
+.PP
+\fBA child whose parent has a pane does not keep what this sets\&.\fP Layout decides where such a node goes, and the next pass puts it back: a column stacks its children in order, and an absolute pane places each one at its own \fBschultz_layout_params\fP\&. This writes the bounds and means it, and then layout overwrites them the next time anything asks for one -- so it appears to work for as long as nothing else on the screen changes, and starts flashing between two positions when something does\&.
+.PP
+To move a laid out child, change what its pane reads: its layout parameters, through schultz_node_set_layout_params, or its size hints\&. This is for a node whose parent has no pane, and for layout itself\&.
 .PP
 \fBParameters\fP
 .RS 4

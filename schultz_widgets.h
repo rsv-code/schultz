@@ -216,10 +216,16 @@ int32_t schultz_label_set_ellipsize(schultz_tree *tree, schultz_handle node,
  * schultz_tree_set_selection_owner.
  *
  * With a mouse, a press places one end and a drag moves the other, a double
- * click takes a word and a triple click takes the whole text. With a finger,
- * a press held still for a moment takes the word under it and puts a grip on
- * each end to move them with, so that an ordinary drag is left free to mean
- * scroll.
+ * click takes a word and a triple click takes the whole text.
+ *
+ * With a finger, a tap presses what is under it, two taps take the word and
+ * three take the whole text, which are the same answers the mouse gives. A
+ * press held still takes the word as well, so that an ordinary drag is left
+ * free to mean scroll. Whatever made the selection, a finger gets a grip
+ * under each end to move them with.
+ *
+ * A text field answers all of that the same way, apart from the hold: a field
+ * has a caret to place and puts it under a magnifier instead.
  *
  * Control with C copies the selection and control with A takes all of it.
  *
@@ -1243,6 +1249,11 @@ int32_t schultz_password_field_create(schultz_tree *tree,
  * Everything a text field does, plus wrapping at its own width, up and down
  * between lines keeping the column, home and end on the current line, and
  * enter inserting a line break.
+ *
+ * On a touch screen a tap places the caret, two select the word, three select
+ * the line, a second tap held and dragged takes more words, and a hold places
+ * the caret under a magnifier. A selection a finger made gets a grip under
+ * each end to pull them with. A text field behaves the same way.
  *
  * It is three lines tall and its text scrolls inside it, keeping the caret in
  * view. A box that got taller with every line typed would push whatever is

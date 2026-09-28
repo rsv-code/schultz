@@ -149,6 +149,15 @@ typedef struct {
     uint32_t       codec;     /**< One of SCHULTZ_VIDEO_CODEC_*. */
     uint32_t       width;
     uint32_t       height;
+    /*
+     * The width this node had when its height was last worked out, and the
+     * height that came of it. The width says when to work it out again: a
+     * window turned on its side gives the node a new one, and the picture has
+     * to follow. The height says which heights are ours, so that one the host
+     * set is recognised and left alone.
+     */
+    float          asked_width;
+    float          asked_height;
 
     vpx_codec_ctx_t codec_ctx;
     int32_t         codec_ready;
@@ -1244,6 +1253,70 @@ static int schultz_video_thread(void *data)
 }
 
 /*
+ * Asks the node to be the shape of the film, with room for its controls.
+ *
+ * A video node is a border pane and the only thing in it is the control row.
+ * The picture is painted by the node itself rather than being a child, so the
+ * pane measures the row and nothing else: a film with controls comes out the
+ * height of its own buttons, with the picture squeezed into whatever is left,
+ * and a film with no controls comes out nothing high at all and is invisible.
+ *
+ * The width is read back rather than asked for. A column stretches a child
+ * across itself and pays no attention to the width it requested, so the only
+ * width worth working from is the one the node was actually given.
+ *
+ * Called every turn, because the first picture often arrives before anything
+ * has been laid out and there is no width to read yet, and because a window
+ * turned on its side gives the node a new width with no new picture in it. It
+ * costs a look at the node's bounds and a comparison, and does the rest only
+ * when the width it worked from is no longer the width the node has.
+ */
+static void schultz_video_shape(schultz_tree *tree, schultz_handle node,
+                                schultz_video_data *video)
+{
+    schultz_rect bounds;
+    schultz_size row;
+    float want_w = SCHULTZ_SIZE_UNSET;
+    float want_h = SCHULTZ_SIZE_UNSET;
+    float picture;
+
+    if (video->width == 0u || video->height == 0u) {
+        return;
+    }
+    if (schultz_node_absolute_bounds(tree, node, &bounds) != SCHULTZ_OK ||
+        bounds.width <= 0.0f || bounds.width == video->asked_width) {
+        return;
+    }
+    if (schultz_node_get_pref_size(tree, node, &want_w, &want_h)
+            != SCHULTZ_OK) {
+        return;
+    }
+    /* A height the host chose is the host's. Ours is the one we last wrote. */
+    if (want_h > 0.0f && want_h != video->asked_height) {
+        return;
+    }
+    picture = bounds.width * (float)video->height / (float)video->width;
+    /*
+     * And the controls underneath, which take the width and their own height.
+     * A film without them adds nothing, which is the whole of the difference.
+     *
+     * Measured rather than read back from where the row was put. The border
+     * pane cuts the row down to whatever height the node has, so a node that
+     * is nothing high has a row that is nothing high, and asking it how tall
+     * it is would give the answer this is trying to get away from. Measuring
+     * it the way the pane does asks what it wants to be instead.
+     */
+    if (video->row != SCHULTZ_HANDLE_NONE &&
+        schultz_layout_measure(tree, video->row, bounds.width, -1.0f, &row)
+            == SCHULTZ_OK) {
+        picture += row.height;
+    }
+    video->asked_width  = bounds.width;
+    video->asked_height = picture;
+    schultz_node_set_pref_size(tree, node, want_w, picture);
+}
+
+/*
  * Takes the picture whose time has come and hands it to the image table.
  *
  * This is stage five and it is always on the thread that advances the tree,
@@ -1283,8 +1356,14 @@ static int32_t schultz_video_publish(schultz_tree *tree, schultz_handle node,
                 schultz_image_unload(video->images, video->frame);
             }
             video->frame  = fresh;
-            video->width  = slot->width;
-            video->height = slot->height;
+            if (slot->width != video->width ||
+                slot->height != video->height) {
+                video->width  = slot->width;
+                video->height = slot->height;
+                /* A new shape of picture, so the height worked out from the
+                 * old one is no longer the answer. */
+                video->asked_width = 0.0f;
+            }
             video->shown++;
             shown = 1;
         }
@@ -1693,6 +1772,14 @@ static int32_t schultz_video_tick(schultz_tree *tree, schultz_handle node,
         return 0;
     }
     drew = schultz_video_turn(tree, node, video, elapsed_ms);
+    /*
+     * Every turn rather than every picture. The first picture usually arrives
+     * before anything has been laid out, so there is no width to work from
+     * yet; and a window turned on its side changes the width without changing
+     * the film at all. Asking each turn covers both, and costs a look at the
+     * node's bounds when the answer has not moved.
+     */
+    schultz_video_shape(tree, node, video);
     /*
      * A node that is not playing and shows no controls has nothing left to
      * do once its first picture is up, so it stops asking to be ticked. That

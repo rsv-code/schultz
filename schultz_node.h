@@ -335,6 +335,18 @@ int32_t schultz_node_child_at(const schultz_tree *tree, schultz_handle node,
  * only the new one is the classic invalidation bug: the old position keeps
  * showing whatever was last painted there.
  *
+ * **A child whose parent has a pane does not keep what this sets.** Layout
+ * decides where such a node goes, and the next pass puts it back: a column
+ * stacks its children in order, and an absolute pane places each one at its
+ * own schultz_layout_params. This writes the bounds and means it, and then
+ * layout overwrites them the next time anything asks for one -- so it appears
+ * to work for as long as nothing else on the screen changes, and starts
+ * flashing between two positions when something does.
+ *
+ * To move a laid out child, change what its pane reads: its layout
+ * parameters, through schultz_node_set_layout_params, or its size hints. This
+ * is for a node whose parent has no pane, and for layout itself.
+ *
  * @param tree   The tree holding the node. Must not be NULL.
  * @param node   The node to move or resize.
  * @param bounds The new bounds, in the parent's coordinate space.

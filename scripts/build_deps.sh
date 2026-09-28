@@ -28,6 +28,7 @@ set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 SRC="$ROOT/third_party/src"
+PATCHES="$ROOT/third_party/patches"
 TARGETS_DIR="$ROOT/scripts/targets"
 
 . "$ROOT/scripts/versions.sh"
@@ -301,7 +302,7 @@ fi
 # so that the missing one is reported by name rather than surfacing as
 # whatever meson says when it cannot start.
 missing=""
-for _t in cmake meson ninja pkg-config tar python3; do
+for _t in cmake meson ninja pkg-config tar patch python3; do
     command -v "$_t" >/dev/null 2>&1 || missing="$missing $_t"
 done
 # A compiler, for a target that uses this machine's. A cross target brings its
@@ -426,6 +427,31 @@ if [ "$TARGET_CROSS" = "1" ]; then
 fi
 
 # extract <archive> <expected sha256> <directory it unpacks to>
+# Applies one of our patches to an extracted source, once.
+#
+# A dependency is upstream's until we find a bug in it that stops Schultz
+# working, and then the choice is to wait for a release or to carry the
+# change. Each patch here says at its top what it does, why, and when it can
+# be dropped, because the cost of one is paid again at every version bump.
+#
+# Marked with a stamp file rather than re-applied, because extract() keeps a
+# source tree that is already there and a patch applied twice fails.
+patch_source() {
+    _pt_dir=$1; _pt_file=$2
+    [ -f "$PATCHES/$_pt_file" ] || {
+        echo "missing patch: $_pt_file" >&2; exit 1; }
+    if [ ! -f "$WORK/$_pt_dir/.patched-$_pt_file" ]; then
+        patch -p1 -d "$WORK/$_pt_dir" < "$PATCHES/$_pt_file" || {
+            echo "patch did not apply: $_pt_file" >&2
+            echo "  it is written against a particular release; check" >&2
+            echo "  whether the version in third_party/src has moved" >&2
+            exit 1
+        }
+        : > "$WORK/$_pt_dir/.patched-$_pt_file"
+        echo "  patched with $_pt_file"
+    fi
+}
+
 extract() {
     _ex_file=$1; _ex_sha=$2; _ex_dir=$3
     [ -f "$SRC/$_ex_file" ] || {
@@ -797,6 +823,67 @@ mkdir -p "$WORK/libvpx-$LIBVPX_VERSION/build"
     if [ "$FUZZ" = "1" ]; then
         LD="$CC"
         export LD
+    elif [ -n "$TARGET_TOOLKIT_CC" ]; then
+        #
+        # libvpx takes its toolchain from the environment, and nothing here
+        # was putting one there.
+        #
+        # Every other library in this script is cmake or meson and is handed
+        # the cross compiler as an argument, in TARGET_CMAKE_EXTRA or in
+        # meson-cross.txt. libvpx has its own configure, and for Android it
+        # says what it expects in as many words:
+        #
+        #     android*)
+        #       echo "Assuming standalone build with NDK toolchain."
+        #
+        # It sets no CC, no CXX and no AR there, so its setup_gnu_toolchain
+        # falls back to plain "gcc" -- the host's. The host compiler then
+        # rejects -march=armv8-a, every probe fails, libvpx disables NEON and
+        # carries on, and what lands in an arm64 prefix is an x86-64 archive.
+        # configure returns success the whole way.
+        #
+        # Apple targets were spared only by luck: libvpx's darwin branch
+        # fills these in from xcrun itself and overrides whatever is here.
+        # They are passed anyway, because one rule is easier to keep right
+        # than two, and because the targets that go through the plain gnu
+        # path need them.
+        #
+        # RANLIB is not passed: libvpx never reads it. STRIP is, because
+        # libvpx defaults it to the plain "strip" on this machine, which
+        # cannot read an object for another architecture and says so a few
+        # hundred times:
+        #
+        #     strip: Unable to recognise the format of the input file
+        #
+        # Harmless -- it is stripping a debug copy, not the library that gets
+        # installed -- but it is a page of noise hiding anything real, and the
+        # right tool is sitting beside the archiver this target already names.
+        CC="$TARGET_TOOLKIT_CC"
+        case "$CC" in
+            *clang) CXX="${CC%clang}clang++" ;;
+            *gcc)   CXX="${CC%gcc}g++" ;;
+            *)      CXX="$CC" ;;
+        esac
+        CFLAGS="$TARGET_TOOLKIT_CFLAGS"
+        CXXFLAGS="$TARGET_TOOLKIT_CFLAGS"
+        # The compiler for both of these too: it assembles and links as well,
+        # and libvpx checks whether its assembler is a clang to decide
+        # whether to pass -c.
+        AS="$CC"
+        LD="$CC"
+        export CC CXX CFLAGS CXXFLAGS AS LD
+        if [ -n "$TARGET_TOOLKIT_AR" ]; then
+            AR="$TARGET_TOOLKIT_AR"
+            export AR
+            # llvm-ar and llvm-strip live side by side in the NDK, so the one
+            # names the other. Only used when it is really there, because a
+            # target may name an archiver that has no such neighbour.
+            _vpx_strip="${TARGET_TOOLKIT_AR%ar}strip"
+            if [ -x "$_vpx_strip" ]; then
+                STRIP="$_vpx_strip"
+                export STRIP
+            fi
+        fi
     fi
     # shellcheck disable=SC2086
     ../configure \
@@ -807,6 +894,24 @@ mkdir -p "$WORK/libvpx-$LIBVPX_VERSION/build"
         --enable-static --disable-shared --enable-pic \
         --enable-vp8-encoder --enable-vp9-encoder \
         --enable-vp8-decoder --enable-vp9-decoder >/dev/null
+    #
+    # What libvpx decided, read back rather than assumed.
+    #
+    # An ARM target with NEON switched off is the fingerprint of the failure
+    # above: it means every -march probe was rejected, which happens when the
+    # compiler doing the probing is not the one this target builds with. The
+    # library still builds, installs, and is the wrong architecture, and the
+    # first sign of it is a link error in something else entirely.
+    #
+    # Checked here because configure's own account of this -- "disabling
+    # neon" -- goes to a log nobody reads, and it returns success either way.
+    if grep -q '^#define VPX_ARCH_ARM 1' vpx_config.h &&
+       grep -q '^#define HAVE_NEON 0' vpx_config.h; then
+        echo "libvpx configured for ARM with NEON off, which means it did" >&2
+        echo "  not use this target's compiler. Its own account is in" >&2
+        echo "  $PWD/config.log" >&2
+        exit 1
+    fi
     make -j"$JOBS" >/dev/null
     make install >/dev/null
 )
@@ -824,6 +929,8 @@ echo "  libvpx installed"
 # The option is ignored everywhere else, so it is passed unconditionally.
 echo "building SDL $SDL_VERSION"
 extract "$SDL_FILE" "$SDL_SHA256" "SDL3-$SDL_VERSION"
+patch_source "SDL3-$SDL_VERSION" sdl3-apple-camera-format.patch
+patch_source "SDL3-$SDL_VERSION" sdl3-camera-close-deadlock.patch
 # shellcheck disable=SC2086
 cmake -S "$WORK/SDL3-$SDL_VERSION" -B "$WORK/SDL3-$SDL_VERSION/build" \
       -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PREFIX" \

@@ -34,6 +34,15 @@ struct schultz_sdl_window {
     int32_t       text_input_on; /**< Whether text input is currently started. */
     int32_t       resized;  /**< Set when the size changed, cleared on ask. */
     /**
+     * Whether the press in progress is being read as a finger.
+     *
+     * Set when the left button goes down with alt held, cleared when it comes
+     * up. Held for the whole press rather than read each time, because a
+     * gesture a finger began has to end as one however the keyboard is used
+     * halfway through it.
+     */
+    int32_t       press_is_finger;
+    /**
      * Window coordinates per toolkit unit, for input.
      *
      * The platform reports a pointer in window coordinates, and the toolkit
@@ -1032,11 +1041,16 @@ static uint32_t schultz_sdl_key(SDL_Keycode key)
  * Which device produced a mouse event. SDL synthesizes mouse events from
  * touch and marks them with a reserved id, which is the only way to tell a
  * finger from a cursor once the translation has happened.
+ *
+ * Holding alt as the button goes down says the same thing on purpose: this
+ * press is to be read as a finger, so the gestures a touch screen makes can
+ * be tried on a machine that has none. Nothing else about the desktop
+ * changes, and a press with alt up is a cursor as it always was.
  */
-static uint32_t schultz_sdl_source(SDL_MouseID which)
+static uint32_t schultz_sdl_source(SDL_MouseID which, int32_t as_finger)
 {
-    return (which == SDL_TOUCH_MOUSEID) ? SCHULTZ_POINTER_TOUCH
-                                        : SCHULTZ_POINTER_MOUSE;
+    return (which == SDL_TOUCH_MOUSEID || as_finger)
+               ? SCHULTZ_POINTER_TOUCH : SCHULTZ_POINTER_MOUSE;
 }
 
 static uint32_t schultz_sdl_button(Uint8 button)
@@ -1257,7 +1271,8 @@ int32_t schultz_sdl_window_process_events(schultz_sdl_window *window,
         case SDL_EVENT_MOUSE_MOTION:
             if (events != NULL) {
                 schultz_events_set_pointer_source(events,
-                    schultz_sdl_source(event.motion.which));
+                    schultz_sdl_source(event.motion.which,
+                                       window->press_is_finger));
                 schultz_events_mouse_move(events,
                     schultz_sdl_pointer(window, event.motion.x,
                                         event.motion.y),
@@ -1267,14 +1282,28 @@ int32_t schultz_sdl_window_process_events(schultz_sdl_window *window,
 
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
         case SDL_EVENT_MOUSE_BUTTON_UP:
+            /*
+             * Alt held as the left button goes down means read this press as
+             * a finger, and it stays read that way until the button comes up.
+             */
+            if (event.button.button == SDL_BUTTON_LEFT &&
+                event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                window->press_is_finger =
+                    (modifiers & (uint32_t)SCHULTZ_MOD_ALT) ? 1 : 0;
+            }
             if (events != NULL) {
                 schultz_events_set_pointer_source(events,
-                    schultz_sdl_source(event.button.which));
+                    schultz_sdl_source(event.button.which,
+                                       window->press_is_finger));
                 schultz_events_mouse_button(events,
                     schultz_sdl_pointer(window, event.button.x,
                                         event.button.y),
                     schultz_sdl_button(event.button.button),
                     event.type == SDL_EVENT_MOUSE_BUTTON_DOWN, modifiers);
+            }
+            if (event.button.button == SDL_BUTTON_LEFT &&
+                event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+                window->press_is_finger = 0;
             }
             break;
 

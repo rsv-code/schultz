@@ -18,6 +18,7 @@
 #include "schultz_font.h"
 #include "schultz_glyphs.h"
 #include "schultz_image.h"
+#include "schultz_render.h"
 #include "schultz_layout.h"
 #include "schultz_selection.h"
 #include "schultz_text.h"
@@ -213,13 +214,19 @@ typedef struct {
 } schultz_label_data;
 
 /** How long a finger must rest on text before it selects a word. */
-#define SCHULTZ_LABEL_HOLD_MS 400u
+#define SCHULTZ_TOUCH_HOLD_MS 400u
 
 /** How far a finger may stray during that hold and still be holding still. */
-#define SCHULTZ_LABEL_HOLD_SLOP 10.0f
+#define SCHULTZ_TOUCH_HOLD_SLOP 10.0f
 
-/** Radius of a touch grip, and how far below the text it sits. */
-#define SCHULTZ_LABEL_GRIP 7.0f
+/**
+ * @brief Radius of a touch grip, and how far below the text it sits.
+ *
+ * Shared by the label and by the editable field, because they are the same
+ * grip: a person dragging the end of a selection should not have to learn
+ * that one kind of text answers to a different target than the other.
+ */
+#define SCHULTZ_TOUCH_GRIP 7.0f
 
 /*
  * A span list, owned.
@@ -442,10 +449,67 @@ static void schultz_widget_draw_glyphs(schultz_draw_list *list,
     }
 }
 
-/* Distance along an axis, without pulling in a library call for it. */
-static float schultz_label_distance(float a, float b)
+/*
+ * Distance along an axis, without pulling in a library call for it.
+ *
+ * Not the label's, though it started there: the field measures a finger's
+ * stray with the same two lines.
+ */
+static float schultz_distance(float a, float b)
 {
     return (a > b) ? (a - b) : (b - a);
+}
+
+/*
+ * The circle a selection grip is drawn as, given where its end sits.
+ *
+ * The one place this arithmetic lives. A label and an editable field find the
+ * end of a selection in different ways -- one walks its own rows, the other
+ * shapes a line -- but once each has an x and the line it is on, the grip is
+ * the same grip, and a person dragging one should not find that one kind of
+ * text answers where the other does not.
+ *
+ * It hangs below the line, which for the last line is past the bottom of the
+ * widget. A paint margin lets a widget draw there, but says in its own
+ * documentation that it changes neither layout nor hit testing, so a grip
+ * left hanging outside could be seen and never pressed: the press lands past
+ * the node's edge and goes to whatever is behind it. So it is pulled back
+ * inside. Sitting on the widget's last few points still reads as marking the
+ * end it belongs to; being unpressable does not.
+ *
+ * @param x           Where along the line the end sits, absolute.
+ * @param line_top    Top of that line, absolute.
+ * @param line_height How tall it is.
+ * @param bounds      The widget, which the grip is kept inside.
+ */
+static schultz_rect schultz_grip_rect(float x, float line_top,
+                                      float line_height, schultz_rect bounds)
+{
+    float y = line_top + line_height;
+
+    if (y + SCHULTZ_TOUCH_GRIP * 2.0f > bounds.y + bounds.height) {
+        y = bounds.y + bounds.height - SCHULTZ_TOUCH_GRIP * 2.0f;
+    }
+    if (y < bounds.y) {
+        y = bounds.y;
+    }
+    return schultz_rect_make(x - SCHULTZ_TOUCH_GRIP, y,
+                             SCHULTZ_TOUCH_GRIP * 2.0f,
+                             SCHULTZ_TOUCH_GRIP * 2.0f);
+}
+
+/*
+ * Whether a press landed on that grip.
+ *
+ * The target is wider than the circle, because a fingertip covers the grip
+ * and a person aims at where they last saw it.
+ */
+static int32_t schultz_grip_holds(schultz_rect rect, schultz_point at)
+{
+    return (schultz_distance(at.x, rect.x + rect.width * 0.5f) <=
+                SCHULTZ_TOUCH_GRIP * 1.5f &&
+            schultz_distance(at.y, rect.y + rect.height * 0.5f) <=
+                SCHULTZ_TOUCH_GRIP * 1.5f) ? 1 : 0;
 }
 
 /** @brief One line of a label, placed in absolute coordinates. */
@@ -945,9 +1009,9 @@ static uint32_t schultz_label_row_offset(const schultz_label_row *row,
     if (row->count == 0u) {
         return 0u;
     }
-    best_distance = schultz_label_distance(x, row->x + row->width);
+    best_distance = schultz_distance(x, row->x + row->width);
     for (i = 0u; i < row->count; i++) {
-        float distance = schultz_label_distance(x, row->glyphs[i].x);
+        float distance = schultz_distance(x, row->glyphs[i].x);
 
         if (distance < best_distance) {
             best_distance = distance;
@@ -1298,6 +1362,41 @@ static void schultz_label_paint_rules(schultz_draw_list *list,
     }
 }
 
+/*
+ * Where one of a label's grips sits, as the circle it is drawn as.
+ *
+ * Takes the rows rather than working them out, so that painting -- which has
+ * them already -- and hit testing, which does not, can share the answer
+ * without either shaping the text twice.
+ *
+ * Where it lands, and why it is kept inside the widget, is schultz_grip_rect.
+ *
+ * @param which 1 for the start of the selection, 2 for the end.
+ * @return Nonzero when there is a grip to place.
+ */
+static int32_t schultz_label_grip_rect(const schultz_label_data *label,
+                                       const schultz_label_row *rows,
+                                       uint32_t count, schultz_rect bounds,
+                                       uint32_t which, schultz_rect *out_rect)
+{
+    uint32_t low = schultz_label_low(label);
+    uint32_t high = schultz_label_high(label);
+    uint32_t at = (which == 1u) ? low : high;
+    uint32_t i;
+
+    if (count == 0u || high <= low) {
+        return 0;
+    }
+    i = schultz_label_row_for(rows, count, at, (which == 1u));
+    if (rows[i].count == 0u) {
+        return 0;
+    }
+    *out_rect = schultz_grip_rect(
+        schultz_label_row_x(&rows[i], at - rows[i].start),
+        rows[i].top, rows[i].height, bounds);
+    return 1;
+}
+
 static int32_t schultz_label_paint(schultz_tree *tree, schultz_handle node,
                                    schultz_draw_list *list,
                                    schultz_arena *arena)
@@ -1378,25 +1477,17 @@ static int32_t schultz_label_paint(schultz_tree *tree, schultz_handle node,
      * their end sits on, so the finger covers the grip rather than the text
      * it is placing, and the node's paint margin has to allow for them.
      */
-    if (label->grips && high > low) {
+    if (label->grips) {
         schultz_paint grip = schultz_resolved_paint(style,
                                                     SCHULTZ_PROP_SELECTION_COLOR);
-        uint32_t ends[2];
         uint32_t e;
 
-        ends[0] = low;
-        ends[1] = high;
-        for (e = 0u; e < 2u; e++) {
-            i = schultz_label_row_for(rows, count, ends[e], (e == 0u));
-            if (rows[i].count > 0u) {
-                float x = schultz_label_row_x(&rows[i],
-                                              ends[e] - rows[i].start);
-                float y = rows[i].top + rows[i].height;
+        for (e = 1u; e <= 2u; e++) {
+            schultz_rect rect;
 
-                schultz_draw_fill_ellipse(list,
-                    schultz_rect_make(x - SCHULTZ_LABEL_GRIP, y,
-                                      SCHULTZ_LABEL_GRIP * 2.0f,
-                                      SCHULTZ_LABEL_GRIP * 2.0f), grip);
+            if (schultz_label_grip_rect(label, rows, count, bounds, e,
+                                        &rect)) {
+                schultz_draw_fill_ellipse(list, rect, grip);
             }
         }
     }
@@ -1522,7 +1613,7 @@ static void schultz_label_show_grips(schultz_tree *tree, schultz_handle node,
                                      schultz_label_data *label)
 {
     label->grips = 1u;
-    schultz_node_set_paint_margin(tree, node, SCHULTZ_LABEL_GRIP * 2.0f);
+    schultz_node_set_paint_margin(tree, node, SCHULTZ_TOUCH_GRIP * 2.0f);
 }
 
 /* Stops the hold timer, and with it the ticking that drives it. */
@@ -1557,7 +1648,6 @@ static uint32_t schultz_label_grip_at(schultz_tree *tree, schultz_handle node,
     schultz_arena scratch;
     schultz_label_row *rows = NULL;
     schultz_rect bounds;
-    uint32_t ends[2];
     uint32_t hit = 0u;
     uint32_t count;
     uint32_t e;
@@ -1567,23 +1657,18 @@ static uint32_t schultz_label_grip_at(schultz_tree *tree, schultz_handle node,
         schultz_arena_init(&scratch, 0) != SCHULTZ_OK) {
         return 0u;
     }
-    ends[0] = schultz_label_low(label);
-    ends[1] = schultz_label_high(label);
     count = schultz_label_rows(tree, node, label, bounds, &scratch, &rows);
 
-    for (e = 0u; e < 2u && hit == 0u && count > 0u; e++) {
-        uint32_t i = schultz_label_row_for(rows, count, ends[e], (e == 0u));
+    for (e = 1u; e <= 2u && hit == 0u; e++) {
+        schultz_rect rect;
 
-        if (rows[i].count > 0u) {
-            float x = schultz_label_row_x(&rows[i], ends[e] - rows[i].start);
-            float y = rows[i].top + rows[i].height + SCHULTZ_LABEL_GRIP;
-
-            if (schultz_label_distance(bounds.x + local.x, x) <=
-                    SCHULTZ_LABEL_GRIP * 1.5f &&
-                schultz_label_distance(bounds.y + local.y, y) <=
-                    SCHULTZ_LABEL_GRIP * 1.5f) {
-                hit = e + 1u;
-            }
+        if (!schultz_label_grip_rect(label, rows, count, bounds, e, &rect)) {
+            continue;
+        }
+        if (schultz_grip_holds(rect,
+                schultz_point_make(bounds.x + local.x,
+                                   bounds.y + local.y))) {
+            hit = e;
         }
     }
     schultz_arena_free(&scratch);
@@ -1705,6 +1790,31 @@ static void schultz_label_hover(schultz_tree *tree, schultz_handle node,
     }
 }
 
+/*
+ * What a press selects, given how many came before it.
+ *
+ * One places the caret, two take the word under it, and three take the whole
+ * of the label, which is the same answer a text field gives for three: all of
+ * what it holds. A label has no lines to choose between because it is one
+ * block of prose rather than a document.
+ *
+ * Shared by the mouse and the finger, because clicking twice and tapping
+ * twice are asking for the same thing.
+ */
+static void schultz_label_select_by_count(schultz_label_data *label,
+                                          uint32_t at, uint32_t count)
+{
+    if (count >= 3u) {
+        label->anchor = 0u;
+        label->caret  = label->length;
+    } else if (count == 2u) {
+        schultz_label_select_word(label, at);
+    } else {
+        label->anchor = at;
+        label->caret  = at;
+    }
+}
+
 static int32_t schultz_label_event(schultz_tree *tree, schultz_handle node,
                                    const schultz_event *event)
 {
@@ -1768,15 +1878,7 @@ static int32_t schultz_label_event(schultz_tree *tree, schultz_handle node,
 
         label->dragged = 0u;
         at = schultz_label_offset_at(tree, node, label, event->local);
-        if (event->click_count >= 3u) {
-            label->anchor = 0u;
-            label->caret  = label->length;
-        } else if (event->click_count == 2u) {
-            schultz_label_select_word(label, at);
-        } else {
-            label->anchor = at;
-            label->caret  = at;
-        }
+        schultz_label_select_by_count(label, at, event->click_count);
         label->dragging = 1u;
         schultz_label_take_selection(tree, node);
         schultz_label_selection_changed(tree, node, label);
@@ -1797,10 +1899,10 @@ static int32_t schultz_label_event(schultz_tree *tree, schultz_handle node,
         }
         if (label->holding) {
             /* Moved before the hold finished, so it was a drag after all. */
-            if (schultz_label_distance(event->local.x, label->held_at.x) >
-                    SCHULTZ_LABEL_HOLD_SLOP ||
-                schultz_label_distance(event->local.y, label->held_at.y) >
-                    SCHULTZ_LABEL_HOLD_SLOP) {
+            if (schultz_distance(event->local.x, label->held_at.x) >
+                    SCHULTZ_TOUCH_HOLD_SLOP ||
+                schultz_distance(event->local.y, label->held_at.y) >
+                    SCHULTZ_TOUCH_HOLD_SLOP) {
                 schultz_label_stop_hold(tree, node, label);
             }
             return SCHULTZ_OK;
@@ -1808,6 +1910,30 @@ static int32_t schultz_label_event(schultz_tree *tree, schultz_handle node,
         if (label->dragging) {
             label->caret = schultz_label_offset_at(tree, node, label,
                                                    event->local);
+            schultz_label_selection_changed(tree, node, label);
+            return SCHULTZ_EVENT_CONSUMED;
+        }
+        return SCHULTZ_OK;
+
+    case SCHULTZ_EVENT_CLICK:
+        /*
+         * Tapping, which a label answers the same way a text field does: two
+         * take the word, three take everything. A finger's press cannot be
+         * used for this -- it may be the start of a scroll -- so the count is
+         * read on the lift.
+         *
+         * One tap is left alone rather than handled here. The press has
+         * already cleared the selection, and a single tap on a stretch that
+         * can be pressed has to go on and press it.
+         */
+        if (event->source == SCHULTZ_POINTER_TOUCH &&
+            event->click_count >= 2u) {
+            schultz_label_stop_hold(tree, node, label);
+            schultz_label_select_by_count(label,
+                schultz_label_offset_at(tree, node, label, event->local),
+                event->click_count);
+            schultz_label_show_grips(tree, node, label);
+            schultz_label_take_selection(tree, node);
             schultz_label_selection_changed(tree, node, label);
             return SCHULTZ_EVENT_CONSUMED;
         }
@@ -1865,7 +1991,7 @@ static int32_t schultz_label_tick(schultz_tree *tree, schultz_handle node,
         return 0;
     }
     label->held_ms += elapsed_ms;
-    if (label->held_ms < SCHULTZ_LABEL_HOLD_MS) {
+    if (label->held_ms < SCHULTZ_TOUCH_HOLD_MS) {
         return 0;
     }
 
@@ -5714,6 +5840,137 @@ int32_t schultz_scroll_view_scroll_to(schultz_tree *tree, schultz_handle node,
     return SCHULTZ_OK;
 }
 
+/* ----------------------------------------------------------- Magnifier */
+
+/*
+ * The glass a finger holds over text while it places the caret.
+ *
+ * A layer of its own rather than part of the text it belongs to. Painting
+ * follows the tree: a node that clips its children clips the whole subtree,
+ * and a later sibling draws over an earlier one. Drawn by the text widget,
+ * the pane was therefore cut off at the edge of any scroll view around it
+ * and hidden under whatever the page had above it. As an overlay it hangs
+ * off the root, which is outside every clip and after everything else.
+ *
+ * It holds no text of its own and shapes nothing. What it shows is a still
+ * of the widget that opened it, taken once when the finger landed, and the
+ * numbers here say which piece of that still to show and where the caret is
+ * going. Working those out belongs to the text, which knows where its lines
+ * are; this only draws them.
+ */
+typedef struct {
+    schultz_handle picture;  /**< The still. SCHULTZ_HANDLE_NONE draws nothing. */
+    schultz_rect   source;   /**< The piece to show, in the still's own pixels. */
+    float          rim;      /**< How far the picture is inset in the pane. */
+    float          caret_at; /**< Where the caret goes, from the glass's left. */
+    float          caret_width; /**< And how wide it is drawn. */
+    schultz_paint  face;     /**< The pane behind the picture. */
+    schultz_paint  ink;      /**< The caret. */
+    schultz_stroke edge;     /**< The outline around the pane. */
+} schultz_magnifier_data;
+
+static int32_t schultz_magnifier_paint(schultz_tree *tree,
+                                       schultz_handle node,
+                                       schultz_draw_list *list,
+                                       schultz_arena *arena)
+{
+    const schultz_magnifier_data *glass =
+        (const schultz_magnifier_data *)schultz_node_widget_data(tree, node);
+    schultz_rect pane;
+    schultz_rect shown;
+    int32_t result;
+
+    (void)arena;
+    if (glass == NULL || glass->picture == SCHULTZ_HANDLE_NONE ||
+        schultz_node_absolute_bounds(tree, node, &pane) != SCHULTZ_OK ||
+        schultz_rect_is_empty(pane)) {
+        return SCHULTZ_OK;
+    }
+    /*
+     * The picture is inset by the rim rather than filling the pane, because
+     * drawing clips a picture to a square and never to a rounded one: a
+     * picture filling a rounded pane corner to corner has four square
+     * corners sticking out past the curve. What is left over reads as the
+     * rim of a glass, which is what one looks like anyway.
+     */
+    shown = schultz_rect_make(pane.x + glass->rim, pane.y + glass->rim,
+                              pane.width - glass->rim * 2.0f,
+                              pane.height - glass->rim * 2.0f);
+    result = schultz_draw_fill_round_rect(list, pane, glass->face,
+                                          pane.height * 0.5f);
+    if (result != SCHULTZ_OK) {
+        return result;
+    }
+    result = schultz_draw_image(list, glass->picture, glass->source, shown,
+                                255u);
+    if (result != SCHULTZ_OK) {
+        return result;
+    }
+    /*
+     * The caret is drawn rather than magnified. The still holds the caret as
+     * it was when the finger landed, which is not where it is now, and
+     * magnifying that would show an old answer larger.
+     */
+    result = schultz_draw_fill_rect(list,
+        schultz_rect_make(shown.x + glass->caret_at -
+                              glass->caret_width * 0.5f,
+                          shown.y, glass->caret_width, shown.height),
+        glass->ink);
+    if (result != SCHULTZ_OK) {
+        return result;
+    }
+    return schultz_draw_stroke_round_rect(list, pane, glass->edge,
+                                          pane.height * 0.5f);
+}
+
+static const schultz_widget_vtable schultz_magnifier_widget = {
+    .paint = schultz_magnifier_paint, .destroy = free
+};
+
+/*
+ * Raising and lowering an overlay layer, which the magnifier is one of.
+ * Defined with the rest of the overlay handling further down the file.
+ */
+static int32_t schultz_overlay_show(schultz_tree *tree, schultz_handle node,
+                                    int32_t shown, int32_t captures);
+
+/*
+ * Opens one on the root, hidden, for a text widget to fill in and show.
+ *
+ * On the root because an overlay has to be: anywhere else and it is back
+ * inside somebody's clip. It is destroyed when the gesture ends.
+ */
+static int32_t schultz_magnifier_create(schultz_tree *tree,
+                                        schultz_handle *out_node)
+{
+    schultz_magnifier_data *glass;
+    schultz_handle node = SCHULTZ_HANDLE_NONE;
+    int32_t result = schultz_node_create(tree, schultz_tree_root(tree),
+                                         &node);
+
+    if (result != SCHULTZ_OK) {
+        return result;
+    }
+    glass = (schultz_magnifier_data *)calloc(1, sizeof(*glass));
+    if (glass == NULL) {
+        schultz_node_destroy(tree, node);
+        return SCHULTZ_ERR_OUT_OF_MEMORY;
+    }
+    glass->picture = SCHULTZ_HANDLE_NONE;
+    result = schultz_node_set_widget(tree, node, &schultz_magnifier_widget,
+                                     glass);
+    if (result != SCHULTZ_OK) {
+        free(glass);
+        schultz_node_destroy(tree, node);
+        return result;
+    }
+    schultz_node_set_state(tree, node,
+                           schultz_node_get_state(tree, node) &
+                               ~(uint32_t)SCHULTZ_STATE_VISIBLE);
+    *out_node = node;
+    return SCHULTZ_OK;
+}
+
 /* ------------------------------------------------- TextField, TextArea */
 
 /** How many edits can be taken back. */
@@ -5748,6 +6005,59 @@ typedef struct {
     uint32_t capacity;    /**< Bytes allocated, including the terminator. */
     uint32_t caret;       /**< Byte offset the caret sits at. */
     uint32_t anchor;      /**< Other end of the selection. */
+    /*
+     * Touch. A finger selects by tapping rather than by pressing and
+     * dragging, and what it has selected is then adjusted with two grips
+     * hanging below the text. They appear only for a selection a finger
+     * made, because a mouse has the pointer itself and needs no target.
+     */
+    uint32_t grips;       /**< Nonzero while the two grips are shown. */
+    uint32_t grip;        /**< Which is held: 0 none, 1 start, 2 end. */
+    /*
+     * A finger resting still. Two gestures start this way and the tap count
+     * tells them apart: one finger placing the caret with the magnifier over
+     * it, or a second tap held down and dragged to take more words.
+     */
+    uint32_t      holding;  /**< Nonzero while a press is being timed. */
+    uint64_t      held_ms;  /**< How long it has lasted. */
+    schultz_point held_at;  /**< Where it landed, in the node's own space. */
+    uint32_t      placing;  /**< Nonzero while a hold is moving the caret. */
+    /**
+     * Nonzero while the widget is being drawn into the magnifier's picture.
+     *
+     * The picture is of this widget as it stands, and the caret in it is
+     * where the caret was when the finger landed. The magnifier draws its
+     * own where the lift will put it, so the one in the picture is a second
+     * caret giving an older answer, and two of them in one small pane is a
+     * guess rather than an answer.
+     */
+    uint32_t      in_picture;
+    uint32_t      widening; /**< Nonzero while a held tap is taking words. */
+    /**
+     * Nonzero when the finger that just lifted was doing one of those, or
+     * holding a grip.
+     *
+     * A lift that ends a gesture is also a click, and the click would place
+     * the caret over whatever the gesture had just finished saying. Worked
+     * out when the finger lifts, because by the time the click arrives every
+     * one of those flags has already been cleared.
+     */
+    uint32_t      gestured;
+    /*
+     * The magnifier: an overlay of its own, opened when the hold begins and
+     * destroyed when the finger lifts, and a picture of this widget for it
+     * to show. The picture is taken once rather than every turn, because
+     * what it shows does not change while the finger moves -- only which
+     * piece of it is shown does.
+     */
+    schultz_handle magnifier;
+    schultz_handle picture;
+    /**
+     * The table that picture lives in, kept because a widget being destroyed
+     * is handed nothing but its own data and would otherwise have no way to
+     * give the picture back.
+     */
+    schultz_image_table *pictures;
     char    *composition; /**< In progress IME text, or NULL. */
     uint32_t multiline;   /**< Nonzero for a text area. */
     uint32_t lines;       /**< How many lines of height an area asks for. */
@@ -5973,6 +6283,19 @@ static const schultz_text_data *schultz_text_shown(
 }
 
 /* Turns an offset in the masked string back into one in the real text. */
+/* An offset in the text, as an offset into what is shown in its place. */
+static uint32_t schultz_text_shown_offset(const schultz_text_data *data,
+                                          uint32_t offset)
+{
+    char unit[4];
+
+    if (data->mask == 0u) {
+        return offset;
+    }
+    return schultz_text_char_index(data, offset) *
+           schultz_utf8_encode(data->mask, unit);
+}
+
 static uint32_t schultz_text_unshown_offset(const schultz_text_data *data,
                                             uint32_t shown)
 {
@@ -6866,6 +7189,15 @@ static float schultz_text_composition_width(schultz_tree *tree,
     return ime.width;
 }
 
+/*
+ * Declared here and defined below, because drawing the grips needs to know
+ * where an offset is and that needs the line walking further down the file.
+ */
+static void schultz_text_paint_grips(schultz_tree *tree, schultz_handle node,
+                                     schultz_draw_list *list,
+                                     const schultz_resolved_style *style,
+                                     const schultz_text_data *data);
+
 static int32_t schultz_text_paint(schultz_tree *tree, schultz_handle node,
                                   schultz_draw_list *list,
                                   schultz_arena *arena)
@@ -6886,6 +7218,15 @@ static int32_t schultz_text_paint(schultz_tree *tree, schultz_handle node,
     if (data == NULL ||
         schultz_node_absolute_bounds(tree, node, &bounds) != SCHULTZ_OK) {
         return SCHULTZ_OK;
+    }
+    /*
+     * The picture the magnifier shows is taken by drawing this widget, and it
+     * is drawn without a caret. The magnifier puts one where the lift will
+     * land; the one in the picture is where the finger arrived, and two in
+     * the same small pane give two different answers.
+     */
+    if (data->in_picture) {
+        focused = 0u;
     }
     result = schultz_widget_draw_box(list, style, bounds);
     if (result != SCHULTZ_OK) {
@@ -7010,7 +7351,13 @@ static int32_t schultz_text_paint(schultz_tree *tree, schultz_handle node,
     }
 
     schultz_draw_clip_end(list);
-    return schultz_widget_draw_focus_ring(list, style, bounds, state);
+    /*
+     * After the clip ends, because a grip hangs below the line it belongs to
+     * and the last line's grip is outside the content box.
+     */
+    schultz_text_paint_grips(tree, node, list, style, data);
+    result = schultz_widget_draw_focus_ring(list, style, bounds, state);
+    return result;
 }
 
 /* --------------------------------------------------------- editing input */
@@ -7388,6 +7735,652 @@ static int32_t schultz_text_key(schultz_tree *tree, schultz_handle node,
     return SCHULTZ_OK;
 }
 
+/*
+ * What a press at `at` selects, given how many came before it.
+ *
+ * One places the caret, two take the word under it, and three take the line,
+ * which in a single line field is everything it holds. The same three answers
+ * whichever pressed, because a finger tapping twice and a mouse clicking
+ * twice are asking for the same thing; only the event they arrive on differs.
+ *
+ * Sets the anchor and answers where the caret goes.
+ */
+/** How much bigger the magnifier draws what is under the finger. */
+#define SCHULTZ_MAGNIFIER_SCALE 2.0f
+
+/**
+ * @brief How wide the magnifier is, and how far it clears the line.
+ *
+ * Wide enough for a word or two at that magnification and no wider: the point
+ * is to see which two characters the caret is going between, not to read the
+ * paragraph. It sits clear of the line the caret is on, because a finger
+ * covers the very thing it is trying to place.
+ */
+#define SCHULTZ_MAGNIFIER_WIDTH 75.0f
+#define SCHULTZ_MAGNIFIER_GAP   10.0f
+
+/**
+ * @brief How much wider the pane is than the picture inside it, each side.
+ *
+ * As a share of the picture's height. Drawing clips a picture to a square
+ * and never to a rounded one, so a picture filling a rounded pane corner to
+ * corner has four square corners sticking out past the curve. Inset by about
+ * a fifth of its height, the corners fall inside a pane rounded to half its
+ * own height, and what is left over reads as the rim of a glass.
+ */
+#define SCHULTZ_MAGNIFIER_PAD 0.22f
+
+/**
+ * @brief How far above the line the top of the pane sits.
+ *
+ * The pane clears the line by the gap, and then by half its own height
+ * again. The gap alone is enough to see past a mouse pointer and nowhere
+ * near enough to see past a thumb, which covers a good deal more than the
+ * line it is resting on; lifted by half a pane, the whole of it is above the
+ * thumb instead of half behind it.
+ *
+ * Answered here rather than worked out twice, because the pane has to be
+ * inside the node's paint margin or the part of it above the widget is never
+ * repainted.
+ *
+ * @param line_height The height of the line the caret is on.
+ * @return How far above the top of that line the pane begins.
+ */
+static float schultz_text_magnifier_rise(float line_height)
+{
+    float tall = line_height * SCHULTZ_MAGNIFIER_SCALE;
+    float pad  = tall * SCHULTZ_MAGNIFIER_PAD;
+
+    return SCHULTZ_MAGNIFIER_GAP + tall + (tall + pad * 2.0f) * 0.5f + pad;
+}
+
+/*
+ * Takes the picture the magnifier shows.
+ *
+ * Once, when the hold begins. What the widget looks like does not change
+ * while a finger slides along it -- only which piece of it is under the
+ * finger does -- so this is a still, and moving the finger only moves the
+ * window onto it. Taking it every turn would be a render and an allocation
+ * of the whole widget thirty times a second.
+ *
+ * Quietly does nothing when there is no image table or the render fails. The
+ * caret still moves; there is simply no glass over it, which is a better
+ * answer than refusing the gesture.
+ */
+/*
+ * How many pixels of picture there are to each unit the magnifier draws.
+ *
+ * The magnification, times whatever a unit is worth on this screen. Leave the
+ * screen out of it and the picture is taken at a third of the size it will be
+ * shown at on a phone, and the letters it exists to make readable come out
+ * softer than the ones behind it.
+ */
+static float schultz_text_magnifier_pixels(const schultz_tree *tree)
+{
+    return SCHULTZ_MAGNIFIER_SCALE * schultz_tree_pixel_scale(tree);
+}
+
+static void schultz_text_take_picture(schultz_tree *tree, schultz_handle node,
+                                      schultz_text_data *data)
+{
+    schultz_image_table *images =
+        (schultz_image_table *)schultz_tree_image_table(tree);
+    schultz_render_options options;
+    uint32_t *pixels;
+    uint32_t width = 0u;
+    uint32_t height = 0u;
+    int32_t taken;
+
+    if (images == NULL ||
+        schultz_render_size(tree, node,
+                            schultz_text_magnifier_pixels(tree),
+                            &width, &height) != SCHULTZ_OK ||
+        width == 0u || height == 0u) {
+        return;
+    }
+    pixels = (uint32_t *)calloc((size_t)width * height, sizeof(*pixels));
+    if (pixels == NULL) {
+        return;
+    }
+    memset(&options, 0, sizeof(options));
+    options.fonts      = (schultz_font_system *)schultz_tree_font_system(tree);
+    options.glyphs     = (schultz_glyph_cache *)schultz_tree_glyph_cache(tree);
+    options.images     = images;
+    options.resources  = (schultz_resource_table *)schultz_tree_resources(tree);
+    /* Opaque, because the magnifier is a solid thing held over the text and
+     * anything showing through it would read as a bug. */
+    options.background = schultz_resolved_color(schultz_widget_style(tree,
+                                                                     node),
+                                                SCHULTZ_PROP_BACKGROUND);
+    /*
+     * Taken at the size it will be shown at, not at the widget's own size.
+     * A picture taken small and then blown up is a blurred picture, and the
+     * whole point of this is to read the letters.
+     */
+    /* Drawn without its caret: the magnifier draws that one itself. */
+    data->in_picture = 1u;
+    taken = schultz_render_to_buffer(tree, node,
+                                     schultz_text_magnifier_pixels(tree),
+                                     &options, pixels, width, height, 0u);
+    data->in_picture = 0u;
+    if (taken == SCHULTZ_OK) {
+        schultz_handle fresh = SCHULTZ_HANDLE_NONE;
+
+        if (schultz_image_set_pixels(images, pixels, width, height, 0u,
+                                     &fresh) == SCHULTZ_OK) {
+            if (data->picture != SCHULTZ_HANDLE_NONE) {
+                schultz_image_unload(images, data->picture);
+            }
+            data->picture = fresh;
+            data->pictures  = images;
+        }
+    }
+    free(pixels);
+}
+
+/* Puts the picture away again. */
+static void schultz_text_drop_picture(schultz_tree *tree,
+                                      schultz_text_data *data)
+{
+    schultz_image_table *images =
+        (schultz_image_table *)schultz_tree_image_table(tree);
+
+    if (data->picture != SCHULTZ_HANDLE_NONE && images != NULL) {
+        schultz_image_unload(images, data->picture);
+    }
+    data->picture = SCHULTZ_HANDLE_NONE;
+    data->pictures  = NULL;
+}
+
+/*
+ * Stops a press being timed, whatever it was going to become.
+ *
+ * Called when the finger moves too far, when it lifts, and when the hold has
+ * finished and turned into something else.
+ */
+static void schultz_text_stop_hold(schultz_tree *tree, schultz_handle node,
+                                   schultz_text_data *data)
+{
+    if (!data->holding) {
+        return;
+    }
+    data->holding = 0u;
+    data->held_ms = 0u;
+    schultz_node_set_animating(tree, node, 0);
+}
+
+/* Ends the caret-placing gesture and takes the magnifier away with it. */
+static void schultz_text_stop_placing(schultz_tree *tree, schultz_handle node,
+                                      schultz_text_data *data)
+{
+    if (!data->placing) {
+        return;
+    }
+    data->placing = 0u;
+    schultz_text_drop_picture(tree, data);
+    if (data->magnifier != SCHULTZ_HANDLE_NONE) {
+        schultz_overlay_show(tree, data->magnifier, 0, 0);
+        schultz_node_destroy(tree, data->magnifier);
+        data->magnifier = SCHULTZ_HANDLE_NONE;
+    }
+    schultz_node_set_paint_margin(tree, node, data->grips
+                                      ? SCHULTZ_TOUCH_GRIP * 2.0f : 0.0f);
+    schultz_node_invalidate(tree, node);
+}
+
+/*
+ * Where a byte offset sits on the screen, which is what a grip needs.
+ *
+ * The inverse of schultz_text_offset_at, walking the same lines the same way
+ * so that a point turned into an offset and back lands where it started.
+ * Answers the top of the line the offset is on and how tall that line is,
+ * because a grip hangs below its line rather than beside its character.
+ *
+ * Absolute coordinates, the same as painting uses. Answers zero when the text
+ * cannot be shaped, and the caller draws and hits nothing.
+ */
+static int32_t schultz_text_point_for(schultz_tree *tree, schultz_handle node,
+                                      const schultz_text_data *data,
+                                      uint32_t offset, float *out_x,
+                                      float *out_top, float *out_height)
+{
+    const schultz_resolved_style *style = schultz_widget_style(tree, node);
+    schultz_font_system *fonts =
+        (schultz_font_system *)schultz_tree_font_system(tree);
+    schultz_handle font = schultz_text_font(tree, node);
+    schultz_rect bounds;
+    schultz_rect content;
+    schultz_arena scratch;
+    schultz_font_metrics metrics;
+    int32_t found = 0;
+
+    if (fonts == NULL || font == SCHULTZ_HANDLE_NONE ||
+        schultz_font_get_metrics(fonts, font, &metrics) != SCHULTZ_OK ||
+        schultz_node_absolute_bounds(tree, node, &bounds) != SCHULTZ_OK) {
+        return 0;
+    }
+    content = schultz_text_content(style, bounds);
+    if (schultz_arena_init(&scratch, 0) != SCHULTZ_OK) {
+        return 0;
+    }
+
+    if (!data->multiline) {
+        schultz_text_run run;
+        schultz_text_data mask_view;
+        const schultz_text_data *shown = schultz_text_shown(data, &mask_view);
+        schultz_text_piece *pieces = NULL;
+        uint32_t piece_count = schultz_text_widget_pieces(fonts, data, shown,
+                                                          font, &scratch,
+                                                          &pieces);
+        uint32_t at = schultz_text_shown_offset(data, offset);
+
+        if (schultz_text_shape_pieces(fonts, pieces, piece_count, font,
+                                      shown->text, (int32_t)shown->length,
+                                      SCHULTZ_DIR_AUTO, &scratch,
+                                      &run) == SCHULTZ_OK) {
+            *out_x      = content.x - data->scroll_x +
+                          schultz_text_caret_x(&run, at);
+            *out_top    = content.y;
+            *out_height = content.height;
+            found = 1;
+        }
+    } else {
+        const schultz_text_line *lines;
+        schultz_text_piece *pieces = NULL;
+        schultz_text_piece *line_pieces = NULL;
+        uint32_t piece_count;
+        uint32_t count = 0;
+
+        piece_count = schultz_spans_pieces(fonts, data->spans,
+                                           data->span_count, font, &scratch,
+                                           &pieces);
+        if (piece_count > 0u) {
+            line_pieces = (schultz_text_piece *)schultz_arena_alloc(
+                &scratch, (size_t)piece_count * sizeof(*line_pieces),
+                _Alignof(schultz_text_piece));
+            if (line_pieces == NULL) {
+                piece_count = 0u;
+            }
+        }
+        if (schultz_text_wrap_pieces(fonts, pieces, piece_count, font,
+                                     data->text, (int32_t)data->length,
+                                     content.width, &scratch, &lines, &count)
+                == SCHULTZ_OK && count > 0u) {
+            schultz_text_run run;
+            uint32_t i;
+            uint32_t on_line = 0u;
+
+            /*
+             * The last line the offset is not past the end of. An offset that
+             * is the end of one line and the start of the next belongs to the
+             * first, which is where a person who selected up to there sees
+             * the grip.
+             */
+            for (i = count; i > 0u; i--) {
+                if (offset >= lines[i - 1u].start) {
+                    break;
+                }
+            }
+            i = (i > 0u) ? (i - 1u) : 0u;
+            if (line_pieces != NULL) {
+                on_line = schultz_pieces_on_line(pieces, piece_count,
+                                                 lines[i].start, lines[i].end,
+                                                 line_pieces);
+            }
+            if (schultz_text_shape_pieces(fonts, line_pieces, on_line, font,
+                                          data->text + lines[i].start,
+                                          (int32_t)(lines[i].end -
+                                                    lines[i].start),
+                                          SCHULTZ_DIR_AUTO, &scratch, &run)
+                    == SCHULTZ_OK) {
+                uint32_t in_line = (offset > lines[i].start)
+                                       ? (offset - lines[i].start) : 0u;
+
+                if (in_line > lines[i].end - lines[i].start) {
+                    in_line = lines[i].end - lines[i].start;
+                }
+                *out_x      = content.x + schultz_text_caret_x(&run, in_line);
+                *out_top    = content.y + metrics.line_height * (float)i
+                              - data->scroll_y;
+                *out_height = metrics.line_height;
+                found = 1;
+            }
+        }
+    }
+
+    schultz_arena_free(&scratch);
+    return found;
+}
+
+/* The two ends of the selection, lowest first. */
+static uint32_t schultz_text_low(const schultz_text_data *data)
+{
+    return (data->anchor < data->caret) ? data->anchor : data->caret;
+}
+
+static uint32_t schultz_text_high(const schultz_text_data *data)
+{
+    return (data->anchor > data->caret) ? data->anchor : data->caret;
+}
+
+/*
+ * Shows the grips, and widens what repainting covers so they are not cut off.
+ *
+ * They hang below the last line, which is outside the node, and a widget that
+ * paints past its own bounds has to say so or the part outside is never
+ * repainted when it changes.
+ */
+static void schultz_text_show_grips(schultz_tree *tree, schultz_handle node,
+                                    schultz_text_data *data)
+{
+    data->grips = 1u;
+    schultz_node_set_paint_margin(tree, node, SCHULTZ_TOUCH_GRIP * 2.0f);
+}
+
+/* Takes them away again, and with them the margin they needed. */
+static void schultz_text_hide_grips(schultz_tree *tree, schultz_handle node,
+                                    schultz_text_data *data)
+{
+    if (data->grips == 0u && data->grip == 0u) {
+        return;
+    }
+    data->grips = 0u;
+    data->grip  = 0u;
+    schultz_node_set_paint_margin(tree, node, 0.0f);
+    schultz_node_invalidate(tree, node);
+}
+
+/*
+ * Where one grip sits, as the circle it is drawn as.
+ *
+ * One function so that drawing a grip and pressing one cannot disagree about
+ * where it is, and so the clamp below is decided once.
+ *
+ * Where it lands, and why it is kept inside the widget, is schultz_grip_rect:
+ * the same one the label's grips go through, because they are the same grip.
+ *
+ * @param which 1 for the start of the selection, 2 for the end.
+ * @return Nonzero when there is a grip to place.
+ */
+static int32_t schultz_text_grip_rect(schultz_tree *tree, schultz_handle node,
+                                      const schultz_text_data *data,
+                                      uint32_t which, schultz_rect *out_rect)
+{
+    schultz_rect bounds;
+    float x = 0.0f;
+    float top = 0.0f;
+    float height = 0.0f;
+    uint32_t at;
+
+    if (schultz_text_low(data) == schultz_text_high(data) ||
+        schultz_node_absolute_bounds(tree, node, &bounds) != SCHULTZ_OK) {
+        return 0;
+    }
+    at = (which == 1u) ? schultz_text_low(data) : schultz_text_high(data);
+    if (!schultz_text_point_for(tree, node, data, at, &x, &top, &height)) {
+        return 0;
+    }
+    *out_rect = schultz_grip_rect(x, top, height, bounds);
+    return 1;
+}
+
+/* Which grip a finger landed on, or zero for neither. */
+static uint32_t schultz_text_grip_at(schultz_tree *tree, schultz_handle node,
+                                     const schultz_text_data *data,
+                                     schultz_point local)
+{
+    schultz_rect bounds;
+    uint32_t which;
+
+    if (!data->grips ||
+        schultz_node_absolute_bounds(tree, node, &bounds) != SCHULTZ_OK) {
+        return 0u;
+    }
+    for (which = 1u; which <= 2u; which++) {
+        schultz_rect rect;
+
+        if (schultz_text_grip_rect(tree, node, data, which, &rect) &&
+            schultz_grip_holds(rect,
+                schultz_point_make(bounds.x + local.x,
+                                   bounds.y + local.y))) {
+            return which;
+        }
+    }
+    return 0u;
+}
+
+/* Moves one end of the selection and leaves the other where it is. */
+static void schultz_text_move_end(schultz_tree *tree, schultz_handle node,
+                                  schultz_text_data *data, uint32_t which,
+                                  uint32_t to)
+{
+    uint32_t low = schultz_text_low(data);
+    uint32_t high = schultz_text_high(data);
+
+    if (which == 1u) {
+        /*
+         * Dragging the start past the end turns the selection inside out.
+         * Held at one character instead, because a selection that flips
+         * under the finger is a selection nobody can aim.
+         */
+        data->anchor = (to < high) ? to : high;
+        data->caret  = high;
+    } else {
+        data->anchor = low;
+        data->caret  = (to > low) ? to : low;
+    }
+    schultz_text_move(tree, node, data, data->caret, 1u);
+}
+
+/* Draws the two grips, below the lines their ends sit on. */
+static void schultz_text_paint_grips(schultz_tree *tree, schultz_handle node,
+                                     schultz_draw_list *list,
+                                     const schultz_resolved_style *style,
+                                     const schultz_text_data *data)
+{
+    schultz_paint paint;
+    uint32_t e;
+
+    if (!data->grips) {
+        return;
+    }
+    paint = schultz_resolved_paint(style, SCHULTZ_PROP_SELECTION_COLOR);
+    for (e = 1u; e <= 2u; e++) {
+        schultz_rect rect;
+
+        if (schultz_text_grip_rect(tree, node, data, e, &rect)) {
+            schultz_draw_fill_ellipse(list, rect, paint);
+        }
+    }
+}
+
+static uint32_t schultz_text_select_by_count(schultz_text_data *data,
+                                             uint32_t at, uint32_t count)
+{
+    if (count >= 3u) {
+        data->anchor = data->multiline
+            ? schultz_line_start(data->text, at) : 0u;
+        return data->multiline
+            ? schultz_line_end(data->text, data->length, at)
+            : data->length;
+    }
+    if (count == 2u) {
+        /*
+         * The word the press landed in, not the next one: stepping forward
+         * from the character before it lands on the end of the word the
+         * caret is inside.
+         */
+        data->anchor = schultz_word_prev(data->text,
+            schultz_word_next(data->text, data->length, at));
+        return schultz_word_next(data->text, data->length, data->anchor);
+    }
+    data->anchor = at;
+    return at;
+}
+
+/*
+ * Puts the magnifier where the caret is, and fills in what it shows.
+ *
+ * Every turn the caret moves, because the pane follows it. Placing it is not
+ * painting it: the pane is an overlay node of its own, so where it sits is
+ * its bounds, set here, and the drawing happens later when the root's
+ * children are painted -- which is the point of the arrangement, since that
+ * is outside every clip and after everything else.
+ *
+ * The picture was taken when the hold began, so all that changes as the
+ * finger moves is which piece of it is shown.
+ */
+static void schultz_text_place_magnifier(schultz_tree *tree,
+                                         schultz_handle node,
+                                         schultz_text_data *data)
+{
+    const schultz_resolved_style *style = schultz_widget_style(tree, node);
+    schultz_magnifier_data *glass;
+    schultz_rect bounds;
+    schultz_rect root;
+    schultz_rect pane;
+    schultz_rect source;
+    float pad;
+    float shot;
+    float caret_x = 0.0f;
+    float line_top = 0.0f;
+    float line_height = 0.0f;
+    float local_x;
+    float local_y;
+
+    if (data->magnifier == SCHULTZ_HANDLE_NONE ||
+        data->picture == SCHULTZ_HANDLE_NONE ||
+        schultz_node_absolute_bounds(tree, node, &bounds) != SCHULTZ_OK ||
+        schultz_node_absolute_bounds(tree, schultz_tree_root(tree), &root)
+            != SCHULTZ_OK ||
+        !schultz_text_point_for(tree, node, data, data->caret, &caret_x,
+                                &line_top, &line_height)) {
+        return;
+    }
+    glass = (schultz_magnifier_data *)schultz_node_widget_data(
+                tree, data->magnifier);
+    if (glass == NULL) {
+        return;
+    }
+    /*
+     * Above the line rather than above the finger, and well clear of it: a
+     * thumb covers the line whose caret is being placed and a good deal
+     * above it. Kept within the widget from side to side so it is not half
+     * off the edge; above the top it is nobody's business but the window's.
+     */
+    pad  = line_height * SCHULTZ_MAGNIFIER_SCALE * SCHULTZ_MAGNIFIER_PAD;
+    pane = schultz_rect_make(
+        caret_x - SCHULTZ_MAGNIFIER_WIDTH * 0.5f - pad,
+        line_top - schultz_text_magnifier_rise(line_height),
+        SCHULTZ_MAGNIFIER_WIDTH + pad * 2.0f,
+        line_height * SCHULTZ_MAGNIFIER_SCALE + pad * 2.0f);
+    if (pane.x < bounds.x) {
+        pane.x = bounds.x;
+    }
+    if (pane.x + pane.width > bounds.x + bounds.width) {
+        pane.x -= (pane.x + pane.width) - (bounds.x + bounds.width);
+    }
+
+    /*
+     * Which piece of the picture to show: one line of it, centred on the
+     * caret. Exactly one line, because a taller piece would show halves of
+     * its neighbours, and the question being answered is which two
+     * characters on *this* line the caret is going between.
+     *
+     * In the picture's own pixels, which are magnified ones: it was taken at
+     * the size it is shown at. A place on the screen becomes a place in the
+     * picture by taking the widget's own corner off it.
+     */
+    shot    = schultz_text_magnifier_pixels(tree);
+    local_x = caret_x - bounds.x;
+    local_y = line_top - bounds.y;
+    source  = schultz_rect_make(
+        (local_x - (SCHULTZ_MAGNIFIER_WIDTH / SCHULTZ_MAGNIFIER_SCALE) *
+                       0.5f) * shot,
+        local_y * shot,
+        (SCHULTZ_MAGNIFIER_WIDTH / SCHULTZ_MAGNIFIER_SCALE) * shot,
+        line_height * shot);
+
+    glass->picture  = data->picture;
+    glass->source   = source;
+    glass->rim      = pad;
+    /*
+     * Where the caret goes, worked out from the mapping the picture is drawn
+     * with rather than from the middle of the pane, because the pane is
+     * pushed sideways near an edge and the caret has to stay with the
+     * letters it sits between.
+     */
+    glass->caret_at = (local_x * shot - source.x) *
+                      (SCHULTZ_MAGNIFIER_WIDTH / source.width);
+    glass->caret_width = SCHULTZ_CARET_WIDTH * SCHULTZ_MAGNIFIER_SCALE;
+    /* In the colours of the text it belongs to, not of whatever is behind. */
+    glass->face = schultz_resolved_paint(style, SCHULTZ_PROP_BACKGROUND);
+    glass->ink  = schultz_resolved_paint(style, SCHULTZ_PROP_TEXT_COLOR);
+    glass->edge = schultz_stroke_make(
+        schultz_resolved_paint(style, SCHULTZ_PROP_BORDER_COLOR), 1.0f);
+
+    /* Bounds are a parent's coordinates, and the parent is the root. */
+    schultz_node_set_bounds(tree, data->magnifier,
+        schultz_rect_make(pane.x - root.x, pane.y - root.y,
+                          pane.width, pane.height));
+    schultz_node_invalidate(tree, data->magnifier);
+}
+
+/*
+ * A finger resting still, counted turn by turn.
+ *
+ * Two gestures begin with a press that does not move. One tap held becomes
+ * the caret being placed under a magnifier; a second tap held becomes the
+ * selection being widened by the word. Which one this is was decided when
+ * the press landed; this only waits out the clock.
+ */
+static int32_t schultz_text_tick(schultz_tree *tree, schultz_handle node,
+                                 uint64_t now_ms, uint32_t elapsed_ms)
+{
+    schultz_text_data *data =
+        (schultz_text_data *)schultz_node_widget_data(tree, node);
+
+    (void)now_ms;
+    if (data == NULL || !data->holding) {
+        return 0;
+    }
+    data->held_ms += elapsed_ms;
+    if (data->held_ms < SCHULTZ_TOUCH_HOLD_MS) {
+        return 0;
+    }
+    schultz_text_stop_hold(tree, node, data);
+
+    if (data->widening) {
+        /* The second tap is still down: from here the finger takes words. */
+        return 1;
+    }
+    /*
+     * One finger, held: the caret goes where it is and the magnifier opens
+     * over it. Nothing is selected, because a person who wanted a word would
+     * have tapped twice.
+     */
+    schultz_text_hide_grips(tree, node, data);
+    schultz_text_move(tree, node, data,
+        schultz_text_offset_at(tree, node, data, data->held_at), 0u);
+    data->placing     = 1u;
+    schultz_text_take_picture(tree, node, data);
+    /*
+     * The magnifier is a layer of its own, opened here and taken away when
+     * the finger lifts. Nothing is drawn if it cannot be opened: the caret
+     * still follows the finger, which is a better answer than refusing the
+     * gesture.
+     */
+    if (data->magnifier == SCHULTZ_HANDLE_NONE) {
+        schultz_magnifier_create(tree, &data->magnifier);
+    }
+    if (data->magnifier != SCHULTZ_HANDLE_NONE) {
+        schultz_text_place_magnifier(tree, node, data);
+        schultz_overlay_show(tree, data->magnifier, 1, 0);
+    }
+    schultz_node_invalidate(tree, node);
+    return 1;
+}
+
 static int32_t schultz_text_event(schultz_tree *tree, schultz_handle node,
                                   const schultz_event *event)
 {
@@ -7414,40 +8407,121 @@ static int32_t schultz_text_event(schultz_tree *tree, schultz_handle node,
          * taken goes no further, and the view that scrolls is above this.
          */
         if (event->source == SCHULTZ_POINTER_TOUCH) {
-            return 0;
-        }
-        at = schultz_text_offset_at(tree, node, data, event->local);
-
-        /*
-         * One press places the caret, two select the word under it, and
-         * three take the whole line, which is a field's entire contents.
-         */
-        if (event->click_count >= 3u) {
-            data->anchor = data->multiline
-                ? schultz_line_start(data->text, at) : 0u;
-            at = data->multiline
-                ? schultz_line_end(data->text, data->length, at)
-                : data->length;
-        } else if (event->click_count == 2u) {
             /*
-             * The word the press landed in, not the next one: stepping
-             * forward from the character before it lands on the end of the
-             * word the caret is inside.
+             * A grip is the one press a finger makes that cannot be a
+             * scroll: the person is holding a mark this widget put there, so
+             * taking it steals no gesture.
+             *
+             * Only the first press of a run, though. A grip sits close to
+             * the text it marks, so the second and third taps of a double or
+             * triple land on the grip the first one put there; taking those
+             * would mean a word could be selected and never a line.
+             *
+             * A label needs no such guard. Its click reads the tap count
+             * whatever its press decided, so the count still wins there; this
+             * one hands a click that ended a gesture straight back, which is
+             * what a grip grab would have made this look like.
              */
-            data->anchor = schultz_word_prev(data->text,
-                schultz_word_next(data->text, data->length, at));
-            at = schultz_word_next(data->text, data->length, data->anchor);
-        } else {
-            data->anchor = at;
+            data->grip = (event->click_count == 1u)
+                ? schultz_text_grip_at(tree, node, data, event->local) : 0u;
+            if (data->grip != 0u) {
+                return SCHULTZ_EVENT_CONSUMED;
+            }
+            /*
+             * Otherwise the press is timed, because what it becomes depends
+             * on how long it stays and that is not known yet. A second or
+             * third press held down widens the selection by the word; a
+             * first one held down places the caret under a magnifier.
+             *
+             * The press is not taken either way. A finger that moves is
+             * scrolling the page behind this, and a widget that took the
+             * press would have taken that gesture with it.
+             */
+            data->holding  = 1u;
+            data->held_ms  = 0u;
+            data->held_at  = event->local;
+            data->widening = (event->click_count >= 2u) ? 1u : 0u;
+            if (data->widening) {
+                at = schultz_text_offset_at(tree, node, data, event->local);
+                at = schultz_text_select_by_count(data, at,
+                                                  event->click_count);
+                schultz_text_move(tree, node, data, at, 1u);
+            }
+            schultz_node_set_animating(tree, node, 1);
+            return SCHULTZ_OK;
         }
+        /* A mouse has a pointer of its own and needs no grips. */
+        schultz_text_hide_grips(tree, node, data);
+        at = schultz_text_offset_at(tree, node, data, event->local);
+        at = schultz_text_select_by_count(data, at, event->click_count);
         schultz_text_move(tree, node, data, at, 1u);
         return SCHULTZ_EVENT_CONSUMED;
     }
+
+    case SCHULTZ_EVENT_MOUSE_UP:
+        /*
+         * A finger that travelled is never sent a click, so anything still
+         * running is ended here as well. Ending it twice is free; ending it
+         * never leaves a magnifier on the screen with nothing holding it.
+         */
+        if (event->source == SCHULTZ_POINTER_TOUCH) {
+            data->gestured = (data->placing || data->widening ||
+                              data->grip != 0u) ? 1u : 0u;
+            if (data->widening &&
+                schultz_text_low(data) != schultz_text_high(data)) {
+                schultz_text_show_grips(tree, node, data);
+            }
+            schultz_text_stop_hold(tree, node, data);
+            schultz_text_stop_placing(tree, node, data);
+            data->widening = 0u;
+            data->grip     = 0u;
+        }
+        return 0;
 
     case SCHULTZ_EVENT_DRAG:
         /* A finger dragging is a page being scrolled, not a selection being
          * made. Left alone, and left for whatever scrolls above. */
         if (event->source == SCHULTZ_POINTER_TOUCH) {
+            if (data->grip != 0u) {
+                schultz_text_move_end(tree, node, data, data->grip,
+                    schultz_text_offset_at(tree, node, data, event->local));
+                return SCHULTZ_EVENT_CONSUMED;
+            }
+            if (data->holding) {
+                /* Moved before the hold finished, so it was a scroll. */
+                if (schultz_distance(event->local.x, data->held_at.x) >
+                        SCHULTZ_TOUCH_HOLD_SLOP ||
+                    schultz_distance(event->local.y, data->held_at.y) >
+                        SCHULTZ_TOUCH_HOLD_SLOP) {
+                    schultz_text_stop_hold(tree, node, data);
+                    data->widening = 0u;
+                }
+                return 0;
+            }
+            if (data->placing) {
+                /* The caret follows the finger, and the glass follows it. */
+                schultz_text_move(tree, node, data,
+                    schultz_text_offset_at(tree, node, data, event->local),
+                    0u);
+                schultz_text_place_magnifier(tree, node, data);
+                return SCHULTZ_EVENT_CONSUMED;
+            }
+            if (data->widening) {
+                /*
+                 * A held second tap taking more. The end moves by whole
+                 * words, because a gesture that began by taking a word
+                 * should go on in the units it started with.
+                 */
+                uint32_t to = schultz_text_offset_at(tree, node, data,
+                                                     event->local);
+
+                if (to > data->anchor) {
+                    to = schultz_word_next(data->text, data->length,
+                                           schultz_word_prev(data->text, to));
+                }
+                schultz_text_move(tree, node, data, to, 1u);
+                return SCHULTZ_EVENT_CONSUMED;
+            }
             return 0;
         }
         schultz_text_move(tree, node, data,
@@ -7456,15 +8530,36 @@ static int32_t schultz_text_event(schultz_tree *tree, schultz_handle node,
 
     case SCHULTZ_EVENT_CLICK:
         /*
-         * Where a finger puts the caret. The router sends this only when the
-         * finger stayed still, so a tap places it and a swipe does not.
+         * What a finger does, which is decided on the lift rather than the
+         * press: the router sends this only when the finger stayed still, so
+         * a tap counts and a swipe is a scroll and says nothing.
+         *
+         * How many taps in a row decides what happens, the same as a mouse:
+         * one places the caret, two take the word, three take the line. Both
+         * platforms worth naming agree on those two and three, and until now
+         * a finger placed the caret however many times it tapped.
          */
         if (event->source == SCHULTZ_POINTER_TOUCH) {
-            uint32_t at = schultz_text_offset_at(tree, node, data,
-                                                 event->local);
+            uint32_t at;
 
-            data->anchor = at;
+            /*
+             * A finger that was holding a grip, placing the caret or taking
+             * words has already said what it meant, and the lift that ended
+             * it is not also a tap. The lift itself worked that out, because
+             * nothing is left of the gesture by the time this arrives.
+             */
+            if (data->gestured) {
+                data->gestured = 0u;
+                return SCHULTZ_EVENT_CONSUMED;
+            }
+            at = schultz_text_offset_at(tree, node, data, event->local);
+            at = schultz_text_select_by_count(data, at, event->click_count);
             schultz_text_move(tree, node, data, at, 1u);
+            if (schultz_text_low(data) != schultz_text_high(data)) {
+                schultz_text_show_grips(tree, node, data);
+            } else {
+                schultz_text_hide_grips(tree, node, data);
+            }
             return SCHULTZ_EVENT_CONSUMED;
         }
         return 0;
@@ -7528,6 +8623,10 @@ static void schultz_text_destroy(void *pointer)
     }
     for (i = 0; i < data->undo_count; i++) {
         schultz_undo_clear(&data->undo[i]);
+    }
+    /* A magnifier still open when the widget goes: give its picture back. */
+    if (data->pictures != NULL && data->picture != SCHULTZ_HANDLE_NONE) {
+        schultz_image_unload(data->pictures, data->picture);
     }
     schultz_spans_free(&data->spans, &data->span_count);
     free((void *)(uintptr_t)data->typing.link);
@@ -7635,13 +8734,13 @@ static const schultz_selectable_vtable schultz_text_selection_part = {
 
 static const schultz_widget_vtable schultz_text_field_widget = {
     .paint = schultz_text_paint, .event = schultz_text_event,
-    .destroy = schultz_text_destroy,
+    .tick = schultz_text_tick, .destroy = schultz_text_destroy,
     .selectable = &schultz_text_selection_part
 };
 
 static const schultz_widget_vtable schultz_text_area_widget = {
     .paint = schultz_text_paint, .event = schultz_text_event,
-    .destroy = schultz_text_destroy,
+    .tick = schultz_text_tick, .destroy = schultz_text_destroy,
     .selectable = &schultz_text_selection_part
 };
 

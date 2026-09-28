@@ -16,6 +16,8 @@
 #include "greatest.h"
 #include "schultz_font.h"
 #include "schultz_glyphs.h"
+#include "schultz_image.h"
+#include "schultz_render.h"
 #include "schultz_widgets.h"
 
 #define FONT_PATH "assets/fonts/DejaVuSans.ttf"
@@ -102,6 +104,8 @@ typedef struct {
     schultz_handle       font;
     schultz_theme        theme;
     fake_clipboard       board;
+    /* A tree that can hold pictures, which the magnifier needs. */
+    schultz_image_table *images;
 } text_fixture;
 
 static int32_t fixture_setup(text_fixture *f)
@@ -128,6 +132,12 @@ static int32_t fixture_setup(text_fixture *f)
         return result;
     }
     schultz_tree_set_font_system(f->tree, f->fonts);
+    schultz_tree_set_glyph_cache(f->tree, f->glyphs);
+    result = schultz_image_table_create(&f->images);
+    if (result != SCHULTZ_OK) {
+        return result;
+    }
+    schultz_tree_set_image_table(f->tree, f->images);
     schultz_theme_init(&f->theme);
     schultz_theme_set_font(&f->theme, SCHULTZ_TOKEN_FONT_BODY, f->font);
     schultz_tree_set_theme(f->tree, &f->theme);
@@ -153,6 +163,7 @@ static void fixture_teardown(text_fixture *f)
     schultz_tree_destroy(f->tree);
     schultz_glyph_cache_destroy(f->glyphs);
     schultz_font_system_destroy(f->fonts);
+    schultz_image_table_destroy(f->images);
 }
 
 static uint32_t paint_all(text_fixture *f)
@@ -1600,6 +1611,834 @@ TEST a_double_click_selects_a_word_and_a_triple_the_line(void)
     PASS();
 }
 
+/* The same as click_at, but with a finger. */
+static void tap_at(text_fixture *f, schultz_point at, uint64_t when)
+{
+    schultz_events_set_pointer_source(f->events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f->events, when);
+    schultz_events_mouse_move(f->events, at, 0);
+    schultz_events_mouse_button(f->events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_events_mouse_button(f->events, at, SCHULTZ_BUTTON_LEFT, 0, 0);
+}
+
+/*
+ * What a finger selects, which until now was nothing at all.
+ *
+ * A field takes neither the press nor the drag from a finger, on purpose:
+ * pressing would place a caret where a page was about to be scrolled, and
+ * throw a keyboard over what was being read. That leaves the tap as the only
+ * thing a finger can say to a field, and the tap ignored how many there had
+ * been, so two of them placed the caret twice. Both iPhone and Android select
+ * the word on the second and the line on the third.
+ */
+TEST two_taps_select_a_word_and_three_the_line(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    uint32_t low = 0;
+    uint32_t high = 0;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    /* Somewhere inside the middle word. */
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    tap_at(&f, at, 1000u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(low, high);       /* one tap only places the caret */
+
+    tap_at(&f, at, 1100u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(4u, low);
+    ASSERT_EQ(7u, high);        /* "two" */
+
+    tap_at(&f, at, 1200u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(0u, low);
+    ASSERT_EQ(13u, high);       /* a single line field holds one line */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* Too slow to be a second tap is a first one again, and places the caret. */
+TEST two_slow_taps_select_nothing(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    uint32_t low = 0;
+    uint32_t high = 0;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    tap_at(&f, at, 1000u);
+    tap_at(&f, at, 3000u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(low, high);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * A first press still selects nothing and is still not taken.
+ *
+ * This is the whole reason a field ignores a finger's press: the page behind
+ * it is scrolled by dragging from anywhere, including from inside a field,
+ * and a widget that answered the press would have swallowed that gesture and
+ * put a keyboard over what was being read.
+ */
+TEST a_first_press_selects_nothing_and_is_not_taken(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    uint32_t low = 9u;
+    uint32_t high = 9u;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(low, high);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * A second tap held down, then dragged, takes more words.
+ *
+ * The press of a second tap is not a scroll -- a scroll starts from a single
+ * finger landing once -- so this one can be taken, and it is the gesture
+ * Apple documents for selecting a block: double-tap, keep it down, and pull.
+ */
+TEST a_second_tap_held_and_dragged_takes_more_words(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    uint32_t low = 0;
+    uint32_t high = 0;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 0, 0);
+
+    /* The second press, which selects the word and stays down. */
+    schultz_events_set_time(f.events, 1100u);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(4u, low);
+    ASSERT_EQ(7u, high);        /* "two" */
+
+    /*
+     * Held long enough to be a hold, then pulled to the end. Twice, because
+     * the first advance is what sets the clock and no time has passed yet.
+     */
+    schultz_tree_advance(f.tree, 1000u);
+    schultz_tree_advance(f.tree, 1000u + 500u);
+    schultz_events_mouse_move(f.events,
+        schultz_point_make(box.x + box.width - 2.0f, at.y), 0);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(4u, low);
+    ASSERT_EQ(13u, high);       /* out to the end of "three", by the word */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * The grips a finger adjusts a selection with.
+ *
+ * A mouse drags the selection itself, because the pointer is precise and is
+ * not covering what it is aiming at. A finger is neither, so the two ends get
+ * targets that hang below the text where the fingertip does not hide them.
+ */
+TEST taps_that_select_put_grips_on_the_ends(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    /* One tap places a caret, and a caret has no ends to hold. */
+    tap_at(&f, at, 1000u);
+    paint_all(&f);
+    ASSERT_EQ(0u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE));
+
+    /* Two select a word, and that has two. */
+    tap_at(&f, at, 1100u);
+    paint_all(&f);
+    ASSERT_EQ(2u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE));
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* A mouse needs none of them, and using one puts them away. */
+TEST a_mouse_press_takes_the_grips_away(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    tap_at(&f, at, 1000u);
+    tap_at(&f, at, 1100u);
+    paint_all(&f);
+    ASSERT_EQ(2u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE));
+
+    /*
+     * A mouse that selects, not one that just places a caret: a caret has no
+     * ends and would draw no grips whatever this widget decided, so only a
+     * mouse selection can show that the grips were put away.
+     */
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_MOUSE);
+    click_at(&f, at, 5000u);
+    click_at(&f, at, 5100u);
+    {
+        uint32_t low = 0;
+        uint32_t high = 0;
+
+        ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low,
+                                                     &high));
+        ASSERT(high > low);     /* the mouse did select a word */
+    }
+    paint_all(&f);
+    ASSERT_EQ(0u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE));
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * Dragging the far grip extends the selection, and does so without the page
+ * moving: a press on a grip is the one press a finger makes that this widget
+ * takes, because the person is holding a mark the widget put there.
+ */
+TEST dragging_the_end_grip_extends_the_selection(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    schultz_point grip;
+    uint32_t low = 0;
+    uint32_t high = 0;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    tap_at(&f, at, 1000u);
+    tap_at(&f, at, 1100u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(4u, low);
+    ASSERT_EQ(7u, high);        /* "two" */
+    paint_all(&f);
+
+    /* The end grip sits under the text at the selection's far edge. */
+    {
+        uint32_t i;
+        schultz_rect far = schultz_rect_make(-1.0f, 0.0f, 0.0f, 0.0f);
+
+        for (i = 0; i < schultz_draw_list_count(&f.list); i++) {
+            const schultz_draw_cmd *cmd = schultz_draw_list_at(&f.list, i);
+
+            if (cmd->kind == (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE &&
+                cmd->as.fill_ellipse.rect.x > far.x) {
+                far = cmd->as.fill_ellipse.rect;
+            }
+        }
+        ASSERT(far.x >= 0.0f);
+        /* Its middle, taken from the circle itself rather than from a
+         * radius the test would have to be told. */
+        grip = schultz_point_make(far.x + far.width * 0.5f,
+                                  far.y + far.height * 0.5f);
+    }
+
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 2000u);
+    schultz_events_mouse_move(f.events, grip, 0);
+    schultz_events_mouse_button(f.events, grip, SCHULTZ_BUTTON_LEFT, 1, 0);
+    /* Out to the end of the last word. */
+    schultz_events_mouse_move(f.events,
+        schultz_point_make(box.x + box.width - 2.0f, grip.y), 0);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(4u, low);         /* the near end did not move */
+    ASSERT(high > 7u);          /* and the far one did */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* And the near grip moves the near end, leaving the far one alone. */
+TEST dragging_the_start_grip_extends_backwards(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    schultz_point grip;
+    uint32_t low = 0;
+    uint32_t high = 0;
+    uint32_t i;
+    schultz_rect near = schultz_rect_make(1e9f, 0.0f, 0.0f, 0.0f);
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    tap_at(&f, at, 1000u);
+    tap_at(&f, at, 1100u);
+    paint_all(&f);
+    for (i = 0; i < schultz_draw_list_count(&f.list); i++) {
+        const schultz_draw_cmd *cmd = schultz_draw_list_at(&f.list, i);
+
+        if (cmd->kind == (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE &&
+            cmd->as.fill_ellipse.rect.x < near.x) {
+            near = cmd->as.fill_ellipse.rect;
+        }
+    }
+    ASSERT(near.x < 1e9f);
+    grip = schultz_point_make(near.x + near.width * 0.5f,
+                              near.y + near.height * 0.5f);
+
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 2000u);
+    schultz_events_mouse_move(f.events, grip, 0);
+    schultz_events_mouse_button(f.events, grip, SCHULTZ_BUTTON_LEFT, 1, 0);
+    /* Back to the very start of the field. */
+    schultz_events_mouse_move(f.events,
+        schultz_point_make(box.x + 1.0f, grip.y), 0);
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(0u, low);         /* the near end moved back */
+    ASSERT_EQ(7u, high);        /* the far one stayed */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * One finger held still places the caret, and does not select.
+ *
+ * This is the half of the gesture set that iPhone and Android disagree on:
+ * Android selects the word. Placing the caret is kept because it answers the
+ * question a touch screen makes hard -- putting the caret exactly where you
+ * meant -- and because a person who wanted the word can still tap twice,
+ * which both platforms agree on. Selecting on a hold would take the precise
+ * gesture away and leave nothing in its place.
+ */
+TEST a_finger_held_still_places_the_caret_and_selects_nothing(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    uint32_t low = 0;
+    uint32_t high = 0;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+
+    /* Before the hold is up, nothing has happened at all. */
+    schultz_tree_advance(f.tree, 1000u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(low, high);
+
+    schultz_tree_advance(f.tree, 1000u + 500u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(low, high);       /* still nothing selected */
+    ASSERT(low > 0u);           /* but the caret moved to the finger */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* And the magnifier is over it while the finger is down, and gone after. */
+TEST the_magnifier_opens_on_a_hold_and_closes_on_the_lift(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    paint_all(&f);
+    ASSERT_EQ(0u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_IMAGE));
+
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_tree_advance(f.tree, 1000u);
+    schultz_tree_advance(f.tree, 1000u + 500u);
+
+    /* A picture of the field, drawn back enlarged over the caret. */
+    paint_all(&f);
+    ASSERT_EQ(1u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_IMAGE));
+
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 0, 0);
+    paint_all(&f);
+    ASSERT_EQ(0u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_IMAGE));
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* A finger that moves before the hold is up was scrolling, and is left be. */
+TEST a_finger_that_moves_early_neither_places_nor_magnifies(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    uint32_t low = 0;
+    uint32_t high = 0;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    /* Off it goes, well past the stray a hold allows. */
+    schultz_events_mouse_move(f.events,
+        schultz_point_make(at.x, at.y + 80.0f), 0);
+
+    schultz_tree_advance(f.tree, 1000u);
+    schultz_tree_advance(f.tree, 1000u + 500u);
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(low, high);
+    paint_all(&f);
+    ASSERT_EQ(0u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_IMAGE));
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * Touching a grip and letting go without moving it keeps the selection.
+ *
+ * The lift that ends a gesture is also a tap, and a tap places the caret,
+ * which would throw away the very selection the grip belongs to. A person
+ * who grabs a grip and thinks better of it should still have what they had.
+ */
+TEST letting_a_grip_go_without_moving_it_keeps_the_selection(void)
+{
+    text_fixture f;
+    schultz_handle field;
+    schultz_rect box;
+    schultz_point at;
+    schultz_point grip;
+    uint32_t low = 0;
+    uint32_t high = 0;
+    uint32_t i;
+    schultz_rect far = schultz_rect_make(-1.0f, 0.0f, 0.0f, 0.0f);
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    field = focused_field(&f, "one two three");
+    schultz_node_absolute_bounds(f.tree, field, &box);
+    at = schultz_point_make(box.x + 40.0f, box.y + box.height * 0.5f);
+
+    tap_at(&f, at, 1000u);
+    tap_at(&f, at, 1100u);
+    paint_all(&f);
+    for (i = 0; i < schultz_draw_list_count(&f.list); i++) {
+        const schultz_draw_cmd *cmd = schultz_draw_list_at(&f.list, i);
+
+        if (cmd->kind == (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE &&
+            cmd->as.fill_ellipse.rect.x > far.x) {
+            far = cmd->as.fill_ellipse.rect;
+        }
+    }
+    ASSERT(far.x >= 0.0f);
+    grip = schultz_point_make(far.x + far.width * 0.5f,
+                              far.y + far.height * 0.5f);
+
+    /* Down on the grip and straight back up, no movement at all. */
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 5000u);
+    schultz_events_mouse_move(f.events, grip, 0);
+    schultz_events_mouse_button(f.events, grip, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_events_mouse_button(f.events, grip, SCHULTZ_BUTTON_LEFT, 0, 0);
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_text_selection(f.tree, field, &low, &high));
+    ASSERT_EQ(4u, low);
+    ASSERT_EQ(7u, high);        /* "two", still there */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * What the magnifier shows, and where.
+ *
+ * Three things it got wrong at first, each visible only on a phone: it
+ * magnified a quarter of the whole widget rather than the words under the
+ * finger, it drew no caret so there was no telling which two characters the
+ * lift would land between, and the focus ring painted over the top of it.
+ */
+TEST the_magnifier_shows_one_line_above_it_with_a_caret(void)
+{
+    text_fixture f;
+    schultz_handle area = SCHULTZ_HANDLE_NONE;
+    schultz_rect box;
+    schultz_point at;
+    schultz_rect pane = schultz_rect_make(0, 0, 0, 0);
+    schultz_rect glass = schultz_rect_make(0, 0, 0, 0);
+    schultz_rect source = schultz_rect_make(0, 0, 0, 0);
+    schultz_rect caret = schultz_rect_make(-1.0f, 0, 0, 0);
+    schultz_rect line = schultz_rect_make(0, 0, 0, 0);
+    const schultz_draw_cmd *last = NULL;
+    uint32_t count;
+    uint32_t i;
+    float line_height;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    ASSERT_EQ(SCHULTZ_OK,
+              schultz_text_area_create(f.tree, schultz_tree_root(f.tree),
+                                       "one two three four five six seven "
+                                       "eight nine ten eleven twelve", &area));
+    place(&f, area, 20.0f, 40.0f, 362.0f, 90.0f);
+    schultz_events_set_focus(f.events, area);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, area, &box));
+
+    at = schultz_point_make(box.x + 140.0f, box.y + 30.0f);
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_tree_advance(f.tree, 1000u);
+    schultz_tree_advance(f.tree, 1000u + 500u);
+    paint_all(&f);
+
+    count = schultz_draw_list_count(&f.list);
+    for (i = 0; i < count; i++) {
+        const schultz_draw_cmd *c = schultz_draw_list_at(&f.list, i);
+
+        /*
+         * The widget's own caret, which is the narrow one: the magnifier
+         * draws a second at twice the width. It says where the line is.
+         */
+        if (c->kind == (uint32_t)SCHULTZ_DRAW_FILL_RECT &&
+            c->as.fill_rect.rect.width < 2.0f) {
+            line = c->as.fill_rect.rect;
+        }
+        if (c->kind != (uint32_t)SCHULTZ_DRAW_IMAGE) {
+            continue;
+        }
+        glass  = c->as.image.dest;
+        source = c->as.image.source;
+        /* The pane is drawn under the picture, the caret straight after it. */
+        if (i > 0u) {
+            const schultz_draw_cmd *u = schultz_draw_list_at(&f.list, i - 1u);
+
+            if (u->kind == (uint32_t)SCHULTZ_DRAW_FILL_ROUND_RECT) {
+                pane = u->as.fill_round_rect.rect;
+            }
+        }
+        if (i + 1u < count) {
+            const schultz_draw_cmd *n = schultz_draw_list_at(&f.list, i + 1u);
+
+            if (n->kind == (uint32_t)SCHULTZ_DRAW_FILL_RECT) {
+                caret = n->as.fill_rect.rect;
+            }
+        }
+    }
+    ASSERT(glass.width > 0.0f);
+
+    /* One line of text, not a slab of the widget. */
+    line_height = glass.height / 2.0f;    /* drawn at twice its own size */
+    ASSERT(line_height > 0.0f);
+    ASSERT(line_height < box.height / 2.0f);
+
+    /* Above the line it is placing into, clear of the finger. */
+    ASSERT(glass.y + glass.height < at.y);
+
+    /*
+     * And lifted clear of it by half a pane, because a thumb covers a good
+     * deal more than the line it is resting on.
+     */
+    ASSERT(line.height > 0.0f);
+    ASSERT(line.y - (pane.y + pane.height) >= pane.height * 0.4f);
+
+    /*
+     * The picture is taken at the size it is shown at, so one unit of it is
+     * drawn to one unit of screen. Taken any smaller and it is a blur.
+     */
+    ASSERT_IN_RANGE(glass.width * schultz_tree_pixel_scale(f.tree),
+                    source.width, 0.5f);
+
+    /*
+     * And it is inset within its pane, because a picture is clipped to a
+     * square and would otherwise poke its corners through the curve.
+     */
+    ASSERT(pane.width > glass.width);
+    ASSERT(glass.x - pane.x >= glass.height * 0.2f);
+    ASSERT(glass.y - pane.y >= glass.height * 0.2f);
+
+    /* A caret in it, inside the glass rather than beside it. */
+    ASSERT(caret.x >= glass.x);
+    ASSERT(caret.x <= glass.x + glass.width);
+    ASSERT_IN_RANGE(glass.y, caret.y, 0.5f);
+    ASSERT_IN_RANGE(glass.height, caret.height, 0.5f);
+
+    /* Nothing paints over it: its own outline closes the list. */
+    ASSERT(count > 0u);
+    last = schultz_draw_list_at(&f.list, count - 1u);
+    ASSERT_EQ((uint32_t)SCHULTZ_DRAW_STROKE_ROUND_RECT, last->kind);
+    ASSERT_IN_RANGE(pane.x, last->as.stroke_round_rect.rect.x, 0.5f);
+    ASSERT_IN_RANGE(pane.width, last->as.stroke_round_rect.rect.width, 0.5f);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * One caret in the magnifier, not two.
+ *
+ * The picture is of the widget as it stood when the finger landed, caret and
+ * all, and the magnifier draws another where the lift will put it. Both run
+ * the full height of the glass, so a picture taken with its own caret still
+ * in it shows two marks that give two different answers.
+ *
+ * Counted from the pixels, because what is inside the picture cannot be seen
+ * in the draw list: a column of ink from the top of the glass to the bottom
+ * is a caret, and no letter reaches that far.
+ */
+TEST only_one_caret_shows_in_the_magnifier(void)
+{
+    text_fixture f;
+    schultz_handle area = SCHULTZ_HANDLE_NONE;
+    schultz_handle root;
+    schultz_render_options options;
+    schultz_rect box;
+    schultz_point at;
+    schultz_rect glass = schultz_rect_make(0, 0, 0, 0);
+    uint32_t *pixels;
+    uint32_t width = 0u;
+    uint32_t height = 0u;
+    uint32_t i;
+    uint32_t x;
+    uint32_t bars = 0u;
+    uint32_t was_bar = 0u;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    root = schultz_tree_root(f.tree);
+    ASSERT_EQ(SCHULTZ_OK,
+              schultz_text_area_create(f.tree, root,
+                                       "one two three four five six seven "
+                                       "eight nine ten eleven twelve", &area));
+    schultz_node_set_bounds(f.tree, root, schultz_rect_make(0, 0, 402, 200));
+    place(&f, area, 20.0f, 60.0f, 362.0f, 90.0f);
+    schultz_events_set_focus(f.events, area);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, area, &box));
+
+    at = schultz_point_make(box.x + 140.0f, box.y + 30.0f);
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_tree_advance(f.tree, 1000u);
+    schultz_tree_advance(f.tree, 1000u + 500u);
+    /*
+     * And then dragged, which is the point: the picture keeps the caret
+     * where the finger landed while the real one follows the finger, so the
+     * two are in different places and both would show.
+     */
+    at = schultz_point_make(at.x + 8.0f, at.y);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_tree_advance(f.tree, 1000u + 600u);
+    paint_all(&f);
+
+    for (i = 0; i < schultz_draw_list_count(&f.list); i++) {
+        const schultz_draw_cmd *c = schultz_draw_list_at(&f.list, i);
+
+        if (c->kind == (uint32_t)SCHULTZ_DRAW_IMAGE) {
+            glass = c->as.image.dest;
+        }
+    }
+    ASSERT(glass.width > 0.0f);
+
+    /* The whole tree, so that the pane above the widget is in the picture. */
+    memset(&options, 0, sizeof(options));
+    options.fonts      = f.fonts;
+    options.glyphs     = f.glyphs;
+    options.images     = f.images;
+    options.background = schultz_color_rgba(0, 0, 0, 255);
+    ASSERT_EQ(SCHULTZ_OK, schultz_render_size(f.tree, root, 1.0f, &width,
+                                              &height));
+    pixels = (uint32_t *)calloc((size_t)width * height, sizeof(*pixels));
+    ASSERT(pixels != NULL);
+    ASSERT_EQ(SCHULTZ_OK, schultz_render_to_buffer(f.tree, root, 1.0f,
+                                                   &options, pixels, width,
+                                                   height, 0u));
+
+    /*
+     * Ink all the way down one column, counted in runs so that a caret two
+     * pixels wide counts once.
+     */
+    for (x = (uint32_t)(glass.x + 1.0f);
+         x + 1u < (uint32_t)(glass.x + glass.width) && x + 1u < width; x++) {
+        uint32_t y;
+        uint32_t solid = 1u;
+
+        for (y = (uint32_t)(glass.y + 1.0f);
+             y + 1u < (uint32_t)(glass.y + glass.height) && y + 1u < height;
+             y++) {
+            uint32_t pixel = pixels[(size_t)y * width + x];
+            uint32_t light = ((pixel >> 16) & 0xFFu) + ((pixel >> 8) & 0xFFu) +
+                             (pixel & 0xFFu);
+
+            if (light < 300u) {   /* dark: the pane, not the ink on it */
+                solid = 0u;
+                break;
+            }
+        }
+        if (solid && !was_bar) {
+            bars++;
+        }
+        was_bar = solid;
+    }
+    ASSERT_EQ(1u, bars);
+
+    free(pixels);
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * The magnifier is drawn outside every clip and after everything else.
+ *
+ * It used to be drawn by the text widget, which put it wherever that widget
+ * sat in the tree: inside a scroll view it was cut off at the scroll view's
+ * edge, and anything the page had above the text was drawn over the top of
+ * it. Painting follows the tree, so the only cure is to be somewhere else in
+ * it -- an overlay on the root, which is what this checks.
+ */
+TEST the_magnifier_escapes_the_clip_it_would_have_been_drawn_in(void)
+{
+    text_fixture f;
+    schultz_handle view = SCHULTZ_HANDLE_NONE;
+    schultz_handle content;
+    schultz_handle area = SCHULTZ_HANDLE_NONE;
+    schultz_handle header = SCHULTZ_HANDLE_NONE;
+    schultz_rect box;
+    schultz_point at;
+    uint32_t image = 0u;
+    uint32_t found = 0u;
+    uint32_t depth = 0u;
+    uint32_t deep_at_image = 99u;
+    uint32_t i;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    ASSERT_EQ(SCHULTZ_OK, schultz_scroll_view_create(f.tree,
+                    schultz_tree_root(f.tree), &view));
+    content = schultz_scroll_view_content(f.tree, view);
+    schultz_node_set_pane(f.tree, content, schultz_pane_vbox());
+    ASSERT_EQ(SCHULTZ_OK,
+              schultz_text_area_create(f.tree, content,
+                                       "one two three four five six seven "
+                                       "eight nine ten eleven twelve", &area));
+    schultz_node_set_pref_size(f.tree, area, 362.0f, 90.0f);
+    /* Fixed content above the scroll view, and drawn after it. */
+    ASSERT_EQ(SCHULTZ_OK, schultz_panel_create(f.tree,
+                    schultz_tree_root(f.tree), &header));
+    schultz_node_set_places_itself(f.tree, header, 1);
+    schultz_node_set_bounds(f.tree, header, schultz_rect_make(0, 0, 402, 60));
+
+    schultz_node_set_bounds(f.tree, schultz_tree_root(f.tree),
+                            schultz_rect_make(0, 0, 402, 300));
+    place(&f, view, 0.0f, 60.0f, 402.0f, 200.0f);
+    schultz_events_set_focus(f.events, area);
+    ASSERT_EQ(SCHULTZ_OK, schultz_node_absolute_bounds(f.tree, area, &box));
+
+    at = schultz_point_make(box.x + 140.0f, box.y + 20.0f);
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_set_time(f.events, 1000u);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_tree_advance(f.tree, 1000u);
+    schultz_tree_advance(f.tree, 1000u + 500u);
+    paint_all(&f);
+
+    for (i = 0; i < schultz_draw_list_count(&f.list); i++) {
+        const schultz_draw_cmd *c = schultz_draw_list_at(&f.list, i);
+
+        if (c->kind == (uint32_t)SCHULTZ_DRAW_CLIP_BEGIN) {
+            depth++;
+        } else if (c->kind == (uint32_t)SCHULTZ_DRAW_CLIP_END) {
+            depth--;
+        } else if (c->kind == (uint32_t)SCHULTZ_DRAW_IMAGE) {
+            image = i;
+            found = 1u;
+            deep_at_image = depth;
+        }
+    }
+    ASSERT(found);
+    /* Drawn with no clip in force, so no scroll view can cut it off. */
+    ASSERT_EQ(0u, deep_at_image);
+    /* And after everything else, so nothing above the text covers it. */
+    ASSERT(image + 2u >= schultz_draw_list_count(&f.list) - 1u);
+
+    fixture_teardown(&f);
+    PASS();
+}
+
 /* Too slow, or too far away, and it is a fresh single click. */
 TEST two_slow_or_distant_presses_are_two_single_clicks(void)
 {
@@ -1846,6 +2685,171 @@ TEST dragging_across_a_label_selects_what_was_crossed(void)
     /* The node holding a selection is where copy is aimed, since a block of
      * prose never takes focus. */
     ASSERT_EQ(node, schultz_tree_selection_owner(f.tree));
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * A label's grips are reachable, not just visible.
+ *
+ * They hang below the line their end sits on, and on a label sized to its one
+ * line that put them past the bottom edge. A paint margin let them be drawn
+ * there but does not widen hit testing, so the press went to whatever was
+ * behind the label and the grips were decoration: you could hold to select a
+ * word, watch two handles appear, drag one, and nothing moved.
+ *
+ * The same rule the editable field uses now keeps them inside.
+ */
+TEST a_labels_grips_can_be_pressed_and_dragged(void)
+{
+    text_fixture f;
+    schultz_handle node;
+    schultz_rect box;
+    schultz_point at;
+    schultz_point grip;
+    uint32_t start = 0;
+    uint32_t end = 0;
+    uint32_t moved_start = 0;
+    uint32_t moved_end = 0;
+    uint32_t i;
+    schultz_rect far = schultz_rect_make(-1.0f, 0.0f, 0.0f, 0.0f);
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    /* Tall enough for its one line and no more, which is the ordinary case. */
+    node = prose(&f, "one two three", 400.0f, 20.0f);
+    schultz_node_absolute_bounds(f.tree, node, &box);
+
+    /* Hold to select the middle word. */
+    at = schultz_point_make(40.0f, 8.0f);
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_TOUCH);
+    schultz_events_mouse_move(f.events, at, 0);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_tree_advance(f.tree, 1000u);
+    schultz_tree_advance(f.tree, 1000u + 500u);
+    schultz_events_mouse_button(f.events, at, SCHULTZ_BUTTON_LEFT, 0, 0);
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &start, &end));
+    ASSERT(end > start);
+
+    paint_all(&f);
+    for (i = 0; i < schultz_draw_list_count(&f.list); i++) {
+        const schultz_draw_cmd *cmd = schultz_draw_list_at(&f.list, i);
+
+        if (cmd->kind == (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE &&
+            cmd->as.fill_ellipse.rect.x > far.x) {
+            far = cmd->as.fill_ellipse.rect;
+        }
+    }
+    ASSERT(far.x >= 0.0f);
+    /* Inside the label, or the press below cannot reach it. */
+    ASSERT(far.y + far.height <= box.y + box.height);
+
+    grip = schultz_point_make(far.x + far.width * 0.5f,
+                              far.y + far.height * 0.5f);
+    schultz_events_set_time(f.events, 5000u);
+    schultz_events_mouse_move(f.events, grip, 0);
+    schultz_events_mouse_button(f.events, grip, SCHULTZ_BUTTON_LEFT, 1, 0);
+    schultz_events_mouse_move(f.events,
+        schultz_point_make(box.x + box.width - 2.0f, grip.y), 0);
+
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &moved_start,
+                                                  &moved_end));
+    ASSERT_EQ(start, moved_start);   /* the near end stayed */
+    ASSERT(moved_end > end);         /* and the far one was dragged out */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/*
+ * A label answers tap counts the way a text field does.
+ *
+ * Both used to be reachable only their own way: a field by tapping, a label
+ * by holding. Tapping twice means "the word under my finger" wherever it is
+ * done, so both understand it now. Three takes the whole label, which is a
+ * label's version of the line a field gives.
+ */
+TEST taps_on_a_label_select_a_word_then_everything(void)
+{
+    text_fixture f;
+    schultz_handle node;
+    schultz_point at;
+    uint32_t start = 9u;
+    uint32_t end = 9u;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    node = prose(&f, "one two three", 400.0f, 20.0f);
+    at = schultz_point_make(40.0f, 8.0f);
+
+    tap_at(&f, at, 1000u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &start, &end));
+    ASSERT_EQ(start, end);      /* one tap selects nothing */
+
+    tap_at(&f, at, 1100u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &start, &end));
+    ASSERT_EQ(4u, start);
+    ASSERT_EQ(7u, end);         /* "two" */
+
+    tap_at(&f, at, 1200u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &start, &end));
+    ASSERT_EQ(0u, start);
+    ASSERT_EQ(13u, end);        /* all of it */
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* And that selection gets grips, the same as one a hold made. */
+TEST taps_on_a_label_put_grips_on_the_ends(void)
+{
+    text_fixture f;
+    schultz_handle node;
+    schultz_point at;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    node = prose(&f, "one two three", 400.0f, 20.0f);
+    ASSERT(node != SCHULTZ_HANDLE_NONE);
+    at = schultz_point_make(40.0f, 8.0f);
+
+    tap_at(&f, at, 1000u);
+    paint_all(&f);
+    ASSERT_EQ(0u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE));
+
+    tap_at(&f, at, 1100u);
+    paint_all(&f);
+    ASSERT_EQ(2u, count_kind(&f, (uint32_t)SCHULTZ_DRAW_FILL_ELLIPSE));
+
+    fixture_teardown(&f);
+    PASS();
+}
+
+/* And a mouse gets the same three answers, from the same rule. */
+TEST clicks_on_a_label_select_a_word_then_everything(void)
+{
+    text_fixture f;
+    schultz_handle node;
+    schultz_point at;
+    uint32_t start = 9u;
+    uint32_t end = 9u;
+
+    ASSERT_EQ(SCHULTZ_OK, fixture_setup(&f));
+    node = prose(&f, "one two three", 400.0f, 20.0f);
+    at = schultz_point_make(40.0f, 8.0f);
+    schultz_events_set_pointer_source(f.events, SCHULTZ_POINTER_MOUSE);
+
+    click_at(&f, at, 1000u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &start, &end));
+    ASSERT_EQ(start, end);
+
+    click_at(&f, at, 1100u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &start, &end));
+    ASSERT_EQ(4u, start);
+    ASSERT_EQ(7u, end);         /* "two" */
+
+    click_at(&f, at, 1200u);
+    ASSERT_EQ(SCHULTZ_OK, schultz_label_selection(f.tree, node, &start, &end));
+    ASSERT_EQ(0u, start);
+    ASSERT_EQ(13u, end);        /* all of it */
 
     fixture_teardown(&f);
     PASS();
@@ -3746,6 +4750,21 @@ SUITE(text_widgets)
     RUN_TEST(a_bar_used_alone_reports_that_it_moved);
     RUN_TEST(the_character_just_typed_is_visible);
     RUN_TEST(a_double_click_selects_a_word_and_a_triple_the_line);
+    RUN_TEST(two_taps_select_a_word_and_three_the_line);
+    RUN_TEST(two_slow_taps_select_nothing);
+    RUN_TEST(a_first_press_selects_nothing_and_is_not_taken);
+    RUN_TEST(a_second_tap_held_and_dragged_takes_more_words);
+    RUN_TEST(a_finger_held_still_places_the_caret_and_selects_nothing);
+    RUN_TEST(the_magnifier_opens_on_a_hold_and_closes_on_the_lift);
+    RUN_TEST(the_magnifier_shows_one_line_above_it_with_a_caret);
+    RUN_TEST(only_one_caret_shows_in_the_magnifier);
+    RUN_TEST(the_magnifier_escapes_the_clip_it_would_have_been_drawn_in);
+    RUN_TEST(a_finger_that_moves_early_neither_places_nor_magnifies);
+    RUN_TEST(taps_that_select_put_grips_on_the_ends);
+    RUN_TEST(a_mouse_press_takes_the_grips_away);
+    RUN_TEST(dragging_the_end_grip_extends_the_selection);
+    RUN_TEST(dragging_the_start_grip_extends_backwards);
+    RUN_TEST(letting_a_grip_go_without_moving_it_keeps_the_selection);
     RUN_TEST(two_slow_or_distant_presses_are_two_single_clicks);
     RUN_TEST(without_a_clock_every_press_is_a_single_click);
     RUN_TEST(a_double_click_selects_one_line_of_an_area);
@@ -3800,6 +4819,10 @@ SUITE(text_widgets)
     RUN_TEST(destroying_the_owner_leaves_no_selection_behind);
     RUN_TEST(a_finger_selects_by_holding_still_and_not_by_dragging);
     RUN_TEST(a_finger_that_moves_off_never_starts_a_selection);
+    RUN_TEST(a_labels_grips_can_be_pressed_and_dragged);
+    RUN_TEST(taps_on_a_label_select_a_word_then_everything);
+    RUN_TEST(taps_on_a_label_put_grips_on_the_ends);
+    RUN_TEST(clicks_on_a_label_select_a_word_then_everything);
     RUN_TEST(a_mouse_does_not_wait_and_never_shows_grips);
     RUN_TEST(a_touch_selection_gets_a_grip_on_each_end);
     RUN_TEST(centred_text_sits_in_the_middle_of_its_width);

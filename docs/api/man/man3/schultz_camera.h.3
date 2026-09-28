@@ -54,9 +54,21 @@ schultz_camera.h \- The camera: finding one, opening it, and showing what it see
 .br
 .RI "Reports which way a camera points\&. "
 .ti -1c
-.RI "int32_t \fBschultz_camera_open\fP (uint64_t device, uint32_t width, uint32_t height, \fBschultz_camera\fP **out_camera)"
+.RI "uint32_t \fBschultz_camera_size_count\fP (uint64_t device)"
+.br
+.RI "How many sizes a camera offers\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_size_at\fP (uint64_t device, uint32_t index, uint32_t *out_width, uint32_t *out_height, uint32_t *out_rate)"
+.br
+.RI "Reads one of the sizes a camera offers\&. "
+.ti -1c
+.RI "int32_t \fBschultz_camera_open\fP (uint64_t device, uint32_t width, uint32_t height, uint32_t rate, \fBschultz_camera\fP **out_camera)"
 .br
 .RI "Opens a camera\&. "
+.ti -1c
+.RI "uint32_t \fBschultz_camera_rate\fP (const \fBschultz_camera\fP *camera)"
+.br
+.RI "How many pictures a second the camera settled on\&. "
 .ti -1c
 .RI "void \fBschultz_camera_close\fP (\fBschultz_camera\fP *camera)"
 .br
@@ -77,6 +89,10 @@ schultz_camera.h \- The camera: finding one, opening it, and showing what it see
 .RI "uint64_t \fBschultz_camera_frames_taken\fP (const \fBschultz_camera\fP *camera)"
 .br
 .RI "Counts the pictures taken since the camera was opened\&. "
+.ti -1c
+.RI "uint64_t \fBschultz_camera_frames_skipped\fP (const \fBschultz_camera\fP *camera)"
+.br
+.RI "Counts the pictures passed over to get to a newer one\&. "
 .ti -1c
 .RI "int32_t \fBschultz_camera_preview_create\fP (\fBschultz_tree\fP *tree, \fBschultz_handle\fP parent, \fBschultz_camera\fP *camera, \fBschultz_handle\fP *out_node)"
 .br
@@ -216,12 +232,54 @@ One of the SCHULTZ_CAMERA_FACING_* values\&.
 .RE
 .PP
 
-.SS "int32_t schultz_camera_open (uint64_t device, uint32_t width, uint32_t height, \fBschultz_camera\fP ** out_camera)"
+.SS "uint32_t schultz_camera_size_count (uint64_t device)"
 
 .PP
-Opens a camera\&. The size is what the pictures are wanted at\&. A camera that cannot produce it is asked for the nearest thing it can and the pictures are converted, so any reasonable size works; ask for what will be drawn rather than what the hardware has, and pass zero for both to take whatever the camera offers\&.
+How many sizes a camera offers\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIdevice\fP An identifier from schultz_camera_device\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The count, or zero when the camera will not say\&. A camera is allowed to answer nothing: on some platforms it tells nobody anything until it has been opened once\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_size_at (uint64_t device, uint32_t index, uint32_t * out_width, uint32_t * out_height, uint32_t * out_rate)"
+
+.PP
+Reads one of the sizes a camera offers\&. \fBAsk before opening\&.\fP A camera converts anything it is given, so opening at a size it does not have works and is the wrong thing to do twice over: the conversion is done in software on every frame, and a phone sensor's own size is enormous\&. A twelve megapixel frame is forty eight megabytes of pixels, which is measured in seconds per picture rather than pictures per second\&. Every phone offers something small natively; this is how to find it\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIdevice\fP An identifier from schultz_camera_device\&. 
+.br
+\fIindex\fP Which one, from zero to schultz_camera_size_count - 1\&. 
+.br
+\fIout_width\fP Receives the width\&. May be NULL\&. 
+.br
+\fIout_height\fP Receives the height\&. May be NULL\&. 
+.br
+\fIout_rate\fP Receives pictures per second, rounded, or zero where the camera did not say\&. May be NULL\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+SCHULTZ_OK, or SCHULTZ_ERR_INVALID_ARGUMENT when there is no such camera or no such index\&. 
+.RE
+.PP
+
+.SS "int32_t schultz_camera_open (uint64_t device, uint32_t width, uint32_t height, uint32_t rate, \fBschultz_camera\fP ** out_camera)"
+
+.PP
+Opens a camera\&. The size is what the pictures are wanted at\&. \fBChoose one the camera offers\fP, using schultz_camera_size_count and schultz_camera_size_at\&. A camera that cannot produce the size asked for converts every frame in software instead, which costs more than the drawing does and has been seen to produce a torn picture\&. Passing zero for both takes the camera's own size, which on a phone is the whole sensor and far larger than anything worth previewing\&.
 .PP
 Opening does not mean the camera is usable yet\&. See schultz_camera_permission\&.
+.PP
+\fBName a rate, or let this pick the fastest\&.\fP Passing zero here does not mean 'no preference' to the layer underneath: it reads an unset rate as zero and then chooses the rate closest to it, which is the \fIslowest\fP the camera offers\&. A phone lists the bottom of every range as well as the top, so that is often one picture a second, and the session is then pinned to it\&. This call therefore never leaves the rate unset: zero here means the fastest offered at the size chosen, and any other number is matched to the nearest the camera has\&.
 .PP
 \fBParameters\fP
 .RS 4
@@ -230,6 +288,8 @@ Opening does not mean the camera is usable yet\&. See schultz_camera_permission\
 \fIwidth\fP The width wanted, or zero for the camera's own\&. 
 .br
 \fIheight\fP The height wanted, or zero for the camera's own\&. 
+.br
+\fIrate\fP Pictures per second wanted, or zero for the fastest the camera offers at that size\&. 
 .br
 \fIout_camera\fP Receives the open camera\&. Must not be NULL\&. 
 .RE
@@ -240,10 +300,32 @@ SCHULTZ_OK, SCHULTZ_ERR_INVALID_ARGUMENT, SCHULTZ_ERR_OUT_OF_MEMORY, or SCHULTZ_
 .RE
 .PP
 
+.SS "uint32_t schultz_camera_rate (const \fBschultz_camera\fP * camera)"
+
+.PP
+How many pictures a second the camera settled on\&. What was actually negotiated, which is not always what was asked for\&. Zero until the camera has been allowed and has chosen, so a program that wants to show it asks again rather than once\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcamera\fP An open camera\&. NULL yields 0\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Pictures per second, rounded, or zero when it is not settled yet\&. 
+.RE
+.PP
+
 .SS "void schultz_camera_close (\fBschultz_camera\fP * camera)"
 
 .PP
 Closes a camera and releases it\&. Safe on NULL\&. The pixels from the last schultz_camera_frame belong to the camera and are gone after this\&.
+.PP
+\fBOn the thread that runs the tree\fP, this is safe to call while a preview is still showing the camera, and in any order with destroying that preview\&. A camera knows which previews are pointed at it and tells them when it goes, so a stop button needs no particular sequence\&. The preview keeps whatever it last drew on the screen and simply stops asking for more; point it somewhere else, or hide it, to clear that\&.
+.PP
+\fBFrom any other thread it is not safe, and the failure is quiet\&.\fP A preview reads its camera on every turn, and there is no lock between the two: closing from a worker while the tree is being advanced can free the camera between the turn's check and its use\&. What happens then is the platform's business -- on a desktop it faults, and on a phone it can block instead, inside a lock belonging to memory that has been handed back, which shows as an interface that never draws again rather than as a crash\&.
+.PP
+Close it from the thread that runs the window, like everything else that touches the tree\&. If the decision to stop is made elsewhere, carry it over as a message and act on it there\&.
 .PP
 \fBParameters\fP
 .RS 4
@@ -331,6 +413,24 @@ How many pictures have been handed over\&.
 .RE
 .PP
 
+.SS "uint64_t schultz_camera_frames_skipped (const \fBschultz_camera\fP * camera)"
+
+.PP
+Counts the pictures passed over to get to a newer one\&. A camera goes on producing whether or not anything is looking, and what matters to a preview is the newest picture rather than every picture\&. So asking for one takes whatever has piled up and answers with the last of them; the ones in front are counted here\&.
+.PP
+Which makes this the answer to 'is this program keeping up?'\&. Zero, or rising slowly, means it is\&. Rising as fast as the camera's own rate means every second picture is being passed over, and so on\&. It is the number to look at when a preview feels late rather than slow\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIcamera\fP An open camera\&. NULL yields zero\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+How many pictures have been passed over\&. 
+.RE
+.PP
+
 .SS "int32_t schultz_camera_preview_create (\fBschultz_tree\fP * tree, \fBschultz_handle\fP parent, \fBschultz_camera\fP * camera, \fBschultz_handle\fP * out_node)"
 
 .PP
@@ -341,6 +441,10 @@ It does the waiting for permission on the host's behalf\&. Before the answer com
 A node with no camera asks for no clock at all, so a preview that is not showing anything costs nothing\&.
 .PP
 The camera is not owned by the node\&. It must outlive it, and closing it while a node still points at it leaves the node showing its last picture\&.
+.PP
+\fBThe preview asks to be the shape of the pictures\&.\fP A camera's shape is not something a host can know in advance: a phone turns its pictures upright, so a stream that is sixteen by nine on the wire arrives nine by sixteen, and which it is depends on how the phone is being held\&. So when the shape changes the preview sets its own preferred height, from whatever width the host asked for and the picture's proportions\&. The width is left alone, because how wide to be is the host's decision\&.
+.PP
+A host that also fixes the height, or caps it with a maximum size, still wins: this is a preference and a maximum outranks it\&. That is also the reason a preview still letterboxed after all this is a host holding its height down\&.
 .PP
 \fBParameters\fP
 .RS 4

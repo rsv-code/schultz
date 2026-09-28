@@ -1,0 +1,68 @@
+Apple camera: keep the format that was chosen.
+
+SDL picks an AVCaptureDeviceFormat matching the spec the application asked
+for and assigns it to the device's activeFormat. Twenty lines later it sets
+the session's preset to AVCaptureSessionPresetHigh, and Apple's headers say
+those two are mutually exclusive:
+
+    On iOS, use of AVCaptureDevice's setActiveFormat: and AVCaptureSession's
+    setSessionPreset: are mutually exclusive. If you set the AVCaptureSession's
+    sessionPreset property, the session assumes control of its input devices,
+    and configures their activeFormat appropriately.
+
+So the chosen format is discarded and the device runs at whatever the preset
+means, which on an iPhone is 1920x1080. The size is then asked for again
+through AVCaptureVideoDataOutput's videoSettings, where the width and height
+keys are not reliably honoured and where the source's aspect ratio wins when
+they are. The frames that arrive are a different shape and size than the spec
+SDL believes it negotiated, and SDL goes on to convert each one using the
+size it expected rather than the size that came: too small and the
+destination keeps its zeroed remainder, too wide and each row runs into the
+next. Neither the conversion's result nor SDL_StretchSurface's is checked.
+
+Two changes, both in SDL_camera_coremedia.m:
+
+  - Ask for AVCaptureSessionPresetInputPriority, which is the documented way
+    to say "leave my device's format alone".
+  - Set activeFormat again after the input has been added, inside the same
+    lockForConfiguration that already re-applies the frame duration. Adding
+    an input is where the session reconfigures the device, which is why the
+    frame rate is already set twice in this function; the format needs the
+    same treatment and was missed. It goes first because setting a format
+    resets the frame duration to that format's default.
+
+Applies to SDL3-3.4.16. Both preset constants are old enough for the floors
+this project builds against (iOS 14, macOS 11). Drop this file when the fix
+is upstream.
+
+--- a/src/camera/coremedia/SDL_camera_coremedia.m
++++ b/src/camera/coremedia/SDL_camera_coremedia.m
+@@ -388,7 +388,11 @@
+         return SDL_SetError("Failed to allocate/init AVCaptureSession");
+     }
+ 
+-    session.sessionPreset = AVCaptureSessionPresetHigh;
++    // Input priority, so the session leaves the device's activeFormat
++    // alone. Any other preset makes the session take charge of its
++    // inputs and reconfigure them, throwing away the format chosen
++    // above.
++    session.sessionPreset = AVCaptureSessionPresetInputPriority;
+ #if defined(SDL_PLATFORM_IOS)
+     if (@available(iOS 10.0, tvOS 17.0, *)) {
+         session.automaticallyConfiguresCaptureDeviceForWideColor = NO;
+@@ -436,9 +440,14 @@
+     }
+     [session addOutput:output];
+ 
+-    // Try to set the frame rate on the device (preferred modern approach)
++    // Set the format and the frame rate on the device (preferred modern
++    // approach). Again, and after the input has been added: adding an input
++    // is where the session reconfigures the device, so anything set before
++    // that is gone by now. The format goes first because setting it resets
++    // the frame duration to that format's default.
+     if ([avdevice lockForConfiguration:nil]) {
+         @try {
++            avdevice.activeFormat = spec_format;
+             avdevice.activeVideoMinFrameDuration = frameDuration;
+             avdevice.activeVideoMaxFrameDuration = frameDuration;
+         } @catch (NSException *exception) {
